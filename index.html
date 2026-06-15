@@ -935,19 +935,22 @@ async function loadPertanyaan(){
 }
 
 async function loadTbItems(){
-  // Demo sudah di-render — load semua item asli dari Apps Script
+  // Demo sudah di-render di toStep2 — jangan reset kalau gagal
   try{
     const r=await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=toolbox_content&tipe_id='+encodeURIComponent(tbTipeId));
     const j=await r.json();
-    if(j.status==='ok'&&j.data?.toolbox_content){
-      // Ambil SEMUA item tanpa filter/limit
-      tbContent=j.data.toolbox_content;
-      tbAnswers={};
+    // Hanya update kalau data asli ADA dan tidak kosong
+    if(j.status==='ok' && j.data?.toolbox_content && j.data.toolbox_content.length > 0){
+      tbContent = j.data.toolbox_content;
+      // Pertahankan jawaban yang sudah diisi Inspector
+      // Jangan reset tbAnswers!
       renderTb();
-      document.getElementById('tbCount').textContent=tbContent.length+' item';
+      document.getElementById('tbCount').textContent = tbContent.length + ' item';
     }
+    // Kalau kosong atau gagal → demo data tetap tampil, tidak di-reset
   }catch(e){
-    console.log('Gagal load toolbox dari server, pakai demo data');
+    // Diam-diam pakai demo data yang sudah ada
+    console.log('Pakai demo data toolbox');
   }
 }
 
