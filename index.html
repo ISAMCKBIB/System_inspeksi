@@ -855,27 +855,6 @@ async function onAsset(v){
   h.innerHTML='➕ Aset baru — akan otomatis terdaftar ke MASTER_ASSET saat submit';
   h.className='hint new show';
 }
-  try{
-    const r=await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=asset_check&no_asset='+encodeURIComponent(v));
-    const j=await r.json();
-    if(j.data&&j.data.found){
-      const a=j.data.asset;
-      // Autocomplete nama, merk, no_register dari MASTER_ASSET
-      if(a.nama_alat) document.getElementById('namaAlat').value=a.nama_alat;
-      const merkEl=document.getElementById('merkAlat');
-      if(merkEl&&a.merk) merkEl.value=a.merk;
-      if(a.no_register) document.getElementById('noReg').value=a.no_register;
-      h.innerHTML='<strong>✅ Aset ditemukan — data terisi otomatis</strong><br>'+
-        '🔧 '+a.nama_alat+(a.merk?' · '+a.merk:'')+'<br>'+
-        '📋 No Register: '+(a.no_register||'—')+'<br>'+
-        '🕒 Terakhir inspeksi: '+(a.tgl_inspeksi_terakhir||'belum ada');
-      h.className='hint found show';
-      return;
-    }
-  }catch(e){}
-  h.innerHTML='➕ Aset baru — akan otomatis terdaftar ke MASTER_ASSET saat submit';
-  h.className='hint new show';
-}
 
 function resetTb(){
   document.getElementById('tbFields').style.display='none';
