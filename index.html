@@ -108,8 +108,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .hint.show{display:flex}
 
 /* PIC BOX */
-.pic-box{padding:10px 12px;border-radius:8px;margin-top:10px;background:var(--blue-bg);border:1px solid var(--blue-bd);font-size:13px;color:var(--blue);display:none;line-height:1.7}
+.pic-box{
+  padding:12px 14px;border-radius:8px;margin-top:10px;
+  background:var(--blue-bg);border:1.5px solid var(--blue-bd);
+  font-size:13px;color:var(--blue);display:none;line-height:1.8;
+}
 .pic-box.show{display:block}
+.pic-name{font-size:15px;font-weight:700;color:var(--blue)}
+.pic-email-warn{color:var(--red);font-size:12px;font-weight:600}
 
 /* MODE BAR */
 .mode-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);font-size:13px;color:var(--muted)}
@@ -161,7 +167,7 @@ tr.tb-ng td{background:var(--red-bg)}
 
 /* TOOLBOX TABLE */
 table.tbtbl th,table.tbtbl td{font-size:12px;padding:8px 8px}
-table.tbtbl{min-width:520px}
+table.tbtbl{min-width:480px}
 table.tbtbl input[type=number]{
   width:50px;text-align:center;font-size:14px;
   border:1.5px solid var(--border);border-radius:6px;
@@ -423,18 +429,24 @@ table.tbtbl input[type=text]{
 
     <!-- Non-toolbox -->
     <div id="nonTb">
-      <div class="field mb10">
-        <label>Nama Alat <span class="req">*</span></label>
-        <input type="text" id="namaAlat" placeholder="cth: Bor Listrik Makita">
-      </div>
-      <div class="g2">
+      <div class="g2 mb10">
         <div class="field">
-          <label>No Asset</label>
+          <label>No Asset <span class="req">*</span></label>
           <input type="text" id="noAsset" placeholder="AST-001" oninput="onAsset(this.value)" autocomplete="off">
         </div>
         <div class="field">
           <label>No Register</label>
           <input type="text" id="noReg" placeholder="REG-001" autocomplete="off">
+        </div>
+      </div>
+      <div class="g2 mb10">
+        <div class="field">
+          <label>Nama Alat <span class="req">*</span></label>
+          <input type="text" id="namaAlat" placeholder="cth: Bor Listrik Makita">
+        </div>
+        <div class="field">
+          <label>Merk</label>
+          <input type="text" id="merkAlat" placeholder="cth: Makita, Bosch">
         </div>
       </div>
       <div id="assetHint" class="hint"></div>
@@ -684,6 +696,9 @@ function onSub(){
   kS.innerHTML='<option value="">-- Pilih kategori --</option>';
   kS.disabled=false;
   resetTb();
+  // Reset PIC box saat subarea berubah
+  document.getElementById('picBox').className='pic-box';
+  document.getElementById('picBox').innerHTML='';
   (M.kategori||[]).filter(k=>k.aktif==='Y'||!k.aktif)
     .forEach(k=>{
       kS.innerHTML+=`<option value="${k.kategori_id}" data-tipe="${k.tipe_inspeksi||'CHECKLIST'}">${k.nama_kategori}</option>`;
@@ -781,6 +796,7 @@ function onTbTipe(){
 
 async function showPIC(sec){
   const subId=document.getElementById('subSel').value;
+  const subText=document.getElementById('subSel').options[document.getElementById('subSel').selectedIndex]?.text||'';
   if(!subId||!katId)return;
   let pic=null;
   try{
@@ -791,9 +807,24 @@ async function showPIC(sec){
     if(j.data?.pic) pic=j.data.pic;
   }catch(e){ pic=demoPIC(subId,katId,sec); }
   picInfo=pic;
+  const box=document.getElementById('picBox');
   if(pic){
-    const box=document.getElementById('picBox');
-    box.innerHTML=`🔵 <strong>PIC:</strong> ${pic.nama} ${pic.email?'('+pic.email+')':'<span style="color:var(--red)">⚠️ email belum diisi</span>'}${pic.is_delegate?'<br>↳ Menggantikan '+pic.original_nama+' (cuti)':''}`;
+    const emailInfo=pic.email
+      ?`<span style="color:var(--muted);font-size:12px">${pic.email}</span>`
+      :`<span class="pic-email-warn">⚠️ Email belum diisi di MASTER_EMPLOYEE</span>`;
+    const delegateInfo=pic.is_delegate
+      ?`<div style="font-size:12px;color:var(--yellow);margin-top:2px">↳ Menggantikan <strong>${pic.original_nama}</strong> (sedang cuti)</div>`
+      :'';
+    box.innerHTML=`
+      <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px">
+        📍 PIC Area — ${subText}${sec?' / '+sec:''}
+      </div>
+      <div class="pic-name">👤 ${pic.nama}</div>
+      <div style="margin-top:3px">${emailInfo}</div>
+      ${delegateInfo}`;
+    box.classList.add('show');
+  } else {
+    box.innerHTML='<span style="color:var(--red)">⚠️ PIC belum diset untuk area ini — cek MASTER_SUBAREA</span>';
     box.classList.add('show');
   }
 }
@@ -802,16 +833,47 @@ async function onAsset(v){
   const h=document.getElementById('assetHint');
   if(v.length<3){h.className='hint';return;}
   try{
-    const r=await fetch(`${APPS_SCRIPT_URL}?action=getMasterData&type=asset_check&no_asset=${v}`);
+    const r=await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=asset_check&no_asset='+encodeURIComponent(v));
     const j=await r.json();
-    if(j.data?.found){
+    if(j.data?.found && j.data.asset){
       const a=j.data.asset;
-      document.getElementById('namaAlat').value=a.nama_alat;
-      h.innerHTML=`✅ Aset ditemukan: <strong>${a.nama_alat}</strong><br>Terakhir inspeksi: ${a.tgl_inspeksi_terakhir||'—'}`;
-      h.className='hint found show'; return;
+      // Auto-fill semua field dari MASTER_ASSET
+      if(a.nama_alat) document.getElementById('namaAlat').value=a.nama_alat;
+      if(a.no_register) document.getElementById('noReg').value=a.no_register;
+      if(a.merk) document.getElementById('merkAlat').value=a.merk;
+      h.innerHTML='✅ <strong>Aset ditemukan!</strong> Data terisi otomatis'
+        +(a.tgl_inspeksi_terakhir?'<br>Terakhir inspeksi: <strong>'+a.tgl_inspeksi_terakhir+'</strong>':'')
+        +(a.status_aset_terakhir?' · Status: <strong>'+a.status_aset_terakhir+'</strong>':'');
+      h.className='hint found show';
+      return;
     }
   }catch(e){}
-  h.innerHTML='➕ Aset baru — akan otomatis terdaftar saat submit';
+  // Kosongkan field kalau asset tidak ditemukan
+  document.getElementById('namaAlat').value='';
+  document.getElementById('noReg').value='';
+  document.getElementById('merkAlat').value='';
+  h.innerHTML='➕ Aset baru — akan otomatis terdaftar ke MASTER_ASSET saat submit';
+  h.className='hint new show';
+}
+  try{
+    const r=await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=asset_check&no_asset='+encodeURIComponent(v));
+    const j=await r.json();
+    if(j.data&&j.data.found){
+      const a=j.data.asset;
+      // Autocomplete nama, merk, no_register dari MASTER_ASSET
+      if(a.nama_alat) document.getElementById('namaAlat').value=a.nama_alat;
+      const merkEl=document.getElementById('merkAlat');
+      if(merkEl&&a.merk) merkEl.value=a.merk;
+      if(a.no_register) document.getElementById('noReg').value=a.no_register;
+      h.innerHTML='<strong>✅ Aset ditemukan — data terisi otomatis</strong><br>'+
+        '🔧 '+a.nama_alat+(a.merk?' · '+a.merk:'')+'<br>'+
+        '📋 No Register: '+(a.no_register||'—')+'<br>'+
+        '🕒 Terakhir inspeksi: '+(a.tgl_inspeksi_terakhir||'belum ada');
+      h.className='hint found show';
+      return;
+    }
+  }catch(e){}
+  h.innerHTML='➕ Aset baru — akan otomatis terdaftar ke MASTER_ASSET saat submit';
   h.className='hint new show';
 }
 
@@ -894,17 +956,20 @@ async function loadPertanyaan(){
 }
 
 async function loadTbItems(){
-  // Demo sudah di-render di toStep2
-  // Load asli dari Apps Script tanpa ganggu tampilan
+  // Demo sudah di-render — load semua item asli dari Apps Script
   try{
-    const r=await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=toolbox_content&tipe_id='+tbTipeId);
+    const r=await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=toolbox_content&tipe_id='+encodeURIComponent(tbTipeId));
     const j=await r.json();
-    if(j.data?.toolbox_content?.length){
+    if(j.status==='ok'&&j.data?.toolbox_content){
+      // Ambil SEMUA item tanpa filter/limit
       tbContent=j.data.toolbox_content;
       tbAnswers={};
       renderTb();
+      document.getElementById('tbCount').textContent=tbContent.length+' item';
     }
-  }catch(e){}
+  }catch(e){
+    console.log('Gagal load toolbox dari server, pakai demo data');
+  }
 }
 
 function renderCheck(){
@@ -969,7 +1034,8 @@ function renderCheck(){
 
 function renderTb(){
   const tbody=document.getElementById('tbBody');
-  document.getElementById('tbTitle').textContent=`${tbTipeName}${selSec?' — '+selSec:''}`;
+  document.getElementById('tbTitle').textContent=tbTipeName+(selSec?' — '+selSec:'');
+  document.getElementById('tbCount').textContent='Memuat dari database...';
   document.getElementById('tbCount').textContent=tbContent.length+' item';
   if(!tbContent.length){
     tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada item</td></tr>';
@@ -1012,7 +1078,31 @@ function setTb(cid,f,v,std){
 }
 
 // ── STEP 3 ───────────────────────────────────────────
-function toStep3(){buildReview();goStep(3);}
+function toStep3(){
+  // Cek apakah ada temuan
+  let hasTemuan=false;
+  if(isTb){
+    hasTemuan=tbContent.some(i=>{
+      const a=tbAnswers[i.content_id];
+      return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(a.aktual!==''&&parseInt(a.aktual)<parseInt(i.qty_standar)));
+    });
+  } else {
+    hasTemuan=pertanyaan.some(p=>answers[p.question_id]?.val==='TIDAK'||answers[p.question_id]?.val==='MERAH');
+  }
+
+  if(!hasTemuan){
+    // Semua OK — tanya konfirmasi lalu langsung submit
+    if(confirm('Tidak ada temuan ditemukan.\n\nLangsung submit inspeksi sekarang?')){
+      selRisiko=''; // tidak ada risiko
+      doSubmit();
+    }
+    return;
+  }
+
+  // Ada temuan → ke review page
+  buildReview();
+  goStep(3);
+}
 
 function buildReview(){
   let total,ok,ng,na,items=[];
@@ -1040,6 +1130,10 @@ function buildReview(){
   listEl.innerHTML=''; selRisiko='';
   if(!items.length){noT.style.display='block';document.getElementById('critAlert').className='crit-alert';document.getElementById('fotoWarn').style.display='none';return;}
   noT.style.display='none';
+  // Foto WAJIB jika ada temuan
+  document.getElementById('fotoWarn').style.display='block';
+  document.getElementById('fotoWarn').textContent='📷 Foto wajib dilampirkan saat ada temuan';
+
   const rOpts=[{v:'LOW',l:'Low — 14 hari',c:'sel-low'},{v:'MEDIUM',l:'Medium — 7 hari',c:'sel-medium'},{v:'HIGH',l:'High — 3 hari',c:'sel-high'},{v:'CRITICAL',l:'Critical — 1 hari',c:'sel-critical'}];
   listEl.innerHTML=`
     <div style="margin-bottom:14px;padding:12px;background:var(--surface2);border-radius:10px;border:1.5px solid var(--border)">
@@ -1120,7 +1214,7 @@ async function doSubmit(){
     :pertanyaan.some(p=>answers[p.question_id]?.val==='TIDAK');
 
   if(hasT&&!selRisiko){toast('⚠️ Pilih tingkat risiko dulu','warn');return;}
-  if(hasT&&(selRisiko==='HIGH'||selRisiko==='CRITICAL')&&fotos.length===0){toast('⚠️ Foto wajib untuk HIGH & CRITICAL','warn');return;}
+  if(hasT&&fotos.length===0){toast('⚠️ Foto wajib dilampirkan jika ada temuan','warn');return;}
 
   const btn=document.getElementById('btnSub');
   btn.disabled=true;
@@ -1151,7 +1245,7 @@ async function doSubmit(){
     kategori_id:katId,
     nama_kategori:katName,
     nama_alat:isTb?tbTipeName:document.getElementById('namaAlat').value,
-    merk:'',
+    merk:isTb?'':(document.getElementById('merkAlat')?.value||''),
     no_asset:isTb?document.getElementById('tbNoAsset').value:document.getElementById('noAsset').value,
     no_register:isTb?'':document.getElementById('noReg').value,
     nik_inspektor:document.getElementById('nikIns').value,
@@ -1239,7 +1333,7 @@ function resetForm(){
   document.getElementById('subSel').disabled=true;
   document.getElementById('katSel').innerHTML='<option value="">-- Pilih sub area dulu --</option>';
   document.getElementById('katSel').disabled=true;
-  ['namaAlat','noAsset','noReg','nikIns','namaIns','tbNoAsset'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['namaAlat','merkAlat','noAsset','noReg','nikIns','namaIns','tbNoAsset'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('assetHint').className='hint';
   document.getElementById('pRow').innerHTML='';
   document.getElementById('uzone').style.display='flex';
@@ -1327,20 +1421,48 @@ function demoTbContent(tipeId){
   const map={
     TBT001:[
       {content_id:'NB001',deskripsi:'Centilever Box',part_number:'-',qty_standar:1,unit:'PC'},
-      {content_id:'NB002',deskripsi:'Combination Wrench 5/16',part_number:'-',qty_standar:1,unit:'PC'},
-      {content_id:'NB003',deskripsi:'Socket Set Metrik',part_number:'-',qty_standar:1,unit:'SET'},
+      {content_id:'NB002',deskripsi:'Combination Wrench 5/16"',part_number:'-',qty_standar:1,unit:'PC'},
+      {content_id:'NB003',deskripsi:'Combination Wrench 3/8"',part_number:'-',qty_standar:1,unit:'PC'},
+      {content_id:'NB004',deskripsi:'Combination Wrench 7/16"',part_number:'-',qty_standar:1,unit:'PC'},
+      {content_id:'NB005',deskripsi:'Combination Wrench 1/2"',part_number:'-',qty_standar:1,unit:'PC'},
+      {content_id:'NB006',deskripsi:'Socket Metrik Set',part_number:'-',qty_standar:1,unit:'SET'},
+      {content_id:'NB007',deskripsi:'HEX Key Set Metrik',part_number:'-',qty_standar:2,unit:'SET'},
+      {content_id:'NB008',deskripsi:'Rachet Handle 1/2"',part_number:'-',qty_standar:1,unit:'PC'},
+      {content_id:'NB009',deskripsi:'Combination Plier',part_number:'-',qty_standar:1,unit:'PC'},
+      {content_id:'NB010',deskripsi:'Adjustable Wrench 10"',part_number:'-',qty_standar:1,unit:'PC'},
+      {content_id:'NB011',deskripsi:'Adjustable Wrench 12"',part_number:'-',qty_standar:1,unit:'PC'},
+      {content_id:'NB012',deskripsi:'Screw Driver Flat',part_number:'-',qty_standar:1,unit:'PC'},
+      {content_id:'NB013',deskripsi:'Screw Driver Philips',part_number:'-',qty_standar:1,unit:'PC'},
     ],
     TBT002:[
       {content_id:'EL001',deskripsi:'Portable Toolbox',part_number:'EL-001',qty_standar:1,unit:'PC'},
-      {content_id:'EL002',deskripsi:'Combination Wrench 6mm',part_number:'EL-002',qty_standar:1,unit:'PC'},
-      {content_id:'EL003',deskripsi:'Socket Set 3/8"',part_number:'EL-003',qty_standar:1,unit:'SET'},
+      {content_id:'EL002',deskripsi:'12pt Combination Wrench 6mm',part_number:'EL-002',qty_standar:1,unit:'PC'},
+      {content_id:'EL003',deskripsi:'12pt Combination Wrench 8mm',part_number:'EL-003',qty_standar:1,unit:'PC'},
+      {content_id:'EL004',deskripsi:'12pt Combination Wrench 10mm',part_number:'EL-004',qty_standar:1,unit:'PC'},
+      {content_id:'EL005',deskripsi:'12pt Combination Wrench 12mm',part_number:'EL-005',qty_standar:1,unit:'PC'},
+      {content_id:'EL006',deskripsi:'12pt Combination Wrench 14mm',part_number:'EL-006',qty_standar:1,unit:'PC'},
+      {content_id:'EL007',deskripsi:'Socket Set 3/8"',part_number:'EL-007',qty_standar:1,unit:'SET'},
+      {content_id:'EL008',deskripsi:'HEX Key Set Inch',part_number:'EL-008',qty_standar:1,unit:'SET'},
+      {content_id:'EL009',deskripsi:'Rachet Handle 3/8"',part_number:'EL-009',qty_standar:1,unit:'PC'},
+      {content_id:'EL010',deskripsi:'Combination Plier',part_number:'EL-010',qty_standar:1,unit:'PC'},
+      {content_id:'EL011',deskripsi:'Long Nose Plier',part_number:'EL-011',qty_standar:1,unit:'PC'},
+      {content_id:'EL012',deskripsi:'Adjustable Wrench 8"',part_number:'EL-012',qty_standar:1,unit:'PC'},
     ],
     TBT003:[
-      {content_id:'BP001',deskripsi:'Portable Tool Box 3 Tray',part_number:'TBC157',qty_standar:1,unit:'PC'},
-      {content_id:'BP002',deskripsi:'Combination Wrench 14mm',part_number:'TBC159',qty_standar:1,unit:'PC'},
-      {content_id:'BP003',deskripsi:'Combination Wrench 17mm',part_number:'TBC162',qty_standar:1,unit:'PC'},
-      {content_id:'BP004',deskripsi:'Socket Set 14-24mm',part_number:'TBC171',qty_standar:1,unit:'SET'},
-      {content_id:'BP005',deskripsi:'Combination Plier',part_number:'TBC189',qty_standar:1,unit:'PC'},
+      {content_id:'TBC157',deskripsi:'Portable Tool Box 3 Tray',part_number:'TBC157',qty_standar:1,unit:'PC'},
+      {content_id:'TBC159',deskripsi:'Combination Wrench 14mm',part_number:'TBC159',qty_standar:1,unit:'PC'},
+      {content_id:'TBC160',deskripsi:'Combination Wrench 15mm',part_number:'TBC160',qty_standar:1,unit:'PC'},
+      {content_id:'TBC162',deskripsi:'Combination Wrench 17mm',part_number:'TBC162',qty_standar:1,unit:'PC'},
+      {content_id:'TBC163',deskripsi:'Combination Wrench 19mm',part_number:'TBC163',qty_standar:1,unit:'PC'},
+      {content_id:'TBC171',deskripsi:'Socket Set 14-24mm',part_number:'TBC171',qty_standar:1,unit:'SET'},
+      {content_id:'TBC183',deskripsi:'Hex Key Metric Set',part_number:'TBC183',qty_standar:1,unit:'SET'},
+      {content_id:'TBC184',deskripsi:'Punch & Chisel Set',part_number:'TBC184',qty_standar:1,unit:'SET'},
+      {content_id:'TBC185',deskripsi:'Ratchet Handle 10"',part_number:'TBC185',qty_standar:1,unit:'PC'},
+      {content_id:'TBC186',deskripsi:'Extension Bar 5"',part_number:'TBC186',qty_standar:1,unit:'PC'},
+      {content_id:'TBC189',deskripsi:'Combination Plier',part_number:'TBC189',qty_standar:1,unit:'PC'},
+      {content_id:'TBC190',deskripsi:'Vise Grip',part_number:'TBC190',qty_standar:1,unit:'PC'},
+      {content_id:'TBC191',deskripsi:'Adjustable Wrench 10"',part_number:'TBC191',qty_standar:1,unit:'PC'},
+      {content_id:'TBC192',deskripsi:'Adjustable Wrench 12"',part_number:'TBC192',qty_standar:1,unit:'PC'},
     ],
     TBT004:[
       {content_id:'ST001',deskripsi:'Tool Bag 19"',part_number:'TBC237',qty_standar:1,unit:'PC'},
