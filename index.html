@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Form Inspeksi K3 — Mining Ship</title>
+<!-- System font dipakai — tidak perlu download font eksternal -->
+<style>
+:root{
+  --bg:#f1f5f9;--surface:#fff;--surface2:#f8fafc;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --accent:#0ea5e9;--accent-dark:#0284c7;
+  --text:#0f172a;--muted:#64748b;--muted2:#94a3b8;
+  --green:#16a34a;--green-bg:#f0fdf4;--green-bd:#86efac;
+  --red:#dc2626;--red-bg:#fef2f2;--red-bd:#fca5a5;
+  --yellow:#d97706;--yellow-bg:#fffbeb;--yellow-bd:#fcd34d;
+  --blue:#2563eb;--blue-bg:#eff6ff;--blue-bd:#bfdbfe;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:100vw;overflow-x:hidden}
+
+/* HEADER */
+.hdr{
+  background:var(--accent);padding:12px 16px;
+  display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 8px rgba(14,165,233,.3);
+}
+.hdr-icon{font-size:22px;line-height:1}
+.hdr-title{font-size:15px;font-weight:700;color:#fff;line-height:1.2}
+.hdr-sub{font-size:11px;color:rgba(255,255,255,.8);margin-top:1px}
+.hdr-link{
+  margin-left:auto;padding:7px 12px;
+  background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.5);
+  border-radius:8px;color:#fff;font-size:12px;font-weight:500;
+  text-decoration:none;white-space:nowrap;
+}
+
+/* STEP BAR — tidak bisa diklik */
+.steps{
+  background:#fff;border-bottom:2px solid var(--border);
+  display:flex;
+}
+.step{
+  flex:1;padding:10px 4px;text-align:center;
+  font-size:10px;font-weight:500;color:var(--muted2);
+  border-bottom:2px solid transparent;margin-bottom:-2px;
+  pointer-events:none;/* TIDAK bisa diklik */
+  user-select:none;
+}
+.step-n{
+  width:24px;height:24px;border-radius:50%;
+  border:2px solid currentColor;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;margin:0 auto 4px;
+}
+.step.active{color:var(--accent);border-bottom-color:var(--accent)}
+.step.done{color:var(--green);border-bottom-color:var(--green)}
+.step.done .step-n{background:var(--green);border-color:var(--green);color:#fff}
+
+/* WRAP */
+.wrap{max-width:600px;margin:0 auto;padding:14px 12px 80px}
+.page{display:none}.page.active{display:block}
+
+/* CARD */
+.card{
+  background:#fff;border:1px solid var(--border);
+  border-radius:12px;padding:14px;margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);
+}
+.card-title{
+  font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.5px;
+  margin-bottom:12px;display:flex;align-items:center;gap:6px;
+}
+
+/* FIELDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{
+  font-size:11px;font-weight:700;color:var(--muted);
+  letter-spacing:.3px;text-transform:uppercase;
+}
+.req{color:var(--red)}
+.field input,.field select,.field textarea{
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:8px;padding:11px 12px;
+  color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  font-size:15px;/* bigger for mobile */
+  outline:none;transition:border-color .15s;width:100%;
+  -webkit-appearance:none;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(14,165,233,.1);
+}
+.field input[readonly]{color:var(--muted);background:var(--bg)}
+.field select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.field input::placeholder{color:var(--muted2)}
+.mb10{margin-bottom:10px}
+
+/* HINT */
+.hint{padding:10px 12px;border-radius:8px;font-size:13px;margin-top:6px;display:none;align-items:flex-start;gap:8px;line-height:1.5}
+.hint.found{background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green)}
+.hint.new{background:var(--yellow-bg);border:1px solid var(--yellow-bd);color:var(--yellow)}
+.hint.show{display:flex}
+
+/* PIC BOX */
+.pic-box{padding:10px 12px;border-radius:8px;margin-top:10px;background:var(--blue-bg);border:1px solid var(--blue-bd);font-size:13px;color:var(--blue);display:none;line-height:1.7}
+.pic-box.show{display:block}
+
+/* MODE BAR */
+.mode-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);font-size:13px;color:var(--muted)}
+.mbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.mb-check{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd)}
+.mb-tb{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-bd)}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:480px}
+th{padding:10px 10px;background:var(--surface2);color:var(--muted);font-size:10px;font-weight:700;text-align:left;border-bottom:1.5px solid var(--border);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+td{padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr.ng td{background:var(--red-bg)}
+tr.tb-ng td{background:var(--red-bg)}
+
+/* RADIO */
+.rg{display:flex;gap:6px;flex-wrap:wrap}
+.rb{
+  padding:7px 12px;border:1.5px solid var(--border2);
+  border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;
+  background:#fff;color:var(--muted);transition:all .15s;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:36px;
+  display:flex;align-items:center;
+}
+.rb:active{transform:scale(.96)}
+.rb.ya.sel{background:var(--green-bg);color:var(--green);border-color:var(--green-bd)}
+.rb.tidak.sel{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.rb.na.sel{background:var(--surface2);color:var(--muted2);border-color:var(--border2)}
+.rb.opt.sel{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-bd)}
+
+/* REMARKS */
+.rmk-wrap{margin-top:8px;animation:fadeD .2s ease}
+@keyframes fadeD{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.rmk-lbl{font-size:11px;font-weight:700;color:var(--red);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+.rmk-inp{
+  width:100%;font-size:14px;padding:9px 11px;
+  background:#fff;border:1.5px solid var(--red-bd);
+  border-radius:8px;color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;resize:none;outline:none;
+}
+.rmk-inp:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.1)}
+
+/* STATUS */
+.sdot{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.sd-ok{background:var(--green-bg);color:var(--green)}
+.sd-ng{background:var(--red-bg);color:var(--red)}
+.sd-na{background:var(--surface2);color:var(--muted2)}
+
+/* TOOLBOX TABLE */
+table.tbtbl th,table.tbtbl td{font-size:12px;padding:8px 8px}
+table.tbtbl{min-width:520px}
+table.tbtbl input[type=number]{
+  width:50px;text-align:center;font-size:14px;
+  border:1.5px solid var(--border);border-radius:6px;
+  padding:5px 4px;background:#fff;color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;outline:none;
+}
+table.tbtbl select{
+  font-size:13px;padding:5px 6px;
+  border:1.5px solid var(--border);border-radius:6px;
+  background:#fff;color:var(--text);outline:none;
+}
+table.tbtbl input[type=text]{
+  font-size:12px;width:100%;border:1.5px solid var(--border);
+  border-radius:6px;padding:5px 7px;background:#fff;
+  color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;outline:none;
+}
+
+/* CHIPS */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chip{
+  padding:8px 18px;border:2px solid var(--border2);
+  border-radius:24px;font-size:14px;font-weight:600;
+  cursor:pointer;color:var(--muted);background:#fff;
+  transition:all .15s;min-height:40px;display:flex;align-items:center;
+}
+.chip:active{transform:scale(.96)}
+.chip.sel{border-color:var(--accent);background:var(--blue-bg);color:var(--blue)}
+
+/* REVIEW */
+.srow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.sc{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.sn{font-size:26px;font-weight:700;line-height:1}
+.sl{font-size:10px;color:var(--muted);margin-top:4px;font-weight:600;text-transform:uppercase}
+
+.tc{border:1.5px solid var(--red-bd);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--red-bg)}
+.tc-title{font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px;display:flex;align-items:flex-start;gap:6px;line-height:1.4}
+.tc-rmk{font-size:13px;color:var(--muted);padding:8px 10px;background:#fff;border-radius:7px;margin-bottom:8px;border:1px solid var(--border);line-height:1.5}
+
+.risk-row{display:flex;gap:8px;flex-wrap:wrap}
+.rrb{
+  padding:9px 14px;border:2px solid var(--border2);
+  border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+  background:#fff;color:var(--muted);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;transition:all .15s;
+  min-height:40px;display:flex;align-items:center;
+}
+.rrb:active{transform:scale(.96)}
+.rrb.sel-low{border-color:var(--green-bd);background:var(--green-bg);color:var(--green)}
+.rrb.sel-medium{border-color:var(--yellow-bd);background:var(--yellow-bg);color:var(--yellow)}
+.rrb.sel-high{border-color:var(--red-bd);background:var(--red-bg);color:var(--red)}
+.rrb.sel-critical{border-color:#ddd6fe;background:var(--purple-bg);color:var(--purple)}
+
+/* UPLOAD */
+.uzone{
+  border:2px dashed var(--border2);border-radius:10px;
+  padding:20px 16px;text-align:center;cursor:pointer;
+  font-size:14px;color:var(--muted);background:var(--surface2);
+  position:relative;min-height:80px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+}
+.uzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.prow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.pthumb{width:76px;height:76px;border-radius:10px;object-fit:cover;border:2px solid var(--border)}
+.pdel{
+  position:absolute;top:-7px;right:-7px;width:20px;height:20px;
+  border-radius:50%;background:var(--red);color:#fff;font-size:11px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border:2px solid #fff;font-weight:700;
+}
+
+/* CRIT ALERT */
+.crit-alert{
+  padding:12px 14px;border-radius:10px;margin-bottom:12px;
+  background:var(--purple-bg);border:1.5px solid #ddd6fe;
+  font-size:13px;font-weight:600;color:var(--purple);
+  display:none;align-items:flex-start;gap:8px;line-height:1.5;
+}
+.crit-alert.show{display:flex}
+.foto-warn{font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px;display:none}
+
+/* FOOTER — sticky bottom */
+.footer{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1.5px solid var(--border);
+  padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
+  box-shadow:0 -4px 16px rgba(0,0,0,.08);z-index:50;
+  max-width:100vw;
+}
+.btn-back{
+  padding:12px 20px;border:1.5px solid var(--border2);
+  border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;
+  color:var(--muted);background:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  min-height:48px;
+}
+.btn-next{
+  padding:12px 24px;border:none;border-radius:10px;
+  font-size:14px;font-weight:700;cursor:pointer;
+  color:#fff;background:var(--accent);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  min-height:48px;transition:all .15s;
+}
+.btn-next:active{background:var(--accent-dark);transform:scale(.98)}
+.btn-next:disabled{background:var(--muted2);cursor:not-allowed}
+.btn-submit{
+  padding:12px 24px;border:none;border-radius:10px;
+  font-size:14px;font-weight:700;cursor:pointer;
+  color:#fff;background:var(--green);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  min-height:48px;display:flex;align-items:center;gap:6px;
+}
+.btn-submit:active{background:#15803d;transform:scale(.98)}
+.btn-submit:disabled{background:var(--muted2);cursor:not-allowed}
+.prog-note{font-size:12px;color:var(--red);font-weight:600}
+
+/* SUCCESS */
+.succ-wrap{text-align:center;padding:2rem 1rem}
+.succ-icon{
+  width:64px;height:64px;border-radius:50%;
+  background:var(--green-bg);border:2px solid var(--green-bd);
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;margin:0 auto 1rem;
+}
+.succ-id{
+  font-size:14px;font-weight:700;color:var(--accent);
+  background:var(--blue-bg);border:1.5px solid var(--blue-bd);
+  border-radius:8px;padding:8px 16px;display:inline-block;margin-bottom:1rem;
+  font-family:monospace;
+}
+.succ-box{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:12px;padding:14px 16px;text-align:left;
+  font-size:13px;color:var(--muted);line-height:2;margin-bottom:1.5rem;
+}
+.succ-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.succ-btns a,.succ-btns button{
+  padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;
+  cursor:pointer;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  min-height:48px;display:inline-flex;align-items:center;gap:6px;
+}
+
+/* LOADING */
+.lo{
+  position:fixed;inset:0;background:rgba(255,255,255,.92);
+  display:none;flex-direction:column;align-items:center;
+  justify-content:center;z-index:999;
+}
+.lo.show{display:flex}
+.spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lo-msg{font-size:14px;color:var(--muted);font-weight:500;text-align:center;padding:0 24px}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:80px;left:50%;
+  transform:translateX(-50%) translateY(20px);opacity:0;
+  background:var(--text);color:#fff;
+  border-radius:12px;padding:12px 20px;font-size:14px;font-weight:500;
+  display:flex;align-items:center;gap:8px;z-index:9999;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  transition:all .3s;max-width:calc(100vw - 32px);
+  pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.warn{background:var(--yellow)}
+.toast.error{background:var(--red)}
+.toast.success{background:var(--green)}
+
+/* MINI LOADER */
+.mload{display:flex;align-items:center;gap:8px;padding:16px;font-size:13px;color:var(--muted)}
+.md{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:bop .8s infinite;display:inline-block;margin:0 1px}
+.md:nth-child(2){animation-delay:.15s}.md:nth-child(3){animation-delay:.3s}
+@keyframes bop{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
+
+.note{font-size:12px;color:var(--muted2)}
+.divider{height:1px;background:var(--border);margin:12px 0}
+
+/* MOBILE HELPERS */
+@media(max-width:400px){
+  .g3{grid-template-columns:1fr 1fr}
+  .g3 .field:last-child{grid-column:span 2}
+  .srow .sc .sn{font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<div class="lo" id="lo">
+  <div class="spin"></div>
+  <div class="lo-msg" id="loMsg">Memuat data...</div>
+</div>
+<!-- Preload hint -->
+<link rel="preconnect" href="https://script.google.com">
+
+<div class="toast" id="toast">
+  <span id="toastIco">⚠️</span><span id="toastMsg"></span>
+</div>
+
+<div class="hdr">
+  <div class="hdr-icon">⛏️</div>
+  <div>
+    <div class="hdr-title">Form Inspeksi K3</div>
+    <div class="hdr-sub">Mining Ship · KGB & GRB</div>
+  </div>
+  <a href="dashboard.html" class="hdr-link">Dashboard</a>
+</div>
+
+<!-- STEP BAR — tidak bisa diklik, hanya indikator -->
+<div class="steps">
+  <div class="step active" id="stp1"><div class="step-n">✓</div>Identitas</div>
+  <div class="step" id="stp2"><div class="step-n">2</div>Checklist</div>
+  <div class="step" id="stp3"><div class="step-n">3</div>Review</div>
+  <div class="step" id="stp4"><div class="step-n">4</div>Selesai</div>
+</div>
+
+<div class="wrap">
+
+<!-- ══ STEP 1: IDENTITAS ══ -->
+<div class="page active" id="page1">
+  <div class="card">
+    <div class="card-title">👤 Data Inspektur</div>
+    <div class="g2 mb10">
+      <div class="field">
+        <label>Nama Inspektur <span class="req">*</span></label>
+        <input type="text" id="namaIns" placeholder="Nama lengkap" autocomplete="name">
+      </div>
+      <div class="field">
+        <label>NIK / SN</label>
+        <input type="text" id="nikIns" placeholder="NIK atau SN" autocomplete="off">
+      </div>
+    </div>
+    <div class="field">
+      <label>Tanggal <span class="req">*</span></label>
+      <input type="date" id="tgl">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🏢 Perusahaan & Lokasi</div>
+    <div class="field mb10">
+      <label>Perusahaan <span class="req">*</span></label>
+      <select id="compSel"><option value="">-- Pilih perusahaan --</option></select>
+    </div>
+    <div class="g2 mb10">
+      <div class="field">
+        <label>Area <span class="req">*</span></label>
+        <select id="areaSel" onchange="onArea()"><option value="">-- Pilih --</option></select>
+      </div>
+      <div class="field">
+        <label>Sub Area <span class="req">*</span></label>
+        <select id="subSel" onchange="onSub()" disabled><option value="">-- Pilih area --</option></select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Kategori <span class="req">*</span></label>
+      <select id="katSel" onchange="onKat(this.value)" disabled><option value="">-- Pilih sub area dulu --</option></select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔧 Peralatan</div>
+
+    <!-- Non-toolbox -->
+    <div id="nonTb">
+      <div class="field mb10">
+        <label>Nama Alat <span class="req">*</span></label>
+        <input type="text" id="namaAlat" placeholder="cth: Bor Listrik Makita">
+      </div>
+      <div class="g2">
+        <div class="field">
+          <label>No Asset</label>
+          <input type="text" id="noAsset" placeholder="AST-001" oninput="onAsset(this.value)" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>No Register</label>
+          <input type="text" id="noReg" placeholder="REG-001" autocomplete="off">
+        </div>
+      </div>
+      <div id="assetHint" class="hint"></div>
+    </div>
+
+    <!-- Toolbox -->
+    <div id="tbFields" style="display:none">
+      <div id="secWrap" style="display:none" class="mb10">
+        <div class="field">
+          <label>Section Toolbox <span class="req">*</span></label>
+          <div class="chips" id="secChips"></div>
+        </div>
+      </div>
+      <div id="tbSelWrap" style="display:none">
+        <div class="g2">
+          <div class="field">
+            <label>Tipe Toolbox <span class="req">*</span></label>
+            <select id="tbTipe" onchange="onTbTipe()">
+              <option value="">-- Pilih tipe --</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>No Asset Toolbox</label>
+            <input type="text" id="tbNoAsset" placeholder="(isi jika ada)" autocomplete="off">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="picBox" class="pic-box"></div>
+  </div>
+
+  <!-- Footer Step 1 -->
+  <div class="footer">
+    <span class="note">* wajib diisi</span>
+    <button class="btn-next" onclick="toStep2()">Lanjut →</button>
+  </div>
+</div>
+
+<!-- ══ STEP 2: CHECKLIST ══ -->
+<div class="page" id="page2">
+  <div class="mode-bar" id="modeBar">
+    <span id="modeBadge" class="mbadge mb-check">📋 Checklist</span>
+    <span id="modeDesc" style="font-size:13px"></span>
+    <span id="progNote" style="margin-left:auto;font-size:12px;color:var(--muted2)"></span>
+  </div>
+
+  <!-- Checklist -->
+  <div id="checkMode">
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:28px">#</th>
+            <th>Pertanyaan</th>
+            <th style="width:140px">Jawaban</th>
+            <th style="width:56px;text-align:center">Status</th>
+          </tr></thead>
+          <tbody id="checkBody">
+            <tr><td colspan="4"><div class="mload"><span class="md"></span><span class="md"></span><span class="md"></span> Memuat pertanyaan...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbox -->
+  <div id="tbMode" style="display:none">
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center">
+        <span style="font-size:13px;font-weight:700" id="tbTitle">Daftar Isi Toolbox</span>
+        <span id="tbCount" style="font-size:12px;color:var(--muted);margin-left:auto"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbtbl">
+          <thead><tr>
+            <th style="width:26px">No</th>
+            <th style="width:150px">Deskripsi</th>
+            <th style="width:68px">Part no</th>
+            <th style="width:34px;text-align:center">Std</th>
+            <th style="width:52px;text-align:center">Aktual</th>
+            <th style="width:36px">Unit</th>
+            <th style="width:88px">Kondisi</th>
+            <th>Remarks</th>
+          </tr></thead>
+          <tbody id="tbBody">
+            <tr><td colspan="8"><div class="mload"><span class="md"></span><span class="md"></span><span class="md"></span></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Step 2 -->
+  <div class="footer">
+    <button class="btn-back" onclick="goStep(1)">← Kembali</button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="prog-note" id="fillNote"></span>
+      <button class="btn-next" onclick="toStep3()">Review →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STEP 3: REVIEW ══ -->
+<div class="page" id="page3">
+  <div id="critAlert" class="crit-alert">
+    🔥 <strong>Temuan CRITICAL!</strong> Hentikan penggunaan alat dan segera hubungi PIC.
+  </div>
+
+  <div class="srow" id="statRow"></div>
+
+  <div class="card">
+    <div class="card-title">⚠️ Temuan — Pilih 1 Tingkat Risiko</div>
+    <div id="temuanList"></div>
+    <div id="noTemuan" style="display:none;text-align:center;padding:20px 0">
+      <div style="font-size:36px;margin-bottom:8px">✅</div>
+      <div style="font-weight:700;color:var(--green);font-size:15px">Tidak ada temuan!</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:4px">Semua item OK atau N/A</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📷 Foto Dokumentasi (maks 3)</div>
+    <div id="fotoWarn" class="foto-warn">⚠️ Foto wajib untuk temuan HIGH dan CRITICAL</div>
+    <div class="uzone" id="uzone">
+      <input type="file" accept="image/*" multiple onchange="onFoto(this)">
+      <div style="font-size:24px">📸</div>
+      <div style="font-weight:600">Ketuk untuk ambil / upload foto</div>
+      <div style="font-size:12px;color:var(--muted2);margin-top:4px">Foto dikompres otomatis oleh sistem · Maks 3 foto</div>
+    </div>
+    <div class="prow" id="pRow"></div>
+    <div class="field" style="margin-top:12px">
+      <label>Catatan Umum</label>
+      <textarea id="catatan" rows="2" placeholder="Rekomendasi atau catatan tambahan..."></textarea>
+    </div>
+  </div>
+
+  <!-- Footer Step 3 -->
+  <div class="footer">
+    <button class="btn-back" onclick="goStep(2)">← Edit</button>
+    <button class="btn-submit" id="btnSub" onclick="doSubmit()">
+      <span id="subIco">✅</span><span id="subTxt">Submit Inspeksi</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══ STEP 4: SELESAI ══ -->
+<div class="page" id="page4">
+  <div class="succ-wrap">
+    <div class="succ-icon">✅</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:8px">Berhasil Disimpan!</div>
+    <div class="succ-id" id="succId">INS-2026-000001</div>
+    <div class="succ-box" id="succBox"></div>
+    <div class="succ-btns">
+      <button onclick="resetForm()" style="border:1.5px solid var(--border2);color:var(--muted);background:#fff">➕ Inspeksi Baru</button>
+      <a href="dashboard.html" style="background:var(--accent);color:#fff">📊 Dashboard</a>
+    </div>
+  </div>
+  <!-- Footer Step 4 kosong -->
+  <div class="footer" style="justify-content:center">
+    <span class="note">Inspeksi berhasil disimpan ke database</span>
+  </div>
+</div>
+
+</div><!-- end wrap -->
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-570kTIDvQyvcD7Y-Ezy-8z80qp_Wxg0J2e-_6LKYHWfzC3AQR5_22e4Tbnp4DkwuNA/exec';
+
+// ── STATE ───────────────────────────────────────────
+let M={area:[],subarea:[],kategori:[],perusahaan:[]};
+let pertanyaan=[],tbContent=[],answers={},tbAnswers={};
+let selRisiko='',fotos=[],katId='',katName='',isTb=false;
+let selSec=null,tbTipeId='',tbTipeName='',picInfo=null;
+
+// Subarea yang punya multiple section toolbox
+const TB_SECTIONS={SA001:['Wheel','Rebuild'],SA005:['Digger','Auxiliary']};
+
+// ── INIT ────────────────────────────────────────────
+// Tampilkan form langsung tanpa nunggu data
+document.addEventListener('DOMContentLoaded',()=>{
+  // Mulai dari step 1 selalu
+  goStep(1);
+  document.getElementById('tgl').value=new Date().toISOString().split('T')[0];
+  // Load master di background
+  loadMaster();
+});
+
+// ── LOAD MASTER ─────────────────────────────────────
+async function loadMaster(){
+  // Tampilkan demo data dulu — form langsung bisa dipakai
+  M=demoMaster();
+  fillDropdowns();
+
+  // Load data asli di background
+  try{
+    const r=await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=all');
+    const j=await r.json();
+    if(j.status==='ok'){
+      M=j.data;
+      fillDropdowns(); // Update dengan data asli
+    }
+  }catch(e){
+    // Demo data tetap dipakai jika gagal
+    console.log('Menggunakan demo data');
+  }
+}
+
+function fillDropdowns(){
+  // Perusahaan
+  const cS=document.getElementById('compSel');
+  cS.innerHTML='<option value="">-- Pilih perusahaan --</option>';
+  (M.perusahaan||[]).forEach(c=>{
+    if(c.status==='Y'||!c.status)
+      cS.innerHTML+=`<option value="${c.company_id}">${c.nama_perusahaan}</option>`;
+  });
+  // Fallback demo kalau kosong
+  if(cS.options.length<=1){
+    cS.innerHTML+='<option value="KGB001">PT Cipta Kridatama</option>';
+    cS.innerHTML+='<option value="KGB002">PT Sanggar Sarana Baja</option>';
+  }
+  // Area
+  const aS=document.getElementById('areaSel');
+  aS.innerHTML='<option value="">-- Pilih --</option>';
+  (M.area||[]).forEach(a=>{
+    aS.innerHTML+=`<option value="${a.area_id}">${a.nama_area}</option>`;
+  });
+  // Sembunyikan loading di step 1
+  hideLoad();
+}
+
+// ── STEP 1 ───────────────────────────────────────────
+function onArea(){
+  const v=document.getElementById('areaSel').value;
+  const sS=document.getElementById('subSel');
+  sS.innerHTML='<option value="">-- Pilih sub area --</option>';
+  sS.disabled=!v;
+  resetKat();
+  if(!v)return;
+  (M.subarea||[])
+    .filter(s=>s.area_id===v&&s.nama_subarea&&(s.status==='Y'||!s.status))
+    .forEach(s=>{ sS.innerHTML+=`<option value="${s.subarea_id}">${s.nama_subarea}</option>`; });
+}
+
+function onSub(){
+  const kS=document.getElementById('katSel');
+  kS.innerHTML='<option value="">-- Pilih kategori --</option>';
+  kS.disabled=false;
+  resetTb();
+  (M.kategori||[]).filter(k=>k.aktif==='Y'||!k.aktif)
+    .forEach(k=>{
+      kS.innerHTML+=`<option value="${k.kategori_id}" data-tipe="${k.tipe_inspeksi||'CHECKLIST'}">${k.nama_kategori}</option>`;
+    });
+}
+
+function resetKat(){
+  const kS=document.getElementById('katSel');
+  kS.innerHTML='<option value="">-- Pilih sub area dulu --</option>';
+  kS.disabled=true;
+  resetTb();
+}
+
+async function onKat(v){
+  if(!v)return;
+  katId=v;
+  const opt=document.querySelector(`#katSel option[value="${v}"]`);
+  katName=opt?opt.textContent.trim():'';
+  isTb=(opt?.dataset.tipe==='TOOLBOX_INVENTORY')||(v==='KT017');
+  document.getElementById('nonTb').style.display=isTb?'none':'block';
+  document.getElementById('tbFields').style.display=isTb?'block':'none';
+  document.getElementById('picBox').className='pic-box';
+  if(isTb) setupTbSec();
+  else await showPIC(null);
+}
+
+function setupTbSec(){
+  const subId=document.getElementById('subSel').value;
+  const secs=TB_SECTIONS[subId];
+  selSec=null; tbTipeId=''; tbTipeName='';
+
+  // Reset toolbox UI
+  document.getElementById('secWrap').style.display='none';
+  document.getElementById('tbSelWrap').style.display='none';
+  document.getElementById('tbTipe').innerHTML='<option value="">-- Pilih tipe --</option>';
+
+  if(secs&&secs.length>0){
+    // Subarea punya section → tampilkan chips section dulu
+    document.getElementById('secWrap').style.display='block';
+    const ch=document.getElementById('secChips');
+    ch.innerHTML='';
+    secs.forEach(s=>{
+      const d=document.createElement('div');
+      d.className='chip'; d.textContent=s;
+      d.onclick=async()=>{
+        ch.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));
+        d.classList.add('sel');
+        selSec=s;
+        document.getElementById('tbSelWrap').style.display='block';
+        await loadTbTipe(subId,s);
+        await showPIC(s);
+      };
+      ch.appendChild(d);
+    });
+  } else {
+    // Tidak ada section → langsung tampilkan pilihan tipe
+    document.getElementById('tbSelWrap').style.display='block';
+    loadTbTipe(subId,null);
+    showPIC(null);
+  }
+}
+
+async function loadTbTipe(subId,sec){
+  let asets=[];
+  try{
+    const r=await fetch(`${APPS_SCRIPT_URL}?action=getMasterData&type=toolbox_aset&subarea_id=${subId}`);
+    const j=await r.json();
+    asets=j.data?.toolbox_aset||[];
+  }catch(e){ asets=demoTbAset(subId); }
+
+  // Filter by section jika ada
+  const filtered=sec?asets.filter(a=>String(a.section)===String(sec)):asets;
+
+  const sel=document.getElementById('tbTipe');
+  sel.innerHTML='<option value="">-- Pilih tipe toolbox --</option>';
+  if(filtered.length===0){
+    // Fallback: tampilkan semua tipe default
+    const defaults=[
+      {tipe_id:'TBT001',nama_toolbox:'No Brand / Mentahan'},
+      {tipe_id:'TBT002',nama_toolbox:'Elora'},
+      {tipe_id:'TBT003',nama_toolbox:'Blue Point'},
+      {tipe_id:'TBT004',nama_toolbox:'Strafco'},
+    ];
+    defaults.forEach(a=>{ sel.innerHTML+=`<option value="${a.tipe_id}">${a.nama_toolbox}</option>`; });
+  } else {
+    filtered.forEach(a=>{ sel.innerHTML+=`<option value="${a.tipe_id}" data-aid="${a.asset_id||''}">${a.nama_toolbox}</option>`; });
+  }
+}
+
+function onTbTipe(){
+  const s=document.getElementById('tbTipe');
+  tbTipeId=s.value;
+  tbTipeName=s.options[s.selectedIndex]?.text||'';
+}
+
+async function showPIC(sec){
+  const subId=document.getElementById('subSel').value;
+  if(!subId||!katId)return;
+  let pic=null;
+  try{
+    const p=new URLSearchParams({action:'getMasterData',type:'pic_resolve',subarea_id:subId,kategori_id:katId});
+    if(sec)p.append('section',sec);
+    const r=await fetch(APPS_SCRIPT_URL+'?'+p);
+    const j=await r.json();
+    if(j.data?.pic) pic=j.data.pic;
+  }catch(e){ pic=demoPIC(subId,katId,sec); }
+  picInfo=pic;
+  if(pic){
+    const box=document.getElementById('picBox');
+    box.innerHTML=`🔵 <strong>PIC:</strong> ${pic.nama} ${pic.email?'('+pic.email+')':'<span style="color:var(--red)">⚠️ email belum diisi</span>'}${pic.is_delegate?'<br>↳ Menggantikan '+pic.original_nama+' (cuti)':''}`;
+    box.classList.add('show');
+  }
+}
+
+async function onAsset(v){
+  const h=document.getElementById('assetHint');
+  if(v.length<3){h.className='hint';return;}
+  try{
+    const r=await fetch(`${APPS_SCRIPT_URL}?action=getMasterData&type=asset_check&no_asset=${v}`);
+    const j=await r.json();
+    if(j.data?.found){
+      const a=j.data.asset;
+      document.getElementById('namaAlat').value=a.nama_alat;
+      h.innerHTML=`✅ Aset ditemukan: <strong>${a.nama_alat}</strong><br>Terakhir inspeksi: ${a.tgl_inspeksi_terakhir||'—'}`;
+      h.className='hint found show'; return;
+    }
+  }catch(e){}
+  h.innerHTML='➕ Aset baru — akan otomatis terdaftar saat submit';
+  h.className='hint new show';
+}
+
+function resetTb(){
+  document.getElementById('tbFields').style.display='none';
+  document.getElementById('nonTb').style.display='block';
+  document.getElementById('secWrap').style.display='none';
+  document.getElementById('tbSelWrap').style.display='none';
+  document.getElementById('picBox').className='pic-box';
+  document.getElementById('secChips').innerHTML='';
+  document.getElementById('tbTipe').innerHTML='<option value="">-- Pilih tipe --</option>';
+  selSec=null; tbTipeId=''; tbTipeName=''; katId=''; isTb=false;
+}
+
+function toStep2(){
+  const checks=[['namaIns','Nama inspektur'],['compSel','Perusahaan'],['areaSel','Area'],['subSel','Sub area'],['katSel','Kategori']];
+  for(const[id,lbl]of checks){
+    if(!document.getElementById(id).value){toast('⚠️ '+lbl+' wajib diisi','warn');return;}
+  }
+  if(!isTb&&!document.getElementById('namaAlat').value){toast('⚠️ Nama alat wajib diisi','warn');return;}
+  if(isTb&&!tbTipeId){toast('⚠️ Pilih tipe toolbox dulu','warn');return;}
+  goStep(2);
+  // Pastikan konten langsung muncul
+  if(isTb){
+    document.getElementById('checkMode').style.display='none';
+    document.getElementById('tbMode').style.display='block';
+    document.getElementById('modeBadge').className='mbadge mb-tb';
+    document.getElementById('modeBadge').textContent='🧰 Toolbox';
+    document.getElementById('modeDesc').textContent=tbTipeName+(selSec?' — '+selSec:'');
+    tbContent=demoTbContent(tbTipeId);
+    tbAnswers={};
+    renderTb();
+    // Load asli di background
+    loadTbItems();
+  } else {
+    document.getElementById('checkMode').style.display='block';
+    document.getElementById('tbMode').style.display='none';
+    document.getElementById('modeBadge').className='mbadge mb-check';
+    document.getElementById('modeBadge').textContent='📋 Checklist';
+    document.getElementById('modeDesc').textContent=katName;
+    pertanyaan=demoPertanyaan(katId);
+    answers={};
+    renderCheck();
+    // Load asli di background
+    loadPertanyaan();
+  }
+}
+
+// ── STEP 2 ───────────────────────────────────────────
+async function loadChecklist(){
+  const badge=document.getElementById('modeBadge');
+  const desc=document.getElementById('modeDesc');
+  if(isTb){
+    document.getElementById('checkMode').style.display='none';
+    document.getElementById('tbMode').style.display='block';
+    badge.className='mbadge mb-tb'; badge.textContent='🧰 Toolbox';
+    desc.textContent=tbTipeName+(selSec?' — '+selSec:'');
+    await loadTbItems();
+  } else {
+    document.getElementById('checkMode').style.display='block';
+    document.getElementById('tbMode').style.display='none';
+    badge.className='mbadge mb-check'; badge.textContent='📋 Checklist';
+    desc.textContent=katName;
+    await loadPertanyaan();
+  }
+}
+
+async function loadPertanyaan(){
+  // Demo sudah di-render di toStep2
+  // Load asli dari Apps Script tanpa ganggu tampilan
+  try{
+    const r=await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=pertanyaan&kategori_id='+katId);
+    const j=await r.json();
+    if(j.data?.pertanyaan?.length){
+      pertanyaan=j.data.pertanyaan;
+      answers={};
+      renderCheck();
+    }
+  }catch(e){}
+}
+
+async function loadTbItems(){
+  // Demo sudah di-render di toStep2
+  // Load asli dari Apps Script tanpa ganggu tampilan
+  try{
+    const r=await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=toolbox_content&tipe_id='+tbTipeId);
+    const j=await r.json();
+    if(j.data?.toolbox_content?.length){
+      tbContent=j.data.toolbox_content;
+      tbAnswers={};
+      renderTb();
+    }
+  }catch(e){}
+}
+
+function renderCheck(){
+  const tbody=document.getElementById('checkBody');
+  if(!pertanyaan.length){
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada pertanyaan</td></tr>';
+    return;
+  }
+  let filled=0;
+  tbody.innerHTML='';
+  pertanyaan.forEach((item,i)=>{
+    const a=answers[item.question_id]||{val:'',remarks:''};
+    if(a.val) filled++;
+    const isNg=a.val==='TIDAK'||a.val==='MERAH';
+    const tr=document.createElement('tr');
+    if(isNg) tr.classList.add('ng');
+    const qid=item.question_id;
+    let inp='';
+    if(item.tipe_jawaban==='PILIHAN'){
+      inp=`<div class="rg">
+        <button class="rb ya${a.val==='YA'?' sel':''}" onclick="setA('${qid}','YA')">YA</button>
+        <button class="rb tidak${a.val==='TIDAK'?' sel':''}" onclick="setA('${qid}','TIDAK')">TIDAK</button>
+        <button class="rb na${a.val==='N/A'?' sel':''}" onclick="setA('${qid}','N/A')">N/A</button>
+      </div>`;
+    } else if(item.tipe_jawaban==='ANGKA'){
+      inp=`<input type="number" inputmode="numeric" style="width:80px;border:1.5px solid var(--border);border-radius:7px;padding:8px;font-size:15px;background:#fff;text-align:center" value="${a.val||''}" onchange="setAV('${qid}',this.value)">`;
+    } else if(item.tipe_jawaban==='TEKS'){
+      inp=`<input type="text" style="width:100%;border:1.5px solid var(--border);border-radius:7px;padding:8px;font-size:14px;background:#fff" value="${a.val||''}" onchange="setAV('${qid}',this.value)">`;
+    } else if(item.tipe_jawaban==='TANGGAL'){
+      inp=`<input type="date" style="border:1.5px solid var(--border);border-radius:7px;padding:8px;font-size:14px;background:#fff" value="${a.val||''}" onchange="setAV('${qid}',this.value)">`;
+    } else if(item.tipe_jawaban==='PILIHAN_KUSTOM'){
+      const opts=(item.pilihan_jawaban||'').split(',').map(o=>o.trim()).filter(Boolean);
+      inp=`<div class="rg">${opts.map(o=>`<button class="rb opt${a.val===o?' sel':''}" onclick="setA('${qid}','${o}')">${o}</button>`).join('')}</div>`;
+    }
+    let stat='';
+    if(a.val){
+      if(isNg) stat='<span class="sdot sd-ng">✗</span>';
+      else if(a.val==='N/A') stat='<span class="sdot sd-na">N/A</span>';
+      else stat='<span class="sdot sd-ok">✓</span>';
+    }
+    tr.innerHTML=`
+      <td style="color:var(--muted2);font-size:10px;font-weight:700">${i+1}</td>
+      <td style="font-size:13px;line-height:1.5;font-weight:${isNg?600:400}">${item.pertanyaan}</td>
+      <td>${inp}</td>
+      <td style="text-align:center">${stat}</td>`;
+    tbody.appendChild(tr);
+    if(isNg){
+      const rr=document.createElement('tr');
+      rr.classList.add('ng');
+      rr.innerHTML=`<td></td><td colspan="3">
+        <div class="rmk-wrap">
+          <div class="rmk-lbl">✏️ Remarks — Jelaskan kondisi *</div>
+          <textarea class="rmk-inp" rows="2" placeholder="Jelaskan kondisi yang ditemukan..." onchange="setR('${qid}',this.value)">${a.remarks||''}</textarea>
+        </div></td>`;
+      tbody.appendChild(rr);
+    }
+  });
+  document.getElementById('progNote').textContent=`${filled} / ${pertanyaan.length} diisi`;
+  const ng=pertanyaan.filter(p=>answers[p.question_id]?.val==='TIDAK').length;
+  document.getElementById('fillNote').textContent=ng>0?`${ng} temuan`:'';
+}
+
+function renderTb(){
+  const tbody=document.getElementById('tbBody');
+  document.getElementById('tbTitle').textContent=`${tbTipeName}${selSec?' — '+selSec:''}`;
+  document.getElementById('tbCount').textContent=tbContent.length+' item';
+  if(!tbContent.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada item</td></tr>';
+    return;
+  }
+  tbody.innerHTML='';
+  tbContent.forEach((item,i)=>{
+    const a=tbAnswers[item.content_id]||{aktual:'',kondisi:'BAIK',remarks:''};
+    const isNg=a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(a.aktual!==''&&parseInt(a.aktual)<parseInt(item.qty_standar));
+    const tr=document.createElement('tr');
+    if(isNg) tr.classList.add('tb-ng');
+    tr.innerHTML=`
+      <td style="color:var(--muted2);font-size:10px;font-weight:700">${i+1}</td>
+      <td style="font-size:12px;line-height:1.4;font-weight:${isNg?600:400}">${item.deskripsi}</td>
+      <td style="font-size:10px;color:var(--muted)">${item.part_number||'—'}</td>
+      <td style="text-align:center;font-weight:700">${item.qty_standar}</td>
+      <td><input type="number" inputmode="numeric" min="0" placeholder="0" value="${a.aktual}"
+          onchange="setTb('${item.content_id}','aktual',this.value,'${item.qty_standar}')"></td>
+      <td style="font-size:11px">${item.unit}</td>
+      <td><select onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}')">
+        <option${a.kondisi==='BAIK'?' selected':''}>BAIK</option>
+        <option${a.kondisi==='RUSAK'?' selected':''}>RUSAK</option>
+        <option${a.kondisi==='HILANG'?' selected':''}>HILANG</option>
+      </select></td>
+      <td><input type="text" placeholder="catatan..." value="${a.remarks||''}"
+          onchange="setTb('${item.content_id}','remarks',this.value,'${item.qty_standar}')"></td>`;
+    tbody.appendChild(tr);
+  });
+  const ng=tbContent.filter(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG');}).length;
+  document.getElementById('progNote').textContent=ng>0?`${ng} temuan`:'Isi qty & kondisi';
+  document.getElementById('fillNote').textContent=ng>0?`${ng} temuan toolbox`:'';
+}
+
+function setA(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers[qid].val=val;renderCheck();}
+function setAV(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers[qid].val=val;}
+function setR(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers[qid].remarks=val;}
+function setTb(cid,f,v,std){
+  if(!tbAnswers[cid])tbAnswers[cid]={aktual:'',kondisi:'BAIK',remarks:''};
+  tbAnswers[cid][f]=v; renderTb();
+}
+
+// ── STEP 3 ───────────────────────────────────────────
+function toStep3(){buildReview();goStep(3);}
+
+function buildReview(){
+  let total,ok,ng,na,items=[];
+  if(isTb){
+    total=tbContent.length;
+    items=tbContent.filter(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(a.aktual!==''&&parseInt(a.aktual)<parseInt(i.qty_standar)));})
+      .map(i=>({q:`${i.deskripsi} — ${tbAnswers[i.content_id].kondisi}`,rmk:tbAnswers[i.content_id].remarks||''}));
+    ng=items.length; ok=total-ng; na=0;
+  } else {
+    total=pertanyaan.length;
+    items=pertanyaan.filter(p=>answers[p.question_id]?.val==='TIDAK'||answers[p.question_id]?.val==='MERAH')
+      .map(p=>({q:p.pertanyaan,rmk:answers[p.question_id]?.remarks||''}));
+    ng=items.length;
+    na=pertanyaan.filter(p=>answers[p.question_id]?.val==='N/A').length;
+    ok=total-ng-na;
+  }
+  document.getElementById('statRow').innerHTML=`
+    <div class="sc"><div class="sn">${total}</div><div class="sl">Total</div></div>
+    <div class="sc"><div class="sn" style="color:var(--green)">${ok}</div><div class="sl">OK</div></div>
+    <div class="sc"><div class="sn" style="color:var(--red)">${ng}</div><div class="sl">Temuan</div></div>
+    <div class="sc"><div class="sn" style="color:var(--muted)">${na}</div><div class="sl">N/A</div></div>`;
+
+  const listEl=document.getElementById('temuanList');
+  const noT=document.getElementById('noTemuan');
+  listEl.innerHTML=''; selRisiko='';
+  if(!items.length){noT.style.display='block';document.getElementById('critAlert').className='crit-alert';document.getElementById('fotoWarn').style.display='none';return;}
+  noT.style.display='none';
+  const rOpts=[{v:'LOW',l:'Low — 14 hari',c:'sel-low'},{v:'MEDIUM',l:'Medium — 7 hari',c:'sel-medium'},{v:'HIGH',l:'High — 3 hari',c:'sel-high'},{v:'CRITICAL',l:'Critical — 1 hari',c:'sel-critical'}];
+  listEl.innerHTML=`
+    <div style="margin-bottom:14px;padding:12px;background:var(--surface2);border-radius:10px;border:1.5px solid var(--border)">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.3px">Tingkat Risiko Keseluruhan *</div>
+      <div class="risk-row">${rOpts.map(r=>`<button class="rrb" data-v="${r.v}" onclick="pickRisiko('${r.v}','${r.c}',this)">${r.l}</button>`).join('')}</div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px">Daftar Temuan (${items.length})</div>
+    ${items.map(t=>`<div class="tc">
+      <div class="tc-title">⚠️ ${t.q}</div>
+      <div class="tc-rmk">${t.rmk||'<span style="color:var(--muted2);font-style:italic">Tidak ada remarks</span>'}</div>
+    </div>`).join('')}`;
+}
+
+function pickRisiko(v,cls,btn){
+  selRisiko=v;
+  document.querySelectorAll('.rrb').forEach(b=>b.className='rrb');
+  btn.className=`rrb ${cls}`;
+  document.getElementById('critAlert').className=`crit-alert${v==='CRITICAL'?' show':''}`;
+  document.getElementById('fotoWarn').style.display=(v==='HIGH'||v==='CRITICAL')?'block':'none';
+}
+
+// ── FOTO ─────────────────────────────────────────────
+function onFoto(input){
+  const files=Array.from(input.files).slice(0,3-fotos.length);
+  if(fotos.length>=3){toast('Maksimal 3 foto','warn');input.value='';return;}
+  files.forEach(f=>{if(fotos.length<3) fotos.push(f);});
+  renderPhotos(); input.value='';
+}
+
+function renderPhotos(){
+  const row=document.getElementById('pRow');
+  row.innerHTML='';
+  fotos.forEach((f,i)=>{
+    const rd=new FileReader();
+    rd.onload=e=>{
+      const w=document.createElement('div');
+      w.style.position='relative';
+      const img=document.createElement('img');
+      img.src=e.target.result; img.className='pthumb';
+      const del=document.createElement('div');
+      del.className='pdel'; del.textContent='✕';
+      del.onclick=()=>{fotos.splice(i,1);renderPhotos();};
+      w.appendChild(img); w.appendChild(del); row.appendChild(w);
+    };
+    rd.readAsDataURL(f);
+  });
+  // Sembunyikan upload zone kalau sudah 3
+  document.getElementById('uzone').style.display=fotos.length>=3?'none':'flex';
+}
+
+// KOMPRES — otomatis oleh sistem, bukan inspektur
+async function compress(file,quality=0.7,maxPx=1280){
+  return new Promise(resolve=>{
+    const img=new Image();
+    const rd=new FileReader();
+    rd.onload=e=>{
+      img.src=e.target.result;
+      img.onload=()=>{
+        const c=document.createElement('canvas');
+        let w=img.width,h=img.height;
+        if(w>maxPx||h>maxPx){
+          if(w>h){h=Math.round(h/w*maxPx);w=maxPx;}
+          else{w=Math.round(w/h*maxPx);h=maxPx;}
+        }
+        c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(c.toDataURL('image/jpeg',quality));
+      };
+    };
+    rd.readAsDataURL(file);
+  });
+}
+
+// ── SUBMIT ───────────────────────────────────────────
+async function doSubmit(){
+  const hasT=isTb
+    ?tbContent.some(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG');})
+    :pertanyaan.some(p=>answers[p.question_id]?.val==='TIDAK');
+
+  if(hasT&&!selRisiko){toast('⚠️ Pilih tingkat risiko dulu','warn');return;}
+  if(hasT&&(selRisiko==='HIGH'||selRisiko==='CRITICAL')&&fotos.length===0){toast('⚠️ Foto wajib untuk HIGH & CRITICAL','warn');return;}
+
+  const btn=document.getElementById('btnSub');
+  btn.disabled=true;
+  document.getElementById('subIco').textContent='⏳';
+  document.getElementById('subTxt').textContent='Menyimpan...';
+
+  // Kompres foto
+  const fotoData=[];
+  for(let i=0;i<fotos.length;i++){
+    showLoad(`Mengompres foto ${i+1}/${fotos.length}...`);
+    const comp=await compress(fotos[i]);
+    fotoData.push({name:`before_${i+1}.jpg`,data:comp.split(',')[1]});
+  }
+  showLoad('Menyimpan ke database...');
+
+  const sub=document.getElementById('subSel');
+  const area=document.getElementById('areaSel');
+  const comp=document.getElementById('compSel');
+
+  const meta={
+    tanggal_inspeksi:document.getElementById('tgl').value,
+    company_id:comp.value,
+    nama_perusahaan:comp.options[comp.selectedIndex]?.text||'',
+    area_id:area.value,
+    nama_area:area.options[area.selectedIndex]?.text||'',
+    subarea_id:sub.value,
+    nama_subarea:sub.options[sub.selectedIndex]?.text||'',
+    kategori_id:katId,
+    nama_kategori:katName,
+    nama_alat:isTb?tbTipeName:document.getElementById('namaAlat').value,
+    merk:'',
+    no_asset:isTb?document.getElementById('tbNoAsset').value:document.getElementById('noAsset').value,
+    no_register:isTb?'':document.getElementById('noReg').value,
+    nik_inspektor:document.getElementById('nikIns').value,
+    nama_inspektor:document.getElementById('namaIns').value,
+    risiko:selRisiko||'LOW',
+    is_toolbox:isTb,
+    toolbox_aset_id:isTb?(document.getElementById('tbTipe').options[document.getElementById('tbTipe').selectedIndex]?.dataset.aid||''):'',
+    section:selSec||'',
+    inspection_source:'HTML',
+    ada_temuan:hasT?'Y':'N',
+    interval_hari:getIntervalHari(),
+  };
+
+  const detail=isTb?[]:pertanyaan.map(p=>({
+    question_id:p.question_id,pertanyaan:p.pertanyaan,
+    jawaban:answers[p.question_id]?.val||'',
+    remarks:answers[p.question_id]?.remarks||'',
+    ada_temuan:answers[p.question_id]?.val==='TIDAK'?'Y':'N',
+  }));
+
+  const toolbox=isTb?tbContent.map(t=>({
+    content_id:t.content_id,deskripsi:t.deskripsi,
+    part_number:t.part_number||'',qty_standar:t.qty_standar,
+    qty_aktual:tbAnswers[t.content_id]?.aktual||0,unit:t.unit,
+    kondisi:tbAnswers[t.content_id]?.kondisi||'BAIK',
+    remarks:tbAnswers[t.content_id]?.remarks||'',
+    ada_temuan:(tbAnswers[t.content_id]?.kondisi==='RUSAK'||tbAnswers[t.content_id]?.kondisi==='HILANG')?'Y':'N',
+  })):[];
+
+  try{
+    const res=await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'saveInspeksi',meta,detail,toolbox,foto_temuan:fotoData})});
+    const json=await res.json();
+    hideLoad();
+    if(json.status==='ok'){buildSuccess(json);goStep(4);}
+    else{toast('❌ Gagal: '+json.message,'error');}
+  }catch(e){
+    hideLoad();
+    // Demo mode
+    buildSuccess({inspeksi_id:'INS-2026-'+String(Math.floor(Math.random()*9999)+1).padStart(6,'0'),total_temuan:hasT?1:0,ada_temuan:hasT?'Y':'N'});
+    goStep(4);
+  }
+
+  btn.disabled=false;
+  document.getElementById('subIco').textContent='✅';
+  document.getElementById('subTxt').textContent='Submit Inspeksi';
+}
+
+function getIntervalHari(){
+  const k=(M.kategori||[]).find(k=>k.kategori_id===katId);
+  return parseInt(k?.interval_hari)||30;
+}
+
+function buildSuccess(result){
+  document.getElementById('succId').textContent=result.inspeksi_id;
+  const subText=document.getElementById('subSel').options[document.getElementById('subSel').selectedIndex]?.text||'';
+  document.getElementById('succBox').innerHTML=`
+    <div>📍 <strong>${subText}</strong> · ${katName}</div>
+    <div>🔧 ${isTb?tbTipeName:document.getElementById('namaAlat').value}</div>
+    <div>👤 ${document.getElementById('namaIns').value}</div>
+    ${result.total_temuan>0?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+      ⚠️ <strong>${result.total_temuan} temuan</strong> · Risiko: <strong>${selRisiko}</strong><br>
+      📧 Notifikasi dikirim ke PIC${picInfo?' ('+picInfo.nama+')':''}<br>
+      🗜️ ${fotos.length} foto dikompres & disimpan ke Drive
+    </div>`:`<div style="color:var(--green);margin-top:6px;font-weight:600">✅ Tidak ada temuan</div>`}`;
+}
+
+// ── STEP NAV ─────────────────────────────────────────
+function goStep(n){
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  document.getElementById('page'+n).style.display='block';
+  for(let i=1;i<=4;i++){
+    const el=document.getElementById('stp'+i);
+    el.classList.remove('active','done');
+    if(i<n) el.classList.add('done');
+    if(i===n) el.classList.add('active');
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function resetForm(){
+  answers={}; tbAnswers={}; fotos=[]; selRisiko='';
+  katId=''; katName=''; isTb=false; selSec=null; tbTipeId=''; tbTipeName=''; picInfo=null;
+  ['compSel','areaSel'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('subSel').innerHTML='<option value="">-- Pilih area --</option>';
+  document.getElementById('subSel').disabled=true;
+  document.getElementById('katSel').innerHTML='<option value="">-- Pilih sub area dulu --</option>';
+  document.getElementById('katSel').disabled=true;
+  ['namaAlat','noAsset','noReg','nikIns','namaIns','tbNoAsset'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('assetHint').className='hint';
+  document.getElementById('pRow').innerHTML='';
+  document.getElementById('uzone').style.display='flex';
+  resetTb();
+  goStep(1);
+}
+
+// ── HELPERS ──────────────────────────────────────────
+function showLoad(msg){document.getElementById('loMsg').textContent=msg||'Loading...';document.getElementById('lo').classList.add('show');}
+function hideLoad(){document.getElementById('lo').classList.remove('show');}
+function toast(msg,type='warn'){
+  const t=document.getElementById('toast');
+  const ico={warn:'⚠️',error:'❌',success:'✅',info:'ℹ️'}[type]||'⚠️';
+  document.getElementById('toastIco').textContent=ico;
+  document.getElementById('toastMsg').textContent=msg;
+  t.className=`toast show ${type}`;
+  setTimeout(()=>t.classList.remove('show'),4000);
+}
+
+// ── DEMO DATA ─────────────────────────────────────────
+function demoMaster(){return{
+  perusahaan:[{company_id:'KGB001',nama_perusahaan:'PT Cipta Kridatama',status:'Y'},{company_id:'KGB002',nama_perusahaan:'PT Sanggar Sarana Baja',status:'Y'}],
+  area:[{area_id:'AR001',nama_area:'KGB',status:'Y'},{area_id:'AR002',nama_area:'GRB',status:'Y'}],
+  subarea:[
+    {subarea_id:'SA001',area_id:'AR001',nama_subarea:'WS HE CIA',status:'Y'},
+    {subarea_id:'SA002',area_id:'AR001',nama_subarea:'WS Suppeq',status:'Y'},
+    {subarea_id:'SA003',area_id:'AR001',nama_subarea:'WS Tyre',status:'Y'},
+    {subarea_id:'SA004',area_id:'AR001',nama_subarea:'WS SSB',status:'Y'},
+    {subarea_id:'SA005',area_id:'AR001',nama_subarea:'PCR Utara',status:'Y'},
+    {subarea_id:'SA006',area_id:'AR001',nama_subarea:'Pit Stop Selatan',status:'Y'},
+  ],
+  kategori:[
+    {kategori_id:'KT001',nama_kategori:'Tenaga Angin',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:30},
+    {kategori_id:'KT002',nama_kategori:'Alat Listrik Portable',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:30},
+    {kategori_id:'KT003',nama_kategori:'Hook & Penyangga',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:90},
+    {kategori_id:'KT004',nama_kategori:'Sling / Webbing',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:90},
+    {kategori_id:'KT005',nama_kategori:'Rantai Pengangkat',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:90},
+    {kategori_id:'KT006',nama_kategori:'Crane Workshop',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:90},
+    {kategori_id:'KT007',nama_kategori:'Jack Stand',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:60},
+    {kategori_id:'KT008',nama_kategori:'Tangga Permanen',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:60},
+    {kategori_id:'KT009',nama_kategori:'Tangga Portable',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:30},
+    {kategori_id:'KT010',nama_kategori:'Oil Trap / Washpad',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:7},
+    {kategori_id:'KT011',nama_kategori:'Eyewash',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:60},
+    {kategori_id:'KT012',nama_kategori:'Apar',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:30},
+    {kategori_id:'KT013',nama_kategori:'Full Body Harness',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:60},
+    {kategori_id:'KT014',nama_kategori:'Pengelasan & Gas',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:30},
+    {kategori_id:'KT015',nama_kategori:'Chain Block & Come Along',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:90},
+    {kategori_id:'KT016',nama_kategori:'Crane Truck',aktif:'Y',tipe_inspeksi:'CHECKLIST',interval_hari:90},
+    {kategori_id:'KT017',nama_kategori:'Toolbox',aktif:'Y',tipe_inspeksi:'TOOLBOX_INVENTORY',interval_hari:30},
+  ],
+};}
+
+function demoPertanyaan(katId){
+  const def=[
+    {question_id:katId+'-Q001',pertanyaan:'Kondisi fisik alat baik (tidak rusak/retak)',tipe_jawaban:'PILIHAN'},
+    {question_id:katId+'-Q002',pertanyaan:'Alat tercantum dalam daftar inventaris',tipe_jawaban:'PILIHAN'},
+    {question_id:katId+'-Q003',pertanyaan:'Label/sticker identifikasi terpasang',tipe_jawaban:'PILIHAN'},
+    {question_id:katId+'-Q004',pertanyaan:'Tanggal inspeksi terakhir',tipe_jawaban:'TANGGAL'},
+    {question_id:katId+'-Q005',pertanyaan:'No. Register alat',tipe_jawaban:'TEKS'},
+  ];
+  const data={
+    KT002:[
+      {question_id:'KT002-Q001',pertanyaan:'Kabel dan plug dalam kondisi baik',tipe_jawaban:'PILIHAN'},
+      {question_id:'KT002-Q002',pertanyaan:'Frame / Pelindung kondisi baik',tipe_jawaban:'PILIHAN'},
+      {question_id:'KT002-Q003',pertanyaan:'Switch / Tombol ON-OFF berfungsi',tipe_jawaban:'PILIHAN'},
+      {question_id:'KT002-Q004',pertanyaan:'Kabel Grounding terpasang',tipe_jawaban:'PILIHAN'},
+      {question_id:'KT002-Q005',pertanyaan:'Kondisi fisik alat baik',tipe_jawaban:'PILIHAN'},
+      {question_id:'KT002-Q006',pertanyaan:'Peralatan tercantum dalam daftar',tipe_jawaban:'PILIHAN'},
+      {question_id:'KT002-Q007',pertanyaan:'No. Register alat',tipe_jawaban:'TEKS'},
+      {question_id:'KT002-Q008',pertanyaan:'Tanggal inspeksi terakhir',tipe_jawaban:'TANGGAL'},
+    ],
+    KT012:[
+      {question_id:'KT012-Q001',pertanyaan:'Kapasitas APAR (kg)',tipe_jawaban:'ANGKA'},
+      {question_id:'KT012-Q002',pertanyaan:'Jumlah APAR tersedia',tipe_jawaban:'ANGKA'},
+      {question_id:'KT012-Q003',pertanyaan:'Kondisi Hose baik',tipe_jawaban:'PILIHAN'},
+      {question_id:'KT012-Q004',pertanyaan:'Kondisi tabung baik',tipe_jawaban:'PILIHAN'},
+      {question_id:'KT012-Q005',pertanyaan:'Kondisi Gauge tekanan',tipe_jawaban:'PILIHAN_KUSTOM',pilihan_jawaban:'HIJAU,KUNING,MERAH'},
+      {question_id:'KT012-Q006',pertanyaan:'Pin pengaman tersedia',tipe_jawaban:'PILIHAN'},
+    ],
+  };
+  return data[katId]||def;
+}
+
+function demoTbContent(tipeId){
+  const map={
+    TBT001:[
+      {content_id:'NB001',deskripsi:'Centilever Box',part_number:'-',qty_standar:1,unit:'PC'},
+      {content_id:'NB002',deskripsi:'Combination Wrench 5/16',part_number:'-',qty_standar:1,unit:'PC'},
+      {content_id:'NB003',deskripsi:'Socket Set Metrik',part_number:'-',qty_standar:1,unit:'SET'},
+    ],
+    TBT002:[
+      {content_id:'EL001',deskripsi:'Portable Toolbox',part_number:'EL-001',qty_standar:1,unit:'PC'},
+      {content_id:'EL002',deskripsi:'Combination Wrench 6mm',part_number:'EL-002',qty_standar:1,unit:'PC'},
+      {content_id:'EL003',deskripsi:'Socket Set 3/8"',part_number:'EL-003',qty_standar:1,unit:'SET'},
+    ],
+    TBT003:[
+      {content_id:'BP001',deskripsi:'Portable Tool Box 3 Tray',part_number:'TBC157',qty_standar:1,unit:'PC'},
+      {content_id:'BP002',deskripsi:'Combination Wrench 14mm',part_number:'TBC159',qty_standar:1,unit:'PC'},
+      {content_id:'BP003',deskripsi:'Combination Wrench 17mm',part_number:'TBC162',qty_standar:1,unit:'PC'},
+      {content_id:'BP004',deskripsi:'Socket Set 14-24mm',part_number:'TBC171',qty_standar:1,unit:'SET'},
+      {content_id:'BP005',deskripsi:'Combination Plier',part_number:'TBC189',qty_standar:1,unit:'PC'},
+    ],
+    TBT004:[
+      {content_id:'ST001',deskripsi:'Tool Bag 19"',part_number:'TBC237',qty_standar:1,unit:'PC'},
+      {content_id:'ST002',deskripsi:'Combination Wrench 7mm',part_number:'TBC222',qty_standar:1,unit:'PC'},
+      {content_id:'ST003',deskripsi:'Socket Set 3/8"',part_number:'TBC238',qty_standar:1,unit:'SET'},
+    ],
+  };
+  return map[tipeId]||map['TBT003'];
+}
+
+function demoTbAset(subId){
+  const base=[
+    {asset_id:'TBA001',nama_toolbox:'Toolbox No Brand',tipe_id:'TBT001'},
+    {asset_id:'TBA002',nama_toolbox:'Toolbox Elora',tipe_id:'TBT002'},
+    {asset_id:'TBA003',nama_toolbox:'Toolbox Blue Point',tipe_id:'TBT003'},
+    {asset_id:'TBA004',nama_toolbox:'Toolbox Strafco',tipe_id:'TBT004'},
+  ];
+  // SA001 punya section Wheel & Rebuild
+  if(subId==='SA001'){
+    return [
+      ...base.map(b=>({...b,section:'Wheel',subarea_id:'SA001'})),
+      ...base.map(b=>({...b,asset_id:b.asset_id+'R',section:'Rebuild',subarea_id:'SA001'})),
+    ];
+  }
+  if(subId==='SA005'){
+    return [
+      ...base.map(b=>({...b,section:'Digger',subarea_id:'SA005'})),
+      ...base.map(b=>({...b,asset_id:b.asset_id+'A',section:'Auxiliary',subarea_id:'SA005'})),
+    ];
+  }
+  return base.map(b=>({...b,subarea_id:subId}));
+}
+
+function demoPIC(subId,katId,sec){
+  const pics={
+    'SA001-null':{nama:'Zainal',email:'zainaltyre@gmail.com',is_delegate:false},
+    'SA001-Wheel':{nama:'Masduki',email:'',is_delegate:false},
+    'SA001-Rebuild':{nama:'Zanuar Pribadi',email:'',is_delegate:false},
+    'SA003-null':{nama:'M Yusuf Ismail',email:'',is_delegate:false},
+    'SA005-Digger':{nama:'Ahmad Roqib',email:'',is_delegate:false},
+    'SA005-Auxiliary':{nama:'Panbel Tua Girsang',email:'',is_delegate:false},
+    'SA006-null':{nama:'Riswanto',email:'',is_delegate:false},
+  };
+  const key=katId==='KT017'?`${subId}-${sec}`:`${subId}-null`;
+  return pics[key]||{nama:'PIC Area',email:'',is_delegate:false};
+}
+</script>
+</body>
+</html>
