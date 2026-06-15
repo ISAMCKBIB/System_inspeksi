@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Form Inspeksi K3 — CK BIB</title>
+<title>Form Inspeksi K3 — Mining Ship</title>
 <!-- System font dipakai — tidak perlu download font eksternal -->
 <style>
 :root{
@@ -385,15 +385,15 @@ table.tbtbl input[type=text]{
 <!-- ══ STEP 1: IDENTITAS ══ -->
 <div class="page active" id="page1">
   <div class="card">
-    <div class="card-title">👤 Data Inspektor</div>
+    <div class="card-title">👤 Data Inspektur</div>
     <div class="g2 mb10">
       <div class="field">
-        <label>Nama Inspektor <span class="req">*</span></label>
+        <label>Nama Inspektur <span class="req">*</span></label>
         <input type="text" id="namaIns" placeholder="Nama lengkap" autocomplete="name">
       </div>
       <div class="field">
-        <label>SN</label>
-        <input type="text" id="nikIns" placeholder="SN" autocomplete="off">
+        <label>NIK / SN</label>
+        <input type="text" id="nikIns" placeholder="NIK atau SN" autocomplete="off">
       </div>
     </div>
     <div class="field">
@@ -935,22 +935,19 @@ async function loadPertanyaan(){
 }
 
 async function loadTbItems(){
-  // Demo sudah di-render di toStep2 — jangan reset kalau gagal
+  // Demo sudah di-render — load semua item asli dari Apps Script
   try{
     const r=await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=toolbox_content&tipe_id='+encodeURIComponent(tbTipeId));
     const j=await r.json();
-    // Hanya update kalau data asli ADA dan tidak kosong
-    if(j.status==='ok' && j.data?.toolbox_content && j.data.toolbox_content.length > 0){
-      tbContent = j.data.toolbox_content;
-      // Pertahankan jawaban yang sudah diisi Inspector
-      // Jangan reset tbAnswers!
+    if(j.status==='ok'&&j.data?.toolbox_content){
+      // Ambil SEMUA item tanpa filter/limit
+      tbContent=j.data.toolbox_content;
+      tbAnswers={};
       renderTb();
-      document.getElementById('tbCount').textContent = tbContent.length + ' item';
+      document.getElementById('tbCount').textContent=tbContent.length+' item';
     }
-    // Kalau kosong atau gagal → demo data tetap tampil, tidak di-reset
   }catch(e){
-    // Diam-diam pakai demo data yang sudah ada
-    console.log('Pakai demo data toolbox');
+    console.log('Gagal load toolbox dari server, pakai demo data');
   }
 }
 
@@ -991,6 +988,8 @@ function renderCheck(){
       if(isNg) stat='<span class="sdot sd-ng">✗</span>';
       else if(a.val==='N/A') stat='<span class="sdot sd-na">N/A</span>';
       else stat='<span class="sdot sd-ok">✓</span>';
+    } else if(item.tipe_jawaban==='PILIHAN'||item.tipe_jawaban==='PILIHAN_KUSTOM'){
+      stat='<span class="sdot" style="background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-bd)">?</span>';
     }
     tr.innerHTML=`
       <td style="color:var(--muted2);font-size:10px;font-weight:700">${i+1}</td>
@@ -1061,7 +1060,42 @@ function setTb(cid,f,v,std){
 
 // ── STEP 3 ───────────────────────────────────────────
 function toStep3(){
-  // Cek apakah ada temuan
+  // ── Validasi: semua pertanyaan wajib diisi ──
+  if(isTb){
+    // Toolbox: semua item harus ada qty aktual
+    const belumIsi=tbContent.filter(i=>{
+      const a=tbAnswers[i.content_id];
+      return !a||a.aktual==='';
+    });
+    if(belumIsi.length>0){
+      toast('⚠️ Isi qty aktual untuk semua '+belumIsi.length+' item toolbox dulu','warn');
+      return;
+    }
+  } else {
+    // Checklist: semua pertanyaan PILIHAN wajib dijawab
+    const belumIsi=pertanyaan.filter(p=>{
+      if(p.tipe_jawaban==='TEKS'||p.tipe_jawaban==='TANGGAL') return false; // opsional
+      return !answers[p.question_id]||!answers[p.question_id].val;
+    });
+    if(belumIsi.length>0){
+      toast('⚠️ '+belumIsi.length+' pertanyaan belum dijawab','warn');
+      // Scroll ke pertanyaan pertama yang belum dijawab
+      const tbody=document.getElementById('checkBody');
+      if(tbody) tbody.scrollIntoView({behavior:'smooth',block:'start'});
+      return;
+    }
+    // Validasi: yang jawab TIDAK wajib isi remarks
+    const belumRemarks=pertanyaan.filter(p=>{
+      const a=answers[p.question_id];
+      return a&&(a.val==='TIDAK'||a.val==='MERAH')&&(!a.remarks||!a.remarks.trim());
+    });
+    if(belumRemarks.length>0){
+      toast('⚠️ Isi remarks untuk '+belumRemarks.length+' temuan dulu','warn');
+      return;
+    }
+  }
+
+  // ── Cek ada temuan atau tidak ──
   let hasTemuan=false;
   if(isTb){
     hasTemuan=tbContent.some(i=>{
@@ -1069,13 +1103,16 @@ function toStep3(){
       return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(a.aktual!==''&&parseInt(a.aktual)<parseInt(i.qty_standar)));
     });
   } else {
-    hasTemuan=pertanyaan.some(p=>answers[p.question_id]?.val==='TIDAK'||answers[p.question_id]?.val==='MERAH');
+    hasTemuan=pertanyaan.some(p=>
+      answers[p.question_id]?.val==='TIDAK'||
+      answers[p.question_id]?.val==='MERAH'
+    );
   }
 
   if(!hasTemuan){
-    // Semua OK — tanya konfirmasi lalu langsung submit
-    if(confirm('Tidak ada temuan ditemukan.\n\nLangsung submit inspeksi sekarang?')){
-      selRisiko=''; // tidak ada risiko
+    // Semua OK — langsung submit tanpa review
+    if(confirm('Semua item OK — tidak ada temuan.\n\nLangsung submit inspeksi?')){
+      selRisiko='';
       doSubmit();
     }
     return;
@@ -1114,7 +1151,7 @@ function buildReview(){
   noT.style.display='none';
   // Foto WAJIB jika ada temuan
   document.getElementById('fotoWarn').style.display='block';
-  document.getElementById('fotoWarn').textContent='📷 Foto wajib dilampirkan saat ada temuan';
+  document.getElementById('fotoWarn').textContent='📷 Foto wajib untuk semua tingkat risiko';
 
   const rOpts=[{v:'LOW',l:'Low — 14 hari',c:'sel-low'},{v:'MEDIUM',l:'Medium — 7 hari',c:'sel-medium'},{v:'HIGH',l:'High — 3 hari',c:'sel-high'},{v:'CRITICAL',l:'Critical — 1 hari',c:'sel-critical'}];
   listEl.innerHTML=`
@@ -1132,9 +1169,12 @@ function buildReview(){
 function pickRisiko(v,cls,btn){
   selRisiko=v;
   document.querySelectorAll('.rrb').forEach(b=>b.className='rrb');
-  btn.className=`rrb ${cls}`;
-  document.getElementById('critAlert').className=`crit-alert${v==='CRITICAL'?' show':''}`;
-  document.getElementById('fotoWarn').style.display=(v==='HIGH'||v==='CRITICAL')?'block':'none';
+  btn.className='rrb '+cls;
+  // Alert CRITICAL
+  document.getElementById('critAlert').className='crit-alert'+(v==='CRITICAL'?' show':'');
+  // Foto wajib untuk SEMUA risiko
+  document.getElementById('fotoWarn').style.display='block';
+  document.getElementById('fotoWarn').textContent='📷 Foto wajib untuk semua tingkat risiko — '+v;
 }
 
 // ── FOTO ─────────────────────────────────────────────
@@ -1196,7 +1236,7 @@ async function doSubmit(){
     :pertanyaan.some(p=>answers[p.question_id]?.val==='TIDAK');
 
   if(hasT&&!selRisiko){toast('⚠️ Pilih tingkat risiko dulu','warn');return;}
-  if(hasT&&fotos.length===0){toast('⚠️ Foto wajib dilampirkan jika ada temuan','warn');return;}
+  if(hasT&&fotos.length===0){toast('⚠️ Foto wajib dilampirkan untuk semua tingkat risiko','warn');return;}
 
   const btn=document.getElementById('btnSub');
   btn.disabled=true;
