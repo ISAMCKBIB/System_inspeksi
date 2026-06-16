@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Mining Ship Inspeksi</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c1117;
+  --surface: #161b22;
+  --surface2: #1c2128;
+  --border: #30363d;
+  --accent: #f0a500;
+  --accent2: #e05c00;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --green: #3fb950;
+  --red: #f85149;
+  --blue: #58a6ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:1rem;
+}
+
+/* BG PATTERN */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(240,165,0,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(88,166,255,0.04) 0%, transparent 60%);
+  pointer-events:none;
+}
+
+.login-wrap{
+  width:100%;
+  max-width:400px;
+  position:relative;
+}
+
+/* HEADER */
+.brand{
+  text-align:center;
+  margin-bottom:2rem;
+}
+.brand-icon{
+  width:52px;height:52px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+  margin:0 auto 12px;
+  box-shadow:0 8px 24px rgba(240,165,0,0.25);
+}
+.brand h1{
+  font-size:20px;font-weight:600;
+  color:var(--text);letter-spacing:-.3px;
+}
+.brand p{
+  font-size:12px;color:var(--muted);
+  font-family:'JetBrains Mono',monospace;
+  margin-top:4px;letter-spacing:.5px;
+}
+
+/* CARD */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:2rem;
+  box-shadow:0 16px 48px rgba(0,0,0,0.4);
+}
+.card-title{
+  font-size:16px;font-weight:600;
+  margin-bottom:4px;
+}
+.card-sub{
+  font-size:12px;color:var(--muted);
+  margin-bottom:1.5rem;
+}
+
+/* FORM */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem}
+.field label{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.3px}
+.field input{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 14px;
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  outline:none;
+  transition:border-color .2s;
+}
+.field input:focus{border-color:var(--accent)}
+.field input::placeholder{color:var(--muted)}
+
+.btn-login{
+  width:100%;
+  padding:12px;
+  background:var(--accent);
+  color:#000;
+  border:none;
+  border-radius:8px;
+  font-family:'Inter',sans-serif;
+  font-size:14px;font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+  margin-top:.5rem;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-login:hover{background:#e09500;transform:translateY(-1px)}
+.btn-login:disabled{background:var(--muted);cursor:not-allowed;transform:none}
+
+/* DIVIDER */
+.divider{
+  display:flex;align-items:center;gap:10px;
+  margin:1.5rem 0;
+  font-size:11px;color:var(--muted);
+}
+.divider::before,.divider::after{
+  content:'';flex:1;height:1px;background:var(--border);
+}
+
+/* FORM LINK */
+.form-link{
+  display:block;
+  text-align:center;
+  padding:11px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-size:13px;color:var(--muted);
+  text-decoration:none;
+  transition:all .2s;
+}
+.form-link:hover{border-color:var(--accent);color:var(--accent)}
+.form-link span{font-size:16px;margin-right:4px}
+
+/* ERROR / SUCCESS */
+.alert{
+  padding:10px 14px;
+  border-radius:8px;
+  font-size:12px;
+  margin-bottom:1rem;
+  display:none;
+  align-items:center;gap:8px;
+}
+.alert.error{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red)}
+.alert.success{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--green)}
+.alert.show{display:flex}
+
+/* LOADER */
+.spinner{
+  width:16px;height:16px;
+  border:2px solid rgba(0,0,0,.3);
+  border-top-color:#000;
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ROLE BADGES */
+.role-info{
+  display:flex;gap:6px;flex-wrap:wrap;
+  margin-top:1.5rem;padding-top:1.5rem;
+  border-top:1px solid var(--border);
+}
+.role-badge{
+  flex:1;min-width:80px;
+  padding:8px 10px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  text-align:center;
+  font-size:11px;
+}
+.role-badge .r-icon{font-size:18px;display:block;margin-bottom:4px}
+.role-badge .r-name{font-weight:600;color:var(--text)}
+.role-badge .r-desc{color:var(--muted);font-size:10px;margin-top:2px}
+
+/* FOOTER */
+.footer{
+  text-align:center;
+  margin-top:1.5rem;
+  font-size:11px;color:var(--muted);
+  font-family:'JetBrains Mono',monospace;
+}
+</style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="brand">
+    <div class="brand-icon">⛏️</div>
+    <h1>Mining Ship Inspeksi</h1>
+    <p>SISTEM MONITORING K3 · KGB & GRB</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Masuk ke Dashboard</div>
+    <div class="card-sub">Untuk PIC dan Admin saja — Inspector tidak perlu login</div>
+
+    <div class="alert error" id="alertError">
+      <span>⚠️</span><span id="errorMsg">Email tidak terdaftar</span>
+    </div>
+    <div class="alert success" id="alertSuccess">
+      <span>✅</span><span id="successMsg">Login berhasil, mengalihkan...</span>
+    </div>
+
+    <div class="field">
+      <label>EMAIL</label>
+      <input type="email" id="emailInput" placeholder="email@perusahaan.com"
+        onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+
+    <button class="btn-login" id="btnLogin" onclick="doLogin()">
+      <span id="btnText">Masuk</span>
+    </button>
+
+    <div class="divider">atau</div>
+
+    <a href="form-inspeksi.html" class="form-link">
+      <span>📋</span> Buka Form Inspeksi (tidak perlu login)
+    </a>
+
+    <div class="role-info">
+      <div class="role-badge">
+        <span class="r-icon">🔧</span>
+        <div class="r-name">PIC</div>
+        <div class="r-desc">Lihat & close temuan areamu</div>
+      </div>
+      <div class="role-badge">
+        <span class="r-icon">⚙️</span>
+        <div class="r-name">Admin</div>
+        <div class="r-desc">Kelola semua data & master</div>
+      </div>
+      <div class="role-badge">
+        <span class="r-icon">👁️</span>
+        <div class="r-name">Viewer</div>
+        <div class="r-desc">Lihat laporan & dashboard</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">v2.0 · 2026 · Mining Ship Monitoring System</div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+async function doLogin() {
+  const email = document.getElementById('emailInput').value.trim();
+  if (!email) { showAlert('error', 'Masukkan email kamu dulu'); return; }
+
+  const btn = document.getElementById('btnLogin');
+  const btnText = document.getElementById('btnText');
+  btn.disabled = true;
+  btnText.innerHTML = '<div class="spinner"></div> Memverifikasi...';
+  hideAlerts();
+
+  try {
+    // Call Apps Script untuk verifikasi email
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getMasterData&type=employee_login&email=' + encodeURIComponent(email));
+    const json = await res.json();
+
+    if (json.status === 'ok' && json.data && json.data.employee) {
+      const emp = json.data.employee;
+
+      // Validasi role
+      if (!['PIC', 'ADMIN', 'VIEWER'].includes(emp.role)) {
+        showAlert('error', `Role "${emp.role}" tidak bisa akses dashboard. Gunakan form inspeksi.`);
+        btn.disabled = false;
+        btnText.textContent = 'Masuk';
+        return;
+      }
+
+      // Simpan session
+      const session = {
+        nik: emp.nik,
+        nama: emp.nama,
+        email: emp.email,
+        role: emp.role,
+        company_id: emp.company_id,
+        area_id: emp.area_id,
+        subarea_id: emp.subarea_id,
+        login_at: new Date().toISOString()
+      };
+      localStorage.setItem('msm_session', JSON.stringify(session));
+
+      showAlert('success', `Selamat datang, ${emp.nama}! Mengalihkan ke dashboard...`);
+
+      // Update last_login di Sheets
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'updateEmployee',
+          nik: emp.nik,
+          last_login: new Date().toISOString()
+        })
+      });
+
+      // Cek apakah ada redirect target dari URL param
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetInspeksi = urlParams.get('inspeksi') || sessionStorage.getItem('redirect_inspeksi');
+      
+      setTimeout(() => {
+        if (targetInspeksi) {
+          window.location.href = 'dashboard.html?inspeksi=' + targetInspeksi;
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+      }, 1200);
+
+    } else {
+      showAlert('error', 'Email tidak terdaftar di sistem. Hubungi Admin untuk didaftarkan.');
+    }
+  } catch (err) {
+    // DEMO MODE
+    console.log('Demo mode — Apps Script belum terkoneksi');
+    demoLogin(email);
+  }
+
+  btn.disabled = false;
+  btnText.textContent = 'Masuk';
+}
+
+// Demo login tanpa Apps Script
+function demoLogin(email) {
+  const demoUsers = {
+    'pic@demo.com':   { nik:'EMP003', nama:'Zainal', role:'PIC', company_id:'KGB001', area_id:'AR001', subarea_id:'SA001' },
+    'admin@demo.com': { nik:'EMP001', nama:'Abdul Azis', role:'ADMIN', company_id:'KGB001', area_id:'AR001', subarea_id:'' },
+    'view@demo.com':  { nik:'EMP010', nama:'HSE Manager', role:'VIEWER', company_id:'KGB001', area_id:'', subarea_id:'' },
+  };
+
+  const emp = demoUsers[email.toLowerCase()];
+  if (emp) {
+    localStorage.setItem('msm_session', JSON.stringify({ ...emp, email, login_at: new Date().toISOString() }));
+    showAlert('success', `[DEMO] Selamat datang, ${emp.nama}! Role: ${emp.role}`);
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+  } else {
+    showAlert('error', 'Email tidak ditemukan. Coba: pic@demo.com / admin@demo.com / view@demo.com');
+  }
+}
+
+function showAlert(type, msg) {
+  hideAlerts();
+  const el = document.getElementById(type === 'error' ? 'alertError' : 'alertSuccess');
+  const msgEl = document.getElementById(type === 'error' ? 'errorMsg' : 'successMsg');
+  msgEl.textContent = msg;
+  el.classList.add('show');
+}
+function hideAlerts() {
+  document.getElementById('alertError').classList.remove('show');
+  document.getElementById('alertSuccess').classList.remove('show');
+}
+
+// Check jika sudah login
+window.onload = () => {
+  const session = localStorage.getItem('msm_session');
+  if (session) {
+    const s = JSON.parse(session);
+    const loginAge = (new Date() - new Date(s.login_at)) / 1000 / 60 / 60;
+    if (loginAge < 8) { // session 8 jam
+      window.location.href = 'dashboard.html';
+    } else {
+      localStorage.removeItem('msm_session');
+    }
+  }
+  document.getElementById('emailInput').focus();
+};
+</script>
+</body>
+</html>
