@@ -1231,6 +1231,10 @@ async function compress(file,quality=0.7,maxPx=1280){
 
 // ── SUBMIT ───────────────────────────────────────────
 async function doSubmit(){
+  async function doSubmit(){
+  console.log('=== SUBMIT ===');
+  console.log('fotos array:', fotos);
+  console.log('fotos length:', fotos.length);
   const hasT=isTb
     ?tbContent.some(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG');})
     :pertanyaan.some(p=>answers[p.question_id]?.val==='TIDAK');
