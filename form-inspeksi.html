@@ -1207,32 +1207,22 @@ function renderPhotos(){
 }
 
 // KOMPRES — otomatis oleh sistem, bukan inspektur
-async function compress(file, quality=0.55, maxPx=1000){
-  return new Promise(resolve => {
-    const img = new Image();
-    const rd = new FileReader();
-    rd.onload = e => {
-      img.src = e.target.result;
-      img.onload = () => {
-        const c = document.createElement('canvas');
-        let w = img.width, h = img.height;
-
-        // Resize
-        if (w > maxPx || h > maxPx) {
-          if (w > h) {
-            h = Math.round(h / w * maxPx);
-            w = maxPx;
-          } else {
-            w = Math.round(w / h * maxPx);
-            h = maxPx;
-          }
+async function compress(file,quality=0.7,maxPx=1280){
+  return new Promise(resolve=>{
+    const img=new Image();
+    const rd=new FileReader();
+    rd.onload=e=>{
+      img.src=e.target.result;
+      img.onload=()=>{
+        const c=document.createElement('canvas');
+        let w=img.width,h=img.height;
+        if(w>maxPx||h>maxPx){
+          if(w>h){h=Math.round(h/w*maxPx);w=maxPx;}
+          else{w=Math.round(w/h*maxPx);h=maxPx;}
         }
-
-        c.width = w;
-        c.height = h;
-        c.getContext('2d').drawImage(img, 0, 0, w, h);
-        
-        resolve(c.toDataURL('image/jpeg', quality));
+        c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(c.toDataURL('image/jpeg',quality));
       };
     };
     rd.readAsDataURL(file);
@@ -1241,11 +1231,6 @@ async function compress(file, quality=0.55, maxPx=1000){
 
 // ── SUBMIT ───────────────────────────────────────────
 async function doSubmit(){
-  console.log('=== SUBMIT MULAI ===');
-  console.log('Jumlah foto:', fotos.length);
-  console.log('isTb:', isTb);
-  console.log('Risiko terpilih:', selRisiko);
-  console.log('Jumlah pertanyaan:', pertanyaan.length);
   const hasT=isTb
     ?tbContent.some(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG');})
     :pertanyaan.some(p=>answers[p.question_id]?.val==='TIDAK');
@@ -1259,22 +1244,13 @@ async function doSubmit(){
   document.getElementById('subTxt').textContent='Menyimpan...';
 
   // Kompres foto
-// ── KOMPRES FOTO ──
-const fotoData = [];
-for(let i = 0; i < fotos.length; i++){
-  showLoad(`Mengompres foto ${i+1}/${fotos.length}...`);
-  try {
-    const comp = await compress(fotos[i], 0.55, 1000);  // kualitas & ukuran lebih kecil
-    fotoData.push({
-      name: `before_${i+1}.jpg`,
-      data: comp.split(',')[1]   // kirim hanya base64 murni
-    });
-    console.log(`✅ Foto ${i+1} dikompres (${(comp.length/1024).toFixed(1)} KB)`);
-  } catch(e) {
-    console.error('Gagal kompres foto', i, e);
+  const fotoData=[];
+  for(let i=0;i<fotos.length;i++){
+    showLoad(`Mengompres foto ${i+1}/${fotos.length}...`);
+    const comp=await compress(fotos[i]);
+    fotoData.push({name:`before_${i+1}.jpg`,data:comp.split(',')[1]});
   }
-}
-showLoad('Menyimpan ke database...');
+  showLoad('Menyimpan ke database...');
 
   const sub=document.getElementById('subSel');
   const area=document.getElementById('areaSel');
