@@ -1254,12 +1254,12 @@ async function doSubmit(){
 
   const sub=document.getElementById('subSel');
   const area=document.getElementById('areaSel');
-  const comp=document.getElementById('compSel');
+  const compSel=document.getElementById('compSel');
 
   const meta={
     tanggal_inspeksi:document.getElementById('tgl').value,
-    company_id:comp.value,
-    nama_perusahaan:comp.options[comp.selectedIndex]?.text||'',
+    company_id:compSel.value,
+    nama_perusahaan:compSel.options[compSel.selectedIndex]?.text||'',
     area_id:area.value,
     nama_area:area.options[area.selectedIndex]?.text||'',
     subarea_id:sub.value,
