@@ -220,7 +220,19 @@ body::before{
     <div class="field">
       <label>EMAIL</label>
       <input type="email" id="emailInput" placeholder="email@perusahaan.com"
-        onkeydown="if(event.key==='Enter') doLogin()">
+        onkeydown="if(event.key==='Tab') document.getElementById('pwInput').focus()">
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label>PASSWORD</label>
+      <div style="position:relative">
+        <input type="password" id="pwInput" placeholder="Masukkan password"
+          onkeydown="if(event.key==='Enter') doLogin()"
+          style="padding-right:44px">
+        <button onclick="togglePw()" type="button"
+          style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+          background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0"
+          id="eyeBtn">👁</button>
+      </div>
     </div>
 
     <button class="btn-login" id="btnLogin" onclick="doLogin()">
@@ -256,7 +268,7 @@ body::before{
 </div>
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-570kTIDvQyvcD7Y-Ezy-8z80qp_Wxg0J2e-_6LKYHWfzC3AQR5_22e4Tbnp4DkwuNA/exec';
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
 async function doLogin() {
   const email = document.getElementById('emailInput').value.trim();
@@ -268,9 +280,12 @@ async function doLogin() {
   btnText.innerHTML = '<div class="spinner"></div> Memverifikasi...';
   hideAlerts();
 
+  const pw = document.getElementById('pwInput').value.trim();
+  if (!pw) { showAlert('error', 'Masukkan password dulu'); return; }
+
   try {
-    // Call Apps Script untuk verifikasi email
-    const res = await fetch(APPS_SCRIPT_URL + '?action=getMasterData&type=employee_login&email=' + encodeURIComponent(email));
+    // Call Apps Script untuk verifikasi email + password dari MASTER_EMPLOYEE
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getMasterData&type=employee_login&email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(pw));
     const json = await res.json();
 
     if (json.status === 'ok' && json.data && json.data.employee) {
@@ -322,7 +337,7 @@ async function doLogin() {
       }, 1200);
 
     } else {
-      showAlert('error', 'Email tidak terdaftar di sistem. Hubungi Admin untuk didaftarkan.');
+      showAlert('error', json.data?.message || 'Email tidak terdaftar atau password salah.');
     }
   } catch (err) {
     // DEMO MODE
@@ -336,19 +351,24 @@ async function doLogin() {
 
 // Demo login tanpa Apps Script
 function demoLogin(email) {
+  const pw = document.getElementById('pwInput').value.trim();
   const demoUsers = {
-    'pic@demo.com':   { nik:'EMP003', nama:'Zainal', role:'PIC', company_id:'KGB001', area_id:'AR001', subarea_id:'SA001' },
-    'admin@demo.com': { nik:'EMP001', nama:'Abdul Azis', role:'ADMIN', company_id:'KGB001', area_id:'AR001', subarea_id:'' },
-    'view@demo.com':  { nik:'EMP010', nama:'HSE Manager', role:'VIEWER', company_id:'KGB001', area_id:'', subarea_id:'' },
+    'pic@demo.com':   { nik:'EMP003', nama:'Zainal', role:'PIC', company_id:'KGB001', area_id:'AR001', subarea_id:'SA001', password:'123456' },
+    'admin@demo.com': { nik:'EMP001', nama:'Abdul Azis', role:'ADMIN', company_id:'KGB001', area_id:'AR001', subarea_id:'', password:'admin123' },
+    'view@demo.com':  { nik:'EMP010', nama:'HSE Manager', role:'VIEWER', company_id:'KGB001', area_id:'', subarea_id:'', password:'123456' },
   };
 
   const emp = demoUsers[email.toLowerCase()];
   if (emp) {
+    if (pw !== emp.password) {
+      showAlert('error', '[DEMO] Password salah. Coba: pic@demo.com/123456 atau admin@demo.com/admin123');
+      return;
+    }
     localStorage.setItem('msm_session', JSON.stringify({ ...emp, email, login_at: new Date().toISOString() }));
     showAlert('success', `[DEMO] Selamat datang, ${emp.nama}! Role: ${emp.role}`);
     setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
   } else {
-    showAlert('error', 'Email tidak ditemukan. Coba: pic@demo.com / admin@demo.com / view@demo.com');
+    showAlert('error', 'Email tidak ditemukan. Coba: pic@demo.com / admin@demo.com');
   }
 }
 
@@ -362,6 +382,18 @@ function showAlert(type, msg) {
 function hideAlerts() {
   document.getElementById('alertError').classList.remove('show');
   document.getElementById('alertSuccess').classList.remove('show');
+}
+
+function togglePw() {
+  const input = document.getElementById('pwInput');
+  const btn = document.getElementById('eyeBtn');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+  }
 }
 
 // Check jika sudah login
