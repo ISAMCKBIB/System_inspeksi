@@ -105,7 +105,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .hint{padding:10px 12px;border-radius:8px;font-size:13px;margin-top:6px;display:none;align-items:flex-start;gap:8px;line-height:1.5}
 .hint.found{background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green)}
 .hint.new{background:var(--yellow-bg);border:1px solid var(--yellow-bd);color:var(--yellow)}
+.hint.searching{background:var(--blue-bg);border:1px solid var(--blue-bd);color:var(--blue)}
 .hint.show{display:flex}
+
+/* Asset search loading */
+.asset-spinner{
+  width:14px;height:14px;border:2px solid var(--blue-bd);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:spin .6s linear infinite;flex-shrink:0;margin-top:1px;
+}
+.asset-input-wrap{position:relative}
+.asset-search-icon{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  font-size:14px;color:var(--muted2);pointer-events:none;
+  transition:all .2s;
+}
+.asset-input-wrap input:focus ~ .asset-search-icon{color:var(--accent)}
+#noAsset{padding-right:36px}
 
 /* PIC BOX */
 .pic-box{
@@ -432,7 +448,10 @@ table.tbtbl input[type=text]{
       <div class="g2 mb10">
         <div class="field">
           <label>No Asset <span class="req">*</span></label>
-          <input type="text" id="noAsset" placeholder="AST-001" oninput="onAsset(this.value)" autocomplete="off">
+          <div class="asset-input-wrap">
+            <input type="text" id="noAsset" placeholder="AST-001" oninput="onAssetDebounce(this.value)" autocomplete="off">
+            <span class="asset-search-icon" id="assetSearchIcon">🔍</span>
+          </div>
         </div>
         <div class="field">
           <label>No Register</label>
@@ -829,9 +848,37 @@ async function showPIC(sec){
   }
 }
 
+// Debounce timer untuk no asset
+let assetDebounceTimer = null;
+
+function onAssetDebounce(v) {
+  const h = document.getElementById('assetHint');
+  const icon = document.getElementById('assetSearchIcon');
+
+  // Reset kalau input terlalu pendek
+  if (v.length < 3) {
+    h.className = 'hint';
+    icon.textContent = '🔍';
+    clearTimeout(assetDebounceTimer);
+    return;
+  }
+
+  // Tampilkan animasi searching
+  h.innerHTML = '<div class="asset-spinner"></div> Mencari di MASTER_ASSET...';
+  h.className = 'hint searching show';
+  icon.textContent = '⏳';
+
+  // Debounce 600ms — tunggu user berhenti ketik
+  clearTimeout(assetDebounceTimer);
+  assetDebounceTimer = setTimeout(() => {
+    onAsset(v);
+  }, 600);
+}
+
 async function onAsset(v){
   const h=document.getElementById('assetHint');
-  if(v.length<3){h.className='hint';return;}
+  const icon=document.getElementById('assetSearchIcon');
+
   try{
     const r=await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=asset_check&no_asset='+encodeURIComponent(v));
     const j=await r.json();
@@ -842,9 +889,10 @@ async function onAsset(v){
       if(a.no_register) document.getElementById('noReg').value=a.no_register;
       if(a.merk) document.getElementById('merkAlat').value=a.merk;
       h.innerHTML='✅ <strong>Aset ditemukan!</strong> Data terisi otomatis'
-        +(a.tgl_inspeksi_terakhir?'<br>Terakhir inspeksi: <strong>'+a.tgl_inspeksi_terakhir+'</strong>':'')
+        +(a.tgl_inspeksi_terakhir?'<br>🕒 Terakhir inspeksi: <strong>'+a.tgl_inspeksi_terakhir+'</strong>':'')
         +(a.status_aset_terakhir?' · Status: <strong>'+a.status_aset_terakhir+'</strong>':'');
       h.className='hint found show';
+      icon.textContent='✅';
       return;
     }
   }catch(e){}
@@ -854,6 +902,7 @@ async function onAsset(v){
   document.getElementById('merkAlat').value='';
   h.innerHTML='➕ Aset baru — akan otomatis terdaftar ke MASTER_ASSET saat submit';
   h.className='hint new show';
+  icon.textContent='🔍';
 }
 
 function resetTb(){
