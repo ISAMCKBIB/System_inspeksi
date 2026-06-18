@@ -2,1042 +2,712 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard — Mining Ship Inspeksi</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dashboard K3 — CK BIB</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ── TEMA PT CIPTA KRIDATAMA ── */
 :root{
-  --bg:#0c1117;--surface:#161b22;--surface2:#1c2128;
-  --border:#30363d;--border2:#21262d;
-  --accent:#f0a500;--accent2:#e05c00;
-  --text:#e6edf3;--muted:#8b949e;--muted2:#6e7681;
-  --green:#3fb950;--red:#f85149;--blue:#58a6ff;
-  --yellow:#d29922;--purple:#bc8cff;--teal:#39d353;
-  --sidebar:220px;
+  --ck-orange:#F47920;
+  --ck-orange-dark:#D4610A;
+  --ck-orange-light:#FEF0E6;
+  --ck-black:#1A1A1A;
+  --bg:#F5F6FA;
+  --surface:#FFFFFF;
+  --surface2:#F8F9FC;
+  --border:#E5E9F0;
+  --border2:#D0D7E3;
+  --text:#1A1A2E;
+  --muted:#6B7494;
+  --muted2:#9AA2BC;
+  --green:#16A34A;--green-bg:#F0FDF4;--green-bd:#BBF7D0;
+  --red:#DC2626;--red-bg:#FEF2F2;--red-bd:#FECACA;
+  --yellow:#D97706;--yellow-bg:#FFFBEB;--yellow-bd:#FDE68A;
+  --blue:#2563EB;--blue-bg:#EFF6FF;--blue-bd:#BFDBFE;
+  --purple:#7C3AED;--purple-bg:#F5F3FF;--purple-bd:#DDD6FE;
+  --sidebar:240px;--topbar:60px;--radius:12px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
 /* SIDEBAR */
-.sidebar{
-  width:var(--sidebar);min-height:100vh;
-  background:var(--surface);
-  border-right:1px solid var(--border);
-  display:flex;flex-direction:column;
-  position:fixed;top:0;left:0;bottom:0;
-  z-index:100;
-}
-.sidebar-brand{
-  padding:18px 16px 14px;
-  border-bottom:1px solid var(--border);
-}
-.brand-row{display:flex;align-items:center;gap:10px}
-.brand-icon{
-  width:34px;height:34px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:16px;flex-shrink:0;
-}
-.brand-name{font-size:13px;font-weight:600;line-height:1.2}
-.brand-sub{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace}
-
-.user-card{
-  margin:12px;padding:10px 12px;
-  background:var(--surface2);border-radius:8px;
-  border:1px solid var(--border);
-}
-.user-name{font-size:13px;font-weight:500}
-.user-role{
-  display:inline-flex;align-items:center;gap:4px;
-  font-size:10px;font-weight:600;
-  padding:2px 8px;border-radius:20px;margin-top:4px;
-}
-.role-pic{background:rgba(63,185,80,.15);color:var(--green)}
-.role-admin{background:rgba(240,165,0,.15);color:var(--accent)}
-.role-viewer{background:rgba(88,166,255,.15);color:var(--blue)}
-.user-area{font-size:10px;color:var(--muted);margin-top:4px}
-
-/* NAV */
-.nav{flex:1;padding:8px 8px;overflow-y:auto}
-.nav-section{
-  font-size:10px;font-weight:600;
-  color:var(--muted2);letter-spacing:.8px;
-  text-transform:uppercase;
-  padding:10px 8px 6px;
-}
-.nav-item{
-  display:flex;align-items:center;gap:10px;
-  padding:8px 10px;border-radius:6px;
-  cursor:pointer;font-size:13px;
-  color:var(--muted);transition:all .15s;
-  margin-bottom:2px;
-}
-.nav-item:hover{background:var(--surface2);color:var(--text)}
-.nav-item.active{background:rgba(240,165,0,.12);color:var(--accent)}
-.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
-.nav-badge{
-  margin-left:auto;
-  background:var(--red);color:#fff;
-  font-size:10px;font-weight:600;
-  padding:1px 6px;border-radius:20px;
-}
-
-.sidebar-footer{
-  padding:12px;border-top:1px solid var(--border);
-}
-.btn-logout{
-  width:100%;padding:8px;
-  background:transparent;border:1px solid var(--border);
-  border-radius:6px;color:var(--muted);
-  font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;
-  transition:all .15s;
-}
-.btn-logout:hover{border-color:var(--red);color:var(--red)}
+.sidebar{width:var(--sidebar);min-height:100vh;background:var(--ck-black);position:fixed;top:0;left:0;bottom:0;z-index:200;display:flex;flex-direction:column;transition:transform .3s}
+.sidebar-brand{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand-logo{display:flex;align-items:center;gap:10px}
+.brand-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--ck-orange),var(--ck-orange-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.brand-name{font-size:14px;font-weight:700;color:#fff;line-height:1.2}
+.brand-sub{font-size:10px;color:rgba(255,255,255,.5);margin-top:2px}
+.sidebar-user{margin:12px;padding:12px;background:rgba(255,255,255,.06);border-radius:10px;border:1px solid rgba(255,255,255,.08)}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--ck-orange),var(--ck-orange-dark));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role-text{font-size:10px;color:rgba(255,255,255,.5);margin-top:1px}
+.role-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.rb-pic{background:rgba(244,121,32,.2);color:var(--ck-orange)}
+.rb-admin{background:rgba(37,99,235,.2);color:#60A5FA}
+.rb-viewer{background:rgba(22,163,74,.2);color:#4ADE80}
+.sidebar-nav{flex:1;padding:8px 0;overflow-y:auto}
+.nav-section{padding:8px 16px 4px;font-size:9px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;font-size:13px;font-weight:500;color:rgba(255,255,255,.6);transition:all .15s;text-decoration:none}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-item.active{background:rgba(244,121,32,.15);color:var(--ck-orange);border-right:3px solid var(--ck-orange)}
+.nav-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;min-width:18px;text-align:center}
+.sidebar-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08)}
+.btn-logout{width:100%;padding:10px;border-radius:8px;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.3);color:#FCA5A5;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-logout:hover{background:rgba(220,38,38,.25)}
 
 /* MAIN */
-.main{margin-left:var(--sidebar);flex:1;min-height:100vh}
-.topbar{
-  background:var(--surface);border-bottom:1px solid var(--border);
-  padding:12px 24px;
-  display:flex;align-items:center;gap:12px;
-  position:sticky;top:0;z-index:50;
-}
-.topbar-title{font-size:15px;font-weight:600}
-.topbar-sub{font-size:12px;color:var(--muted)}
-.topbar-actions{margin-left:auto;display:flex;gap:8px}
-.btn-sm{
-  padding:7px 14px;border-radius:6px;font-size:12px;font-weight:500;
-  cursor:pointer;border:1px solid var(--border);
-  background:var(--surface2);color:var(--muted);
-  font-family:'Inter',sans-serif;transition:all .15s;
-  text-decoration:none;display:inline-flex;align-items:center;gap:5px;
-}
-.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
-.btn-primary{
-  background:var(--accent);color:#000;border-color:var(--accent);
-}
-.btn-primary:hover{background:#e09500;color:#000;border-color:#e09500}
-
-.content{padding:24px;max-width:1200px}
-
-/* PAGES */
-.page{display:none}.page.active{display:block}
+.main{margin-left:var(--sidebar);min-height:100vh;display:flex;flex-direction:column}
+.topbar{height:var(--topbar);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:16px;font-weight:600}
+.topbar-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.btn-refresh{padding:8px 14px;border-radius:8px;border:1.5px solid var(--border2);background:#fff;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-refresh:hover{border-color:var(--ck-orange);color:var(--ck-orange)}
+.btn-new-form{padding:8px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--ck-orange),var(--ck-orange-dark));color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;transition:all .15s;text-decoration:none}
+.btn-menu{display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text);padding:4px}
+.content{padding:24px;flex:1}
 
 /* STATS */
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.stat-card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:12px;padding:16px 18px;
-  position:relative;overflow:hidden;
-}
-.stat-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-}
-.stat-card.red::before{background:var(--red)}
-.stat-card.yellow::before{background:var(--yellow)}
-.stat-card.green::before{background:var(--green)}
-.stat-card.blue::before{background:var(--blue)}
-.stat-n{font-size:28px;font-weight:600;font-family:'JetBrains Mono',monospace;line-height:1}
-.stat-l{font-size:12px;color:var(--muted);margin-top:6px}
-.stat-sub{font-size:11px;margin-top:4px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden;cursor:pointer;transition:all .2s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--card-color,var(--ck-orange))}
+.stat-card.orange{--card-color:var(--ck-orange)}.stat-card.red{--card-color:var(--red)}.stat-card.green{--card-color:var(--green)}.stat-card.blue{--card-color:var(--blue)}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
+.stat-icon.orange{background:var(--ck-orange-light)}.stat-icon.red{background:var(--red-bg)}.stat-icon.green{background:var(--green-bg)}.stat-icon.blue{background:var(--blue-bg)}
+.stat-value{font-size:32px;font-weight:700;line-height:1;margin-bottom:4px}
+.stat-label{font-size:12px;color:var(--muted);font-weight:500}
+.stat-sub{font-size:11px;color:var(--muted2);margin-top:4px}
 
-/* SECTION */
-.section-hdr{
-  display:flex;align-items:center;gap:10px;
-  margin-bottom:14px;
-}
-.section-title{font-size:14px;font-weight:600}
-.section-count{font-size:12px;color:var(--muted)}
+/* FILTER */
+.section-hdr{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.section-title{font-size:15px;font-weight:600}
+.section-count{font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:var(--ck-orange-light);color:var(--ck-orange)}
+.filter-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.fchip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border2);background:#fff;color:var(--muted);transition:all .15s}
+.fchip.active{background:var(--ck-orange);border-color:var(--ck-orange);color:#fff}
+.fchip:hover:not(.active){border-color:var(--ck-orange);color:var(--ck-orange)}
 
-/* TABLE */
-.tbl-wrap{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:12px;overflow:hidden;
-}
-.tbl-filter{
-  padding:12px 16px;border-bottom:1px solid var(--border);
-  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
-}
-.filter-select,.filter-input{
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:6px;padding:6px 10px;color:var(--text);
-  font-family:'Inter',sans-serif;font-size:12px;outline:none;
-  transition:border-color .15s;
-}
-.filter-select:focus,.filter-input:focus{border-color:var(--accent)}
-.filter-input{flex:1;min-width:140px}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{
-  padding:10px 12px;background:var(--surface2);
-  color:var(--muted);font-weight:500;text-align:left;
-  border-bottom:1px solid var(--border);font-size:11px;
-  white-space:nowrap;
-}
-td{padding:10px 12px;border-bottom:1px solid var(--border2);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(255,255,255,.02)}
+/* TASK CARDS */
+.task-list{display:flex;flex-direction:column;gap:12px}
+.task-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:0;overflow:hidden;transition:all .2s;cursor:pointer}
+.task-card:hover{border-color:var(--ck-orange);box-shadow:0 4px 16px rgba(244,121,32,.1)}
+.task-card.overdue{border-left:4px solid var(--red)}.task-card.critical{border-left:4px solid var(--purple)}.task-card.high{border-left:4px solid var(--red)}.task-card.medium{border-left:4px solid var(--yellow)}.task-card.low{border-left:4px solid var(--green)}
+.task-header{padding:14px 16px 10px;display:flex;align-items:flex-start;gap:12px}
+.task-risiko{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;flex-shrink:0;margin-top:2px}
+.tr-low{background:var(--green-bg);color:var(--green)}.tr-medium{background:var(--yellow-bg);color:var(--yellow)}.tr-high{background:var(--red-bg);color:var(--red)}.tr-critical{background:var(--purple-bg);color:var(--purple)}
+.task-main{flex:1;min-width:0}
+.task-alat{font-size:14px;font-weight:600;margin-bottom:3px}
+.task-area{font-size:12px;color:var(--muted)}
+.task-temuan-count{font-size:22px;font-weight:700;color:var(--ck-orange);text-align:center;line-height:1}
+.task-temuan-label{font-size:9px;color:var(--muted);text-align:center;font-weight:500;margin-top:2px}
+.task-body{padding:0 16px 12px;display:flex;flex-direction:column;gap:6px}
+.task-findings{display:flex;flex-direction:column;gap:4px;max-height:80px;overflow:hidden}
+.task-finding-item{font-size:12px;color:var(--muted);padding:4px 8px;background:var(--surface2);border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-footer{padding:10px 16px;background:var(--surface2);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.due-badge{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500}
+.due-badge.ontime{color:var(--green)}.due-badge.overdue{color:var(--red)}.due-badge.urgent{color:var(--yellow)}
+.task-ins{font-size:11px;color:var(--muted2)}
+.btn-close-task{margin-left:auto;padding:7px 16px;border-radius:8px;background:linear-gradient(135deg,var(--ck-orange),var(--ck-orange-dark));color:#fff;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px}
+.btn-close-task:hover{opacity:.85}
 
-/* BADGES */
-.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap}
-.b-open{background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3)}
-.b-closed{background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3)}
-.b-crit{background:rgba(188,140,255,.15);color:var(--purple)}
-.b-high{background:rgba(248,81,73,.15);color:var(--red)}
-.b-med{background:rgba(210,153,34,.15);color:var(--yellow)}
-.b-low{background:rgba(63,185,80,.15);color:var(--green)}
-.b-overdue{background:rgba(248,81,73,.2);color:var(--red);border:1px solid rgba(248,81,73,.4)}
-.b-ontime{background:rgba(63,185,80,.1);color:var(--green)}
-.b-upcoming{background:rgba(210,153,34,.1);color:var(--yellow)}
+/* DRAWER */
+.drawer-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;backdrop-filter:blur(2px)}
+.drawer-bg.open{display:block}
+.drawer{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;z-index:301;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.drawer.open{transform:translateY(0)}
+.drawer-handle{width:40px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0}
+.drawer-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.drawer-title{font-size:16px;font-weight:700}
+.drawer-close{margin-left:auto;width:32px;height:32px;border-radius:50%;background:var(--surface2);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.drawer-body{padding:20px}
+.drawer-temuan-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.drawer-temuan-item{padding:12px 14px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:10px;font-size:13px}
+.drawer-temuan-no{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.drawer-temuan-q{font-weight:500;color:var(--text);margin-bottom:4px}
+.drawer-temuan-rmk{font-size:12px;color:var(--muted);font-style:italic}
+.foto-upload-area{border:2px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;cursor:pointer;background:var(--surface2);position:relative;transition:all .2s;display:flex;flex-direction:column;align-items:center}
+.foto-upload-area:hover{border-color:var(--ck-orange);background:var(--ck-orange-light)}
+.foto-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.foto-previews{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.foto-preview-item{position:relative;width:72px;height:72px}
+.foto-preview-item img{width:100%;height:100%;object-fit:cover;border-radius:8px;border:2px solid var(--border)}
+.foto-del{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #fff;font-weight:700}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.field label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.field input,.field textarea,.field select{border:1.5px solid var(--border);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--text);background:var(--surface2);outline:none;font-family:'Inter',sans-serif;transition:border-color .15s;width:100%}
+.field input:focus,.field textarea:focus{border-color:var(--ck-orange);background:#fff;box-shadow:0 0 0 3px rgba(244,121,32,.1)}
+.field textarea{resize:vertical;min-height:80px}
+.req{color:var(--red)}
+.btn-submit-close{width:100%;padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--ck-orange),var(--ck-orange-dark));color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-submit-close:hover{opacity:.9}
+.btn-submit-close:disabled{background:var(--muted2);cursor:not-allowed}
 
-.mono{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+/* EMPTY */
+.empty-state{text-align:center;padding:60px 20px;background:var(--surface);border-radius:var(--radius);border:1.5px dashed var(--border2)}
+.empty-icon{font-size:48px;margin-bottom:16px}
+.empty-title{font-size:16px;font-weight:600;margin-bottom:8px}
+.empty-sub{font-size:13px;color:var(--muted);line-height:1.6}
 
-/* TEMUAN DETAIL DRAWER */
-.drawer-bg{
-  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;
-  opacity:0;pointer-events:none;transition:opacity .2s;
-}
-.drawer-bg.open{opacity:1;pointer-events:all}
-.drawer{
-  position:fixed;right:0;top:0;bottom:0;width:480px;
-  background:var(--surface);border-left:1px solid var(--border);
-  z-index:201;
-  transform:translateX(100%);transition:transform .25s cubic-bezier(.16,1,.3,1);
-  display:flex;flex-direction:column;overflow:hidden;
-}
-.drawer.open{transform:translateX(0)}
-.drawer-head{
-  padding:16px 20px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:12px;
-}
-.drawer-title{font-size:14px;font-weight:600;flex:1}
-.drawer-close{
-  width:28px;height:28px;border-radius:6px;
-  background:var(--surface2);border:1px solid var(--border);
-  cursor:pointer;color:var(--muted);font-size:14px;
-  display:flex;align-items:center;justify-content:center;
-}
-.drawer-body{flex:1;overflow-y:auto;padding:20px}
-.drawer-footer{
-  padding:16px 20px;border-top:1px solid var(--border);
-  display:flex;gap:8px;
-}
+/* SKELETON */
+.skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-/* CLOSE FORM inside drawer */
-.close-section{
-  background:rgba(63,185,80,.05);
-  border:1px solid rgba(63,185,80,.2);
-  border-radius:10px;padding:16px;margin-top:16px;
-}
-.close-section h4{font-size:13px;font-weight:600;color:var(--green);margin-bottom:12px}
-.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
-.field label{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.3px}
-.field input,.field select,.field textarea{
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:6px;padding:8px 10px;color:var(--text);
-  font-family:'Inter',sans-serif;font-size:12px;outline:none;
-  transition:border-color .15s;width:100%;
-}
-.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--green)}
-.field textarea{resize:none}
-.upload-zone{
-  border:1px dashed var(--border);border-radius:8px;
-  padding:16px;text-align:center;cursor:pointer;
-  font-size:12px;color:var(--muted);transition:all .15s;
-  position:relative;
-}
-.upload-zone:hover{border-color:var(--green);color:var(--green)}
-.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
-.photo-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.photo-thumb{width:60px;height:60px;border-radius:6px;object-fit:cover;border:1px solid var(--border)}
-.btn-close-temuan{
-  flex:1;padding:10px;background:var(--green);color:#fff;
-  border:none;border-radius:8px;font-family:'Inter',sans-serif;
-  font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;
-}
-.btn-close-temuan:hover{background:#2ea043}
-.btn-close-temuan:disabled{background:var(--muted);cursor:not-allowed}
-
-/* INFO ROWS */
-.info-row{display:flex;gap:6px;margin-bottom:8px;font-size:12px}
-.info-key{color:var(--muted);min-width:110px;flex-shrink:0}
-.info-val{color:var(--text);font-weight:500}
-
-/* TIMELINE */
-.timeline{margin-top:12px}
-.tl-item{
-  display:flex;gap:12px;margin-bottom:12px;
-  position:relative;padding-left:20px;
-}
-.tl-item::before{
-  content:'';position:absolute;left:5px;top:16px;
-  width:1px;bottom:-12px;background:var(--border);
-}
-.tl-item:last-child::before{display:none}
-.tl-dot{
-  position:absolute;left:0;top:3px;
-  width:10px;height:10px;border-radius:50%;
-  background:var(--border);flex-shrink:0;
-}
-.tl-dot.open{background:var(--red)}
-.tl-dot.closed{background:var(--green)}
-.tl-text{font-size:12px}
-.tl-time{font-size:10px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace}
-
-/* MASTER CARDS for admin */
-.master-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
-.master-card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:10px;padding:16px;cursor:pointer;transition:all .15s;
-}
-.master-card:hover{border-color:var(--accent);transform:translateY(-2px)}
-.master-icon{font-size:24px;margin-bottom:8px}
-.master-name{font-size:13px;font-weight:600}
-.master-desc{font-size:11px;color:var(--muted);margin-top:3px}
-.master-count{font-size:20px;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--accent);margin-top:8px}
-
-/* ALERT BANNER */
-.alert-banner{
-  padding:10px 14px;border-radius:8px;margin-bottom:14px;
-  font-size:12px;display:flex;align-items:center;gap:8px;
-}
-.ab-danger{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red)}
-.ab-warn{background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.3);color:var(--yellow)}
+/* LOADING */
+.lo{position:fixed;inset:0;background:rgba(255,255,255,.9);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:999}
+.lo.show{display:flex}
+.spin{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--ck-orange);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lo-msg{font-size:14px;color:var(--muted);font-weight:500}
 
 /* TOAST */
-.toast{
-  position:fixed;bottom:24px;right:24px;
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:10px;padding:12px 16px;
-  display:flex;align-items:center;gap:10px;
-  font-size:13px;z-index:999;max-width:320px;
-  box-shadow:0 8px 32px rgba(0,0,0,.5);
-  transform:translateY(100px);opacity:0;
-  transition:all .3s cubic-bezier(.16,1,.3,1);
-}
-.toast.show{transform:translateY(0);opacity:1}
-.toast.success{border-color:rgba(63,185,80,.5)}
-.toast.error{border-color:rgba(248,81,73,.5)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ck-black);color:#fff;border-radius:12px;padding:12px 20px;font-size:13px;font-weight:500;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:all .3s;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:calc(100vw - 32px)}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.success{background:var(--green)}.toast.error{background:var(--red)}.toast.warn{background:var(--yellow)}
 
-/* LOADER */
-.loader{
-  display:flex;align-items:center;justify-content:center;
-  padding:48px;color:var(--muted);font-size:13px;gap:10px;
+/* MOBILE */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .btn-menu{display:flex}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .content{padding:16px}
+  .topbar{padding:0 16px}
+  .stat-value{font-size:26px}
 }
-.dot-loader span{
-  display:inline-block;width:6px;height:6px;border-radius:50%;
-  background:var(--accent);margin:0 2px;
-  animation:bounce .8s infinite;
-}
-.dot-loader span:nth-child(2){animation-delay:.15s}
-.dot-loader span:nth-child(3){animation-delay:.3s}
-@keyframes bounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
-
-/* EMPTY STATE */
-.empty{text-align:center;padding:48px 24px;color:var(--muted)}
-.empty-icon{font-size:36px;margin-bottom:12px}
-.empty-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px}
-
-/* RESPONSIVE */
-@media(max-width:900px){
-  .stat-grid{grid-template-columns:repeat(2,1fr)}
-  .master-grid{grid-template-columns:repeat(2,1fr)}
-}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
+.sidebar-overlay.show{display:block}
 </style>
 </head>
 <body>
 
-<!-- TOAST -->
-<div class="toast" id="toast"><span id="toastIcon">✅</span><span id="toastMsg"></span></div>
-
-<!-- DRAWER BG -->
-<div class="drawer-bg" id="drawerBg" onclick="closeDrawer()"></div>
-
-<!-- TEMUAN DRAWER -->
-<div class="drawer" id="drawer">
-  <div class="drawer-head">
-    <div class="drawer-title" id="drawerTitle">Detail Temuan</div>
-    <div id="drawerBadge"></div>
-    <div class="drawer-close" onclick="closeDrawer()">✕</div>
-  </div>
-  <div class="drawer-body" id="drawerBody"></div>
-  <div class="drawer-footer" id="drawerFooter"></div>
-</div>
+<div class="lo" id="lo"><div class="spin"></div><div class="lo-msg" id="loMsg">Memuat data...</div></div>
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <!-- SIDEBAR -->
-<div class="sidebar">
+<nav class="sidebar" id="sidebar">
   <div class="sidebar-brand">
-    <div class="brand-row">
+    <div class="brand-logo">
       <div class="brand-icon">⛏️</div>
       <div>
-        <div class="brand-name">Mining Ship</div>
-        <div class="brand-sub">INSPEKSI MONITOR</div>
+        <div class="brand-name">CK BIB</div>
+        <div class="brand-sub">Inspeksi K3 System</div>
       </div>
     </div>
   </div>
 
-  <div class="user-card">
-    <div class="user-name" id="userName">Loading...</div>
-    <div class="user-role" id="userRoleBadge">—</div>
-    <div class="user-area" id="userArea"></div>
+  <div class="sidebar-user">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div style="flex:1;min-width:0">
+        <div class="user-name" id="userName">Loading...</div>
+        <div class="user-role-text"><span class="role-badge rb-pic" id="roleBadge">PIC</span></div>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:rgba(255,255,255,.4)" id="userArea"></div>
   </div>
 
-  <nav class="nav" id="navMenu">
-    <!-- Rendered by JS based on role -->
-  </nav>
+  <div class="sidebar-nav">
+    <div id="navPIC">
+      <div class="nav-section">Tugas Saya</div>
+      <div class="nav-item active" onclick="showView('myTask',this)"><span class="nav-icon">📋</span> Temuan Open <span class="nav-badge" id="navBadge">0</span></div>
+      <div class="nav-item" onclick="showView('myHistory',this)"><span class="nav-icon">✅</span> Riwayat Closed</div>
+      <div class="nav-section">Area Saya</div>
+      <div class="nav-item" onclick="showView('mySchedule',this)"><span class="nav-icon">📅</span> Jadwal Inspeksi</div>
+    </div>
+    <div id="navAdmin" style="display:none">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" onclick="showView('adminOverview',this)"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item" onclick="showView('allTemuan',this)"><span class="nav-icon">⚠️</span> Semua Temuan <span class="nav-badge" id="navBadgeAll">0</span></div>
+      <div class="nav-section">Master Data</div>
+      <div class="nav-item" onclick="showView('master',this)"><span class="nav-icon">👥</span> Master Data</div>
+    </div>
+    <div id="navViewer" style="display:none">
+      <div class="nav-section">Safety Overview</div>
+      <div class="nav-item active" onclick="showView('compliance',this)"><span class="nav-icon">🛡️</span> Compliance Rate</div>
+      <div class="nav-item" onclick="showView('allTemuan',this)"><span class="nav-icon">⚠️</span> Semua Temuan</div>
+      <div class="nav-item" onclick="showView('overduePIC',this)"><span class="nav-icon">🚨</span> PIC Overdue</div>
+    </div>
+  </div>
 
   <div class="sidebar-footer">
-    <button class="btn-logout" onclick="doLogout()">← Keluar</button>
+    <button class="btn-logout" onclick="logout()">🚪 Keluar</button>
   </div>
-</div>
+</nav>
 
 <!-- MAIN -->
 <div class="main">
   <div class="topbar">
+    <button class="btn-menu" onclick="openSidebar()">☰</button>
     <div>
-      <div class="topbar-title" id="topbarTitle">Dashboard</div>
-      <div class="topbar-sub" id="topbarSub"></div>
+      <div class="topbar-title" id="topbarTitle">Temuan Open</div>
+      <div class="topbar-sub" id="topbarSub">Tindak lanjut temuan di area kamu</div>
     </div>
-    <div class="topbar-actions" id="topbarActions"></div>
-  <div id="emailBanner" style="display:none;background:var(--color-background-info);border-bottom:0.5px solid var(--color-border-info);padding:8px 24px;font-size:12px;color:var(--color-text-info);display:none;align-items:center;gap:8px">
-    📧 Dibuka dari link email — temuan sedang dimuat...
-  </div>
+    <div class="topbar-right">
+      <button class="btn-refresh" onclick="loadData()">🔄 Refresh</button>
+      <a href="form-inspeksi.html" class="btn-new-form">+ Form Inspeksi</a>
+    </div>
   </div>
 
   <div class="content">
 
-    <!-- PAGE: OVERVIEW (PIC & Admin) -->
-    <div class="page active" id="page-overview">
-      <div id="alertBanners"></div>
-      <div class="stat-grid" id="statGrid"></div>
+    <!-- PIC: MY TASKS -->
+    <div id="viewMyTask">
+      <div class="stats-grid">
+        <div class="stat-card orange" onclick="filterTask('all')">
+          <div class="stat-icon orange">⚠️</div>
+          <div class="stat-value" id="statTotal">-</div>
+          <div class="stat-label">Total Open</div>
+          <div class="stat-sub">belum diselesaikan</div>
+        </div>
+        <div class="stat-card red" onclick="filterTask('overdue')">
+          <div class="stat-icon red">🚨</div>
+          <div class="stat-value" id="statOverdue">-</div>
+          <div class="stat-label">Overdue</div>
+          <div class="stat-sub">lewat batas waktu</div>
+        </div>
+        <div class="stat-card blue" onclick="filterTask('today')">
+          <div class="stat-icon blue">⏰</div>
+          <div class="stat-value" id="statToday">-</div>
+          <div class="stat-label">Due Hari Ini</div>
+          <div class="stat-sub">harus selesai hari ini</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-value" id="statClosed">-</div>
+          <div class="stat-label">Closed</div>
+          <div class="stat-sub">bulan ini</div>
+        </div>
+      </div>
+
+      <div class="filter-chips">
+        <div class="fchip active" onclick="filterTask('all',this)">Semua</div>
+        <div class="fchip" onclick="filterTask('critical',this)">🔥 Critical</div>
+        <div class="fchip" onclick="filterTask('high',this)">🔴 High</div>
+        <div class="fchip" onclick="filterTask('medium',this)">🟡 Medium</div>
+        <div class="fchip" onclick="filterTask('low',this)">🟢 Low</div>
+        <div class="fchip" onclick="filterTask('overdue',this)">🚨 Overdue</div>
+      </div>
+
       <div class="section-hdr">
-        <div class="section-title">Temuan Terbaru</div>
-        <span class="section-count" id="temuanCount"></span>
+        <div class="section-title">Temuan Perlu Ditindaklanjuti</div>
+        <div class="section-count" id="taskCount">0 item</div>
       </div>
-      <div class="tbl-wrap">
-        <div class="tbl-filter">
-          <select class="filter-select" id="filterStatus" onchange="filterTemuan()">
-            <option value="">Semua status</option>
-            <option value="OPEN">Open</option>
-            <option value="CLOSED">Closed</option>
-          </select>
-          <select class="filter-select" id="filterRisiko" onchange="filterTemuan()">
-            <option value="">Semua risiko</option>
-            <option>CRITICAL</option><option>HIGH</option>
-            <option>MEDIUM</option><option>LOW</option>
-          </select>
-          <input class="filter-input" id="searchTemuan" placeholder="🔍 Cari alat, area, pertanyaan..." oninput="filterTemuan()">
-        </div>
-        <div id="temuanTableWrap">
-          <div class="loader"><div class="dot-loader"><span></span><span></span><span></span></div> Memuat data...</div>
-        </div>
+      <div class="task-list" id="taskList">
+        <div style="height:120px" class="skeleton"></div>
+        <div style="height:120px" class="skeleton"></div>
       </div>
     </div>
 
-    <!-- PAGE: JADWAL -->
-    <div class="page" id="page-jadwal">
-      <div class="section-hdr">
-        <div class="section-title">Jadwal Inspeksi</div>
+    <!-- OTHER VIEWS -->
+    <div id="viewMyHistory" style="display:none">
+      <div class="section-hdr"><div class="section-title">Riwayat Temuan Closed</div></div>
+      <div class="task-list" id="historyList"></div>
+    </div>
+    <div id="viewMySchedule" style="display:none">
+      <div class="empty-state"><div class="empty-icon">📅</div><div class="empty-title">Jadwal Inspeksi</div><div class="empty-sub">Coming soon</div></div>
+    </div>
+    <div id="viewAdminOverview" style="display:none">
+      <div class="stats-grid">
+        <div class="stat-card orange"><div class="stat-icon orange">⚠️</div><div class="stat-value" id="aStatOpen">-</div><div class="stat-label">Total Open</div></div>
+        <div class="stat-card red"><div class="stat-icon red">🚨</div><div class="stat-value" id="aStatOverdue">-</div><div class="stat-label">Overdue</div></div>
+        <div class="stat-card green"><div class="stat-icon green">✅</div><div class="stat-value" id="aStatClosed">-</div><div class="stat-label">Closed Bulan Ini</div></div>
+        <div class="stat-card blue"><div class="stat-icon blue">📋</div><div class="stat-value" id="aStatTotal">-</div><div class="stat-label">Total Inspeksi</div></div>
       </div>
-      <div class="tbl-wrap">
-        <div id="jadwalTableWrap">
-          <div class="loader"><div class="dot-loader"><span></span><span></span><span></span></div> Memuat jadwal...</div>
-        </div>
-      </div>
+      <div class="section-hdr"><div class="section-title">Semua Temuan Open</div></div>
+      <div class="task-list" id="adminTaskList"></div>
+    </div>
+    <div id="viewAllTemuan" style="display:none">
+      <div class="section-hdr"><div class="section-title">Semua Temuan</div></div>
+      <div class="task-list" id="allTemuanList"></div>
+    </div>
+    <div id="viewCompliance" style="display:none">
+      <div class="empty-state"><div class="empty-icon">🛡️</div><div class="empty-title">Compliance Rate</div><div class="empty-sub">Coming soon — akan menampilkan tingkat kepatuhan per area dan per PIC</div></div>
+    </div>
+    <div id="viewOverduePIC" style="display:none">
+      <div class="section-hdr"><div class="section-title">PIC dengan Temuan Overdue</div></div>
+      <div id="overduePICList"></div>
+    </div>
+    <div id="viewMaster" style="display:none">
+      <div class="empty-state"><div class="empty-icon">⚙️</div><div class="empty-title">Master Data</div><div class="empty-sub">Coming soon — kelola Employee, Area, Asset</div></div>
     </div>
 
-    <!-- PAGE: MASTER (Admin only) -->
-    <div class="page" id="page-master">
-      <div class="master-grid" id="masterGrid"></div>
-      <div class="section-hdr">
-        <div class="section-title">Activity Log Terbaru</div>
-      </div>
-      <div class="tbl-wrap">
-        <div id="logTableWrap">
-          <div class="loader"><div class="dot-loader"><span></span><span></span><span></span></div></div>
-        </div>
-      </div>
-    </div>
+  </div>
+</div>
 
-    <!-- PAGE: EMPLOYEE (Admin only) -->
-    <div class="page" id="page-employee">
-      <div class="tbl-wrap">
-        <div class="tbl-filter">
-          <input class="filter-input" id="searchEmp" placeholder="🔍 Cari nama / email..." oninput="filterEmployee()">
-          <select class="filter-select" id="filterRole" onchange="filterEmployee()">
-            <option value="">Semua role</option>
-            <option>INSPECTOR</option><option>PIC</option>
-            <option>ADMIN</option><option>VIEWER</option>
-          </select>
-        </div>
-        <div id="empTableWrap">
-          <div class="loader"><div class="dot-loader"><span></span><span></span><span></span></div></div>
-        </div>
-      </div>
+<!-- DRAWER -->
+<div class="drawer-bg" id="drawerBg" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-hdr">
+    <div>
+      <div class="drawer-title">Tindak Lanjut Temuan</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px" id="drawerSubtitle"></div>
     </div>
-
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div style="background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;line-height:1.8;border:1px solid var(--border)" id="drawerInfo"></div>
+    <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">Daftar Temuan</div>
+    <div class="drawer-temuan-list" id="drawerTemuanList"></div>
+    <div class="field">
+      <label>Foto After (Bukti Perbaikan) <span class="req">*</span></label>
+      <div class="foto-upload-area" id="fotoCloseZone">
+        <input type="file" accept="image/*" multiple onchange="onFotoClose(this)">
+        <div style="font-size:28px;margin-bottom:6px">📸</div>
+        <div style="font-size:13px;font-weight:600;color:var(--muted)">Ketuk untuk upload foto</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:3px">Foto bukti perbaikan · Maks 3</div>
+      </div>
+      <div class="foto-previews" id="fotoClosePreviews"></div>
+    </div>
+    <div class="field">
+      <label>Tindakan Perbaikan <span class="req">*</span></label>
+      <textarea id="tindakanClose" placeholder="Jelaskan tindakan yang telah dilakukan..."></textarea>
+    </div>
+    <button class="btn-submit-close" id="btnClose" onclick="submitClose()">✅ Submit Close Temuan</button>
   </div>
 </div>
 
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4k8CSXxUQmahghLAqRtUDgk1vy3tc0qvEaqorklJvIZIgzVUpxdfm-9pCr3u-hw1ugQ/exec';
+let SESSION=null, allTemuan=[], closeFotos=[], activeInspeksiId=null, currentFilter='all';
 
-// ── SESSION ──────────────────────────────────────────────
-let SESSION = null;
-let allTemuan = [];
-let allJadwal = [];
-let allEmployee = [];
-
-// ── NAV CONFIG per role ──────────────────────────────────
-const NAV_CONFIG = {
-  PIC: [
-    { id:'overview', icon:'🏠', label:'Dashboard', section:null },
-    { id:'jadwal',   icon:'📅', label:'Jadwal Inspeksi', section:null },
-  ],
-  ADMIN: [
-    { id:'overview', icon:'🏠', label:'Overview', section:null },
-    { id:'jadwal',   icon:'📅', label:'Jadwal Inspeksi', section:null },
-    { id:'master',   icon:'🗄️', label:'Master Data', section:'ADMIN' },
-    { id:'employee', icon:'👥', label:'Employee & PIC', section:'ADMIN' },
-  ],
-  VIEWER: [
-    { id:'overview', icon:'🏠', label:'Dashboard', section:null },
-    { id:'jadwal',   icon:'📅', label:'Jadwal Inspeksi', section:null },
-  ],
-};
-
-// ── INIT ──────────────────────────────────────────────────
 window.onload = async () => {
   const raw = localStorage.getItem('msm_session');
-
-  // Ambil URL param
   const urlParams = new URLSearchParams(window.location.search);
   const targetInspeksi = urlParams.get('inspeksi');
-
-  // Belum login → simpan target dulu, redirect ke login
-  if (!raw) {
-    if (targetInspeksi) {
-      sessionStorage.setItem('redirect_inspeksi', targetInspeksi);
-    }
-    window.location.href = 'login.html';
-    return;
-  }
-
-  // Cek session expired (8 jam)
+  if (!raw) { if(targetInspeksi) sessionStorage.setItem('redirect_inspeksi',targetInspeksi); window.location.href='login.html'; return; }
   SESSION = JSON.parse(raw);
-  const loginAge = (new Date() - new Date(SESSION.login_at)) / 1000 / 60 / 60;
-  if (loginAge > 8) {
-    localStorage.removeItem('msm_session');
-    if (targetInspeksi) sessionStorage.setItem('redirect_inspeksi', targetInspeksi);
-    window.location.href = 'login.html';
-    return;
-  }
-
+  const loginAge = (new Date()-new Date(SESSION.login_at))/1000/60/60;
+  if (loginAge > 8) { localStorage.removeItem('msm_session'); window.location.href='login.html'; return; }
   renderSidebar();
   await loadData();
-
-  // Setelah data load, cek apakah ada target inspeksi
-  const redirectTarget = targetInspeksi || sessionStorage.getItem('redirect_inspeksi');
-  if (redirectTarget) {
-    sessionStorage.removeItem('redirect_inspeksi');
-    // Cari temuan berdasarkan inspeksi_id
-    const target = allTemuan.find(t => t.inspeksi_id === redirectTarget);
-    if (target) {
-      openDrawer(target.temuan_id);
-      showToast('📋 Membuka temuan dari link email', 'success');
-    } else {
-      showToast('⚠️ Temuan tidak ditemukan atau sudah closed', 'warn');
-    }
-  }
+  const redir = targetInspeksi || sessionStorage.getItem('redirect_inspeksi');
+  if (redir) { sessionStorage.removeItem('redirect_inspeksi'); const t=allTemuan.find(x=>x.inspeksi_id===redir); if(t) openDrawer(redir); }
 };
 
 function renderSidebar() {
-  document.getElementById('userName').textContent = SESSION.nama;
-  document.getElementById('userArea').textContent = SESSION.role === 'PIC' ? 'Area: ' + (SESSION.subarea_id || 'Semua') : '';
-
-  const roleColors = { PIC:'role-pic', ADMIN:'role-admin', VIEWER:'role-viewer' };
-  const roleBadge = document.getElementById('userRoleBadge');
-  roleBadge.textContent = SESSION.role;
-  roleBadge.className = 'user-role ' + (roleColors[SESSION.role] || 'role-viewer');
-
-  // Nav menu
-  const nav = document.getElementById('navMenu');
-  nav.innerHTML = '';
-  const items = NAV_CONFIG[SESSION.role] || NAV_CONFIG.VIEWER;
-  let lastSection = null;
-
-  items.forEach(item => {
-    if (item.section && item.section !== lastSection) {
-      nav.innerHTML += `<div class="nav-section">${item.section}</div>`;
-      lastSection = item.section;
-    }
-    const div = document.createElement('div');
-    div.className = 'nav-item' + (item.id === 'overview' ? ' active' : '');
-    div.innerHTML = `<span class="nav-icon">${item.icon}</span>${item.label}`;
-    div.onclick = () => goPage(item.id, div);
-    nav.appendChild(div);
-  });
-
-  // Topbar
-  document.getElementById('topbarSub').textContent =
-    new Date().toLocaleDateString('id-ID', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
-
-  // Topbar actions
-  if (SESSION.role !== 'VIEWER') {
-    document.getElementById('topbarActions').innerHTML = `
-      <a href="form-inspeksi.html" class="btn-sm">📋 Form Inspeksi</a>
-    `;
-  }
+  const role = (SESSION.role||'PIC').toUpperCase();
+  document.getElementById('userAvatar').textContent = (SESSION.nama||'?').charAt(0).toUpperCase();
+  document.getElementById('userName').textContent = SESSION.nama||'-';
+  const badge = document.getElementById('roleBadge');
+  badge.textContent = role;
+  badge.className = 'role-badge '+(role==='ADMIN'?'rb-admin':role==='VIEWER'?'rb-viewer':'rb-pic');
+  document.getElementById('userArea').textContent = SESSION.subarea_id ? '📍 '+SESSION.subarea_id : '';
+  document.getElementById('navPIC').style.display = role==='PIC'?'block':'none';
+  document.getElementById('navAdmin').style.display = role==='ADMIN'?'block':'none';
+  document.getElementById('navViewer').style.display = role==='VIEWER'?'block':'none';
+  if(role==='ADMIN') showView('adminOverview');
+  else if(role==='VIEWER') showView('compliance');
+  else showView('myTask');
 }
 
-function goPage(pageId, navEl) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + pageId).classList.add('active');
-  if (navEl) navEl.classList.add('active');
-
+function showView(view, navEl) {
+  document.querySelectorAll('[id^="view"]').forEach(el=>el.style.display='none');
+  const el = document.getElementById('view'+view.charAt(0).toUpperCase()+view.slice(1));
+  if(el) el.style.display='block';
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  if(navEl) navEl.classList.add('active');
   const titles = {
-    overview:'Dashboard', jadwal:'Jadwal Inspeksi',
-    master:'Master Data', employee:'Employee & PIC'
+    myTask:['Temuan Open','Tindak lanjut temuan di area kamu'],
+    myHistory:['Riwayat Closed','Temuan yang sudah diselesaikan'],
+    mySchedule:['Jadwal Inspeksi','Jadwal inspeksi area kamu'],
+    adminOverview:['Admin Dashboard','Overview semua area'],
+    allTemuan:['Semua Temuan','Daftar temuan seluruh area'],
+    compliance:['Compliance Rate','Tingkat kepatuhan per area — Safety Captain View'],
+    overduePIC:['PIC Overdue','PIC dengan temuan terlambat'],
+    master:['Master Data','Kelola data sistem'],
   };
-  document.getElementById('topbarTitle').textContent = titles[pageId] || 'Dashboard';
-
-  if (pageId === 'jadwal') renderJadwal();
-  if (pageId === 'master') renderMaster();
-  if (pageId === 'employee') renderEmployee();
+  const [t,s]=titles[view]||['Dashboard',''];
+  document.getElementById('topbarTitle').textContent=t;
+  document.getElementById('topbarSub').textContent=s;
+  if(view==='myHistory') renderHistory();
+  if(view==='overduePIC') renderOverduePIC();
+  if(view==='adminOverview') renderAdminOverview();
+  if(view==='allTemuan') renderAllTemuan();
+  closeSidebar();
 }
 
-// ── LOAD DATA ─────────────────────────────────────────────
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show')}
+
 async function loadData() {
+  showLoad('Memuat data...');
   try {
-    const params = new URLSearchParams({ action: 'getTemuan' });
-    if (SESSION.role === 'PIC') params.append('pic_nik', SESSION.nik);
-
-    const res = await fetch(APPS_SCRIPT_URL + '?' + params);
+    const params = new URLSearchParams({action:'getTemuan'});
+    if(SESSION.role==='PIC') params.append('pic_nik',SESSION.nik);
+    const res = await fetch(APPS_SCRIPT_URL+'?'+params);
     const json = await res.json();
-    if (json.status === 'ok') {
-      allTemuan = json.data;
-    } else {
-      allTemuan = getDemoTemuan();
-    }
-  } catch(e) {
-    // DEMO DATA
-    allTemuan = getDemoTemuan();
-  }
-
+    allTemuan = json.status==='ok' ? (json.data||[]) : getDemoTemuan();
+  } catch(e) { allTemuan = getDemoTemuan(); }
+  hideLoad();
   renderStats();
-  renderTemuanTable(allTemuan);
-  // Return untuk bisa di-await
-  return allTemuan;
+  renderTaskList(allTemuan.filter(t=>t.status_temuan==='OPEN'));
 }
 
 function renderStats() {
-  const open = allTemuan.filter(t => t.status_temuan === 'OPEN').length;
-  const closed = allTemuan.filter(t => t.status_temuan === 'CLOSED').length;
-  const overdue = allTemuan.filter(t => t.sla_status === 'OVERDUE' && t.status_temuan === 'OPEN').length;
-  const total = allTemuan.length;
-
-  // Alert banners
-  const banners = document.getElementById('alertBanners');
-  banners.innerHTML = '';
-  if (overdue > 0) {
-    banners.innerHTML += `<div class="alert-banner ab-danger">⚡ <strong>${overdue} temuan OVERDUE</strong> — melewati batas waktu penyelesaian!</div>`;
-  }
-
-  document.getElementById('statGrid').innerHTML = `
-    <div class="stat-card red">
-      <div class="stat-n" style="color:var(--red)">${open}</div>
-      <div class="stat-l">Temuan Open</div>
-      <div class="stat-sub" style="color:${overdue>0?'var(--red)':'var(--muted)'}">${overdue} overdue</div>
-    </div>
-    <div class="stat-card yellow">
-      <div class="stat-n" style="color:var(--yellow)">${overdue}</div>
-      <div class="stat-l">Overdue</div>
-      <div class="stat-sub" style="color:var(--muted)">Lewat batas SLA</div>
-    </div>
-    <div class="stat-card green">
-      <div class="stat-n" style="color:var(--green)">${closed}</div>
-      <div class="stat-l">Closed</div>
-      <div class="stat-sub" style="color:var(--muted)">${total>0?Math.round(closed/total*100):0}% close rate</div>
-    </div>
-    <div class="stat-card blue">
-      <div class="stat-n" style="color:var(--blue)">${total}</div>
-      <div class="stat-l">Total Temuan</div>
-      <div class="stat-sub" style="color:var(--muted)">Semua periode</div>
-    </div>
-  `;
+  const open = allTemuan.filter(t=>t.status_temuan==='OPEN');
+  const overdue = open.filter(t=>t.sla_status==='OVERDUE');
+  const today = open.filter(t=>t.due_date===new Date().toISOString().split('T')[0]);
+  const thisMonth = new Date();
+  const closed = allTemuan.filter(t=>{
+    if(t.status_temuan!=='CLOSED'||!t.tgl_closed) return false;
+    const d=new Date(t.tgl_closed);
+    return d.getMonth()===thisMonth.getMonth()&&d.getFullYear()===thisMonth.getFullYear();
+  });
+  document.getElementById('statTotal').textContent=open.length;
+  document.getElementById('statOverdue').textContent=overdue.length;
+  document.getElementById('statToday').textContent=today.length;
+  document.getElementById('statClosed').textContent=closed.length;
+  document.getElementById('navBadge').textContent=open.length;
+  const ab=document.getElementById('navBadgeAll');
+  if(ab) ab.textContent=open.length;
+  document.getElementById('taskCount').textContent=open.length+' temuan';
 }
 
-function renderTemuanTable(data) {
-  document.getElementById('temuanCount').textContent = data.length + ' temuan';
+function filterTask(filter,chipEl) {
+  currentFilter=filter;
+  if(chipEl){document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));chipEl.classList.add('active')}
+  let data=allTemuan.filter(t=>t.status_temuan==='OPEN');
+  const today=new Date().toISOString().split('T')[0];
+  if(filter==='overdue') data=data.filter(t=>t.sla_status==='OVERDUE');
+  else if(filter==='today') data=data.filter(t=>t.due_date===today);
+  else if(['critical','high','medium','low'].includes(filter)) data=data.filter(t=>(t.risiko||'').toLowerCase()===filter);
+  renderTaskList(data);
+}
 
-  if (data.length === 0) {
-    document.getElementById('temuanTableWrap').innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">🎉</div>
-        <div class="empty-title">Tidak ada temuan</div>
-        <div>Semua bersih atau sesuaikan filter</div>
-      </div>`;
+function renderTaskList(data) {
+  const el=document.getElementById('taskList');
+  document.getElementById('taskCount').textContent=data.length+' temuan';
+  if(!data.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">Tidak ada temuan!</div><div class="empty-sub">Semua temuan sudah diselesaikan.<br>Kerja bagus! 👍</div></div>`;
     return;
   }
-
-  const canClose = SESSION.role === 'PIC' || SESSION.role === 'ADMIN';
-
-  const rows = data.map(t => {
-    const isOverdue = t.sla_status === 'OVERDUE' && t.status_temuan === 'OPEN';
-    const riskBadge = {CRITICAL:'b-crit',HIGH:'b-high',MEDIUM:'b-med',LOW:'b-low'}[t.risiko] || 'b-med';
-    return `<tr onclick="openDrawer('${t.temuan_id}')" style="cursor:pointer">
-      <td class="mono">${t.temuan_id}</td>
-      <td>${t.nama_subarea || '—'}</td>
-      <td>${t.nama_kategori || '—'}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.pertanyaan}">${t.pertanyaan}</td>
-      <td><span class="badge ${riskBadge}">${t.risiko}</span></td>
-      <td class="mono" style="color:${isOverdue?'var(--red)':''}">${t.due_date||'—'}${isOverdue?' ⚡':''}</td>
-      <td>${t.nama_pic||'—'}</td>
-      <td><span class="badge ${t.status_temuan==='OPEN'?'b-open':'b-closed'}">${t.status_temuan}</span></td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('temuanTableWrap').innerHTML = `
-    <div style="overflow-x:auto">
-      <table>
-        <thead><tr>
-          <th>ID</th><th>SubArea</th><th>Kategori</th><th>Pertanyaan</th>
-          <th>Risiko</th><th>Due Date</th><th>PIC</th><th>Status</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
-}
-
-function filterTemuan() {
-  const status = document.getElementById('filterStatus').value;
-  const risiko = document.getElementById('filterRisiko').value;
-  const q = document.getElementById('searchTemuan').value.toLowerCase();
-
-  const filtered = allTemuan.filter(t => {
-    if (status && t.status_temuan !== status) return false;
-    if (risiko && t.risiko !== risiko) return false;
-    if (q && !t.pertanyaan?.toLowerCase().includes(q) &&
-             !t.nama_alat?.toLowerCase().includes(q) &&
-             !t.nama_subarea?.toLowerCase().includes(q)) return false;
-    return true;
-  });
-  renderTemuanTable(filtered);
-}
-
-// ── DRAWER ────────────────────────────────────────────────
-function openDrawer(temuan_id) {
-  const t = allTemuan.find(x => x.temuan_id === temuan_id);
-  if (!t) return;
-
-  const riskBadge = {CRITICAL:'b-crit',HIGH:'b-high',MEDIUM:'b-med',LOW:'b-low'}[t.risiko] || 'b-med';
-  document.getElementById('drawerTitle').textContent = t.temuan_id;
-  document.getElementById('drawerBadge').innerHTML = `<span class="badge ${riskBadge}">${t.risiko}</span>`;
-
-  const canClose = (SESSION.role === 'PIC' || SESSION.role === 'ADMIN') && t.status_temuan === 'OPEN';
-
-  document.getElementById('drawerBody').innerHTML = `
-    <div class="info-row"><span class="info-key">Pertanyaan</span><span class="info-val">${t.pertanyaan}</span></div>
-    <div class="info-row"><span class="info-key">Remarks</span><span class="info-val" style="color:var(--yellow)">${t.remarks_inspector || '—'}</span></div>
-    <div class="info-row"><span class="info-key">Alat</span><span class="info-val">${t.nama_alat}${t.no_asset?' ('+t.no_asset+')':''}</span></div>
-    <div class="info-row"><span class="info-key">Area</span><span class="info-val">${t.nama_area} / ${t.nama_subarea}</span></div>
-    <div class="info-row"><span class="info-key">Kategori</span><span class="info-val">${t.nama_kategori}</span></div>
-    <div class="info-row"><span class="info-key">Inspektor</span><span class="info-val">${t.nama_inspektor}</span></div>
-    <div class="info-row"><span class="info-key">Tanggal</span><span class="info-val">${t.tanggal_temuan}</span></div>
-    <div class="info-row"><span class="info-key">Due Date</span><span class="info-val" style="color:${t.sla_status==='OVERDUE'?'var(--red)':''}">${t.due_date} ${t.sla_status==='OVERDUE'?'⚡ OVERDUE':''}</span></div>
-    <div class="info-row"><span class="info-key">PIC</span><span class="info-val">${t.nama_pic} ${t.email_pic?'('+t.email_pic+')':''}</span></div>
-    <div class="info-row"><span class="info-key">Status</span><span class="info-val"><span class="badge ${t.status_temuan==='OPEN'?'b-open':'b-closed'}">${t.status_temuan}</span></span></div>
-
-    ${t.status_temuan === 'CLOSED' ? `
-    <div style="margin-top:14px;padding:12px;background:rgba(63,185,80,.05);border:1px solid rgba(63,185,80,.2);border-radius:8px">
-      <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:6px">✅ Closed — ${t.tgl_closed}</div>
-      <div style="font-size:12px;color:var(--muted)">${t.tindakan_close}</div>
-      ${t.foto_close ? `<div style="font-size:11px;color:var(--blue);margin-top:6px"><a href="${t.foto_close}" target="_blank" style="color:var(--blue)">📷 Lihat foto perbaikan</a></div>` : ''}
-    </div>` : ''}
-
-    ${canClose ? `
-    <div class="close-section">
-      <h4>🔧 Tindak Lanjut & Close</h4>
-      <div class="field">
-        <label>TINDAKAN PERBAIKAN *</label>
-        <textarea id="closeAction" rows="3" placeholder="Jelaskan tindakan yang telah dilakukan..."></textarea>
-      </div>
-      <div class="field">
-        <label>FOTO PERBAIKAN (maks 3)</label>
-        <div class="upload-zone" id="uploadZone">
-          <input type="file" accept="image/*" multiple onchange="handleFotoClose(this)">
-          📸 Upload foto after perbaikan
+  // Group by inspeksi_id
+  const grouped={};
+  data.forEach(t=>{if(!grouped[t.inspeksi_id])grouped[t.inspeksi_id]=[];grouped[t.inspeksi_id].push(t)});
+  const today=new Date().toISOString().split('T')[0];
+  el.innerHTML=Object.entries(grouped).map(([insId,temuan])=>{
+    const f=temuan[0];
+    const isOverdue=f.sla_status==='OVERDUE';
+    const isToday=f.due_date===today;
+    const rClass=(f.risiko||'low').toLowerCase();
+    const rLabel={CRITICAL:'🔥 CRITICAL',HIGH:'🔴 HIGH',MEDIUM:'🟡 MEDIUM',LOW:'🟢 LOW'}[f.risiko]||f.risiko;
+    let dueLabel='',dueClass='ontime';
+    if(isOverdue){dueLabel=`⚠️ Overdue`;dueClass='overdue';}
+    else if(isToday){dueLabel='⏰ Due hari ini!';dueClass='urgent';}
+    else{dueLabel='📅 Due: '+(f.due_date||'-');}
+    const findings=temuan.slice(0,2).map(t=>`<div class="task-finding-item">⚠️ ${t.pertanyaan||'-'}</div>`).join('');
+    const more=temuan.length>2?`<div class="task-finding-item" style="color:var(--muted2)">+${temuan.length-2} temuan lainnya...</div>`:'';
+    return `<div class="task-card ${rClass} ${isOverdue?'overdue':''}" onclick="openDrawer('${insId}')">
+      <div class="task-header">
+        <div class="task-risiko tr-${rClass}">${rLabel}</div>
+        <div class="task-main">
+          <div class="task-alat">🔧 ${f.nama_alat||'-'}</div>
+          <div class="task-area">📍 ${f.nama_subarea||'-'} · ${f.nama_kategori||'-'}</div>
         </div>
-        <div class="photo-row" id="photoPreview"></div>
+        <div><div class="task-temuan-count">${temuan.length}</div><div class="task-temuan-label">temuan</div></div>
       </div>
-    </div>` : ''}
-  `;
+      <div class="task-body"><div class="task-findings">${findings}${more}</div></div>
+      <div class="task-footer">
+        <div class="due-badge ${dueClass}">${dueLabel}</div>
+        <div class="task-ins">👤 ${f.nama_inspektor||'-'}</div>
+        <button class="btn-close-task" onclick="event.stopPropagation();openDrawer('${insId}')">✏️ Close</button>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  document.getElementById('drawerFooter').innerHTML = canClose ? `
-    <button class="btn-sm" onclick="closeDrawer()">Tutup</button>
-    <button class="btn-close-temuan" onclick="submitClose('${t.inspeksi_id}')">
-      ✅ Close Temuan
-    </button>
-  ` : `<button class="btn-sm" style="width:100%" onclick="closeDrawer()">Tutup</button>`;
+function renderHistory() {
+  const data=allTemuan.filter(t=>t.status_temuan==='CLOSED');
+  const el=document.getElementById('historyList');
+  if(!data.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Belum ada riwayat</div></div>`;return;}
+  el.innerHTML=data.map(t=>`<div class="task-card low" style="cursor:default">
+    <div class="task-header">
+      <div class="task-risiko tr-${(t.risiko||'low').toLowerCase()}">${t.risiko||'-'}</div>
+      <div class="task-main"><div class="task-alat">🔧 ${t.nama_alat||'-'}</div><div class="task-area">📍 ${t.nama_subarea||'-'}</div></div>
+      <div style="font-size:11px;color:var(--green);font-weight:600;text-align:right">✅ CLOSED<br><span style="color:var(--muted2)">${t.tgl_closed||'-'}</span></div>
+    </div>
+    <div class="task-body"><div class="task-findings"><div class="task-finding-item">${t.pertanyaan||'-'}</div></div></div>
+    <div class="task-footer"><div style="font-size:12px;color:var(--muted)">🔧 ${t.tindakan_close||'—'}</div><div class="task-ins">Closed by: ${t.nama_closer||'-'}</div></div>
+  </div>`).join('');
+}
 
+function renderAdminOverview() {
+  const open=allTemuan.filter(t=>t.status_temuan==='OPEN');
+  const overdue=open.filter(t=>t.sla_status==='OVERDUE');
+  const thisMonth=new Date();
+  const closed=allTemuan.filter(t=>{if(t.status_temuan!=='CLOSED'||!t.tgl_closed)return false;const d=new Date(t.tgl_closed);return d.getMonth()===thisMonth.getMonth()&&d.getFullYear()===thisMonth.getFullYear();});
+  const aOpen=document.getElementById('aStatOpen');const aOv=document.getElementById('aStatOverdue');const aC=document.getElementById('aStatClosed');const aT=document.getElementById('aStatTotal');
+  if(aOpen)aOpen.textContent=open.length;if(aOv)aOv.textContent=overdue.length;if(aC)aC.textContent=closed.length;if(aT)aT.textContent=allTemuan.length;
+  const grouped={};
+  open.forEach(t=>{if(!grouped[t.inspeksi_id])grouped[t.inspeksi_id]=[];grouped[t.inspeksi_id].push(t)});
+  const el=document.getElementById('adminTaskList');
+  if(!el)return;
+  el.innerHTML=Object.entries(grouped).map(([insId,temuan])=>{
+    const f=temuan[0];
+    const isOverdue=f.sla_status==='OVERDUE';
+    const rClass=(f.risiko||'low').toLowerCase();
+    const rLabel={CRITICAL:'🔥 CRITICAL',HIGH:'🔴 HIGH',MEDIUM:'🟡 MEDIUM',LOW:'🟢 LOW'}[f.risiko]||f.risiko;
+    return `<div class="task-card ${rClass} ${isOverdue?'overdue':''}" onclick="openDrawer('${insId}')">
+      <div class="task-header">
+        <div class="task-risiko tr-${rClass}">${rLabel}</div>
+        <div class="task-main"><div class="task-alat">🔧 ${f.nama_alat||'-'}</div><div class="task-area">📍 ${f.nama_subarea||'-'} · PIC: ${f.nama_pic||'-'}</div></div>
+        <div><div class="task-temuan-count">${temuan.length}</div><div class="task-temuan-label">temuan</div></div>
+      </div>
+      <div class="task-footer">
+        <div class="due-badge ${isOverdue?'overdue':'ontime'}">${isOverdue?'🚨 Overdue':'📅 Due: '+(f.due_date||'-')}</div>
+        <div class="task-ins">👤 ${f.nama_inspektor||'-'}</div>
+      </div>
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">Semua temuan sudah di-close!</div></div>`;
+}
+
+function renderAllTemuan() {
+  const el=document.getElementById('allTemuanList');
+  if(!el)return;
+  const grouped={};
+  allTemuan.forEach(t=>{if(!grouped[t.inspeksi_id])grouped[t.inspeksi_id]=[];grouped[t.inspeksi_id].push(t)});
+  el.innerHTML=Object.entries(grouped).map(([insId,temuan])=>{
+    const f=temuan[0];
+    const isClosed=f.status_temuan==='CLOSED';
+    const rClass=(f.risiko||'low').toLowerCase();
+    const rLabel={CRITICAL:'🔥 CRITICAL',HIGH:'🔴 HIGH',MEDIUM:'🟡 MEDIUM',LOW:'🟢 LOW'}[f.risiko]||f.risiko;
+    return `<div class="task-card ${rClass}">
+      <div class="task-header">
+        <div class="task-risiko tr-${rClass}">${rLabel}</div>
+        <div class="task-main"><div class="task-alat">🔧 ${f.nama_alat||'-'}</div><div class="task-area">📍 ${f.nama_subarea||'-'} · PIC: ${f.nama_pic||'-'}</div></div>
+        <div style="text-align:right"><div style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;${isClosed?'background:var(--green-bg);color:var(--green)':'background:var(--red-bg);color:var(--red)'}">${isClosed?'✅ CLOSED':'🔴 OPEN'}</div></div>
+      </div>
+      <div class="task-footer"><div style="font-size:12px;color:var(--muted)">📅 ${f.tanggal_temuan||'-'}</div><div class="task-ins">${temuan.length} temuan · ${f.nama_inspektor||'-'}</div></div>
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Tidak ada data</div></div>`;
+}
+
+function renderOverduePIC() {
+  const overdue=allTemuan.filter(t=>t.status_temuan==='OPEN'&&t.sla_status==='OVERDUE');
+  const byPIC={};
+  overdue.forEach(t=>{if(!byPIC[t.pic_nik])byPIC[t.pic_nik]={nama:t.nama_pic,email:t.email_pic,temuan:[]};byPIC[t.pic_nik].temuan.push(t)});
+  const el=document.getElementById('overduePICList');
+  if(!el)return;
+  if(!Object.keys(byPIC).length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">Tidak ada PIC yang overdue!</div></div>`;return;}
+  el.innerHTML=Object.entries(byPIC).map(([nik,{nama,email,temuan}])=>`
+    <div style="background:var(--surface);border:1.5px solid var(--red-bd);border-radius:var(--radius);padding:16px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:40px;height:40px;border-radius:50%;background:var(--red-bg);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--red)">${(nama||'?').charAt(0)}</div>
+        <div><div style="font-size:14px;font-weight:600">${nama||'-'}</div><div style="font-size:12px;color:var(--muted)">${email||'Email belum diisi'}</div></div>
+        <div style="margin-left:auto;background:var(--red-bg);color:var(--red);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700">${temuan.length} overdue</div>
+      </div>
+      ${temuan.map(t=>`<div style="padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px;font-size:12px">
+        <div style="font-weight:500">⚠️ ${t.pertanyaan||'-'}</div>
+        <div style="color:var(--muted);margin-top:2px">📍 ${t.nama_subarea||'-'} · Due: ${t.due_date||'-'}</div>
+      </div>`).join('')}
+    </div>`).join('');
+}
+
+// DRAWER
+function openDrawer(inspeksiId) {
+  const temuan=allTemuan.filter(t=>t.inspeksi_id===inspeksiId&&t.status_temuan==='OPEN');
+  if(!temuan.length)return;
+  activeInspeksiId=inspeksiId;closeFotos=[];
+  const f=temuan[0];
+  const rLabel={CRITICAL:'🔥 CRITICAL',HIGH:'🔴 HIGH',MEDIUM:'🟡 MEDIUM',LOW:'🟢 LOW'}[f.risiko]||f.risiko;
+  document.getElementById('drawerSubtitle').textContent=inspeksiId+' · '+rLabel;
+  document.getElementById('drawerInfo').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div><span style="color:var(--muted);font-size:11px">Alat</span><br><strong>${f.nama_alat||'-'}</strong></div>
+    <div><span style="color:var(--muted);font-size:11px">Area</span><br><strong>${f.nama_subarea||'-'}</strong></div>
+    <div><span style="color:var(--muted);font-size:11px">Kategori</span><br><strong>${f.nama_kategori||'-'}</strong></div>
+    <div><span style="color:var(--muted);font-size:11px">Tanggal</span><br><strong>${f.tanggal_temuan||'-'}</strong></div>
+    <div><span style="color:var(--muted);font-size:11px">Inspektor</span><br><strong>${f.nama_inspektor||'-'}</strong></div>
+    <div><span style="color:var(--muted);font-size:11px">Due Date</span><br><strong style="color:${f.sla_status==='OVERDUE'?'var(--red)':'var(--text)'}">${f.due_date||'-'}</strong></div>
+  </div>`;
+  document.getElementById('drawerTemuanList').innerHTML=temuan.map((t,i)=>`<div class="drawer-temuan-item">
+    <div class="drawer-temuan-no">Temuan ${i+1}</div>
+    <div class="drawer-temuan-q">${t.pertanyaan||'-'}</div>
+    ${t.remarks_inspector?`<div class="drawer-temuan-rmk">📝 ${t.remarks_inspector}</div>`:''}
+  </div>`).join('');
+  document.getElementById('tindakanClose').value='';
+  document.getElementById('fotoClosePreviews').innerHTML='';
+  document.getElementById('fotoCloseZone').style.display='flex';
+  document.getElementById('btnClose').disabled=false;
+  document.getElementById('btnClose').innerHTML='✅ Submit Close Temuan';
   document.getElementById('drawer').classList.add('open');
   document.getElementById('drawerBg').classList.add('open');
-  // Scroll to top on mobile
-  window.scrollTo({top: 0, behavior: 'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
 }
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawerBg').classList.remove('open')}
 
-function closeDrawer() {
-  document.getElementById('drawer').classList.remove('open');
-  document.getElementById('drawerBg').classList.remove('open');
-  fotoCloseFiles = [];
+function onFotoClose(input) {
+  const files=Array.from(input.files).slice(0,3-closeFotos.length);
+  if(closeFotos.length>=3){showToast('Maksimal 3 foto','warn');input.value='';return;}
+  files.forEach(f=>{if(closeFotos.length<3)closeFotos.push(f)});
+  renderFotoClose();input.value='';
 }
-
-let fotoCloseFiles = [];
-function handleFotoClose(input) {
-  fotoCloseFiles = Array.from(input.files).slice(0, 3);
-  const preview = document.getElementById('photoPreview');
-  preview.innerHTML = '';
-  fotoCloseFiles.forEach(f => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = document.createElement('img');
-      img.src = e.target.result;
-      img.className = 'photo-thumb';
-      preview.appendChild(img);
-    };
-    reader.readAsDataURL(f);
+function renderFotoClose() {
+  const row=document.getElementById('fotoClosePreviews');row.innerHTML='';
+  closeFotos.forEach((f,i)=>{
+    const rd=new FileReader();
+    rd.onload=e=>{
+      const wrap=document.createElement('div');wrap.className='foto-preview-item';
+      const img=document.createElement('img');img.src=e.target.result;
+      const del=document.createElement('div');del.className='foto-del';del.textContent='✕';
+      del.onclick=()=>{closeFotos.splice(i,1);renderFotoClose()};
+      wrap.appendChild(img);wrap.appendChild(del);row.appendChild(wrap);
+    };rd.readAsDataURL(f);
   });
+  document.getElementById('fotoCloseZone').style.display=closeFotos.length>=3?'none':'flex';
 }
 
-async function submitClose(inspeksi_id) {
-  const action = document.getElementById('closeAction')?.value.trim();
-  if (!action) { showToast('Isi tindakan perbaikan dulu!', 'error'); return; }
-
-  const btn = document.querySelector('.btn-close-temuan');
-  if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
-
-  // Compress & encode fotos
-  const foto_data = [];
-  for (const f of fotoCloseFiles) {
-    const compressed = await compressImage(f);
-    foto_data.push({ name: f.name, data: compressed.split(',')[1] });
+async function submitClose() {
+  const tindakan=document.getElementById('tindakanClose').value.trim();
+  if(!tindakan){showToast('Isi tindakan perbaikan dulu','warn');return;}
+  if(!closeFotos.length){showToast('Upload foto bukti perbaikan dulu','warn');return;}
+  const btn=document.getElementById('btnClose');btn.disabled=true;btn.innerHTML='⏳ Menyimpan...';
+  const fotoData=[];
+  for(let i=0;i<closeFotos.length;i++){
+    showLoad(`Mengompres foto ${i+1}/${closeFotos.length}...`);
+    const comp=await compressFoto(closeFotos[i]);
+    fotoData.push({name:`after_${i+1}.jpg`,data:comp.split(',')[1]});
   }
-
-  const payload = {
-    action: 'closeTemuan',
-    inspeksi_id,
-    nik_closer: SESSION.nik,
-    tindakan_close: action,
-    foto_close_data: foto_data
-  };
-
+  showLoad('Menyimpan...');
   try {
-    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
-    const json = await res.json();
-    if (json.status === 'ok') {
-      showToast(`✅ ${json.closed_count} temuan berhasil di-close!`, 'success');
-      closeDrawer();
-      await loadData();
-    } else {
-      showToast('Gagal: ' + json.message, 'error');
-    }
-  } catch(e) {
-    // DEMO MODE
-    allTemuan = allTemuan.map(t => {
-      if (t.inspeksi_id === inspeksi_id && t.status_temuan === 'OPEN') {
-        return { ...t, status_temuan:'CLOSED', tindakan_close:action, tgl_closed:new Date().toISOString().split('T')[0] };
-      }
-      return t;
-    });
-    showToast('[DEMO] Temuan berhasil di-close!', 'success');
-    closeDrawer();
-    renderStats();
-    filterTemuan();
-  }
-
-  if (btn) { btn.disabled = false; btn.textContent = '✅ Close Temuan'; }
+    const res=await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'closeTemuan',inspeksi_id:activeInspeksiId,nik_closer:SESSION.nik,tindakan_close:tindakan,foto_close_data:fotoData})});
+    const json=await res.json();
+    hideLoad();
+    if(json.status==='ok'){
+      closeDrawer();showToast(`✅ ${json.closed_count} temuan berhasil di-close!`,'success');
+      allTemuan=allTemuan.map(t=>t.inspeksi_id===activeInspeksiId?{...t,status_temuan:'CLOSED'}:t);
+      renderStats();filterTask(currentFilter);
+    } else {showToast('❌ Gagal: '+(json.message||'Error'),'error');btn.disabled=false;btn.innerHTML='✅ Submit Close Temuan';}
+  } catch(e){hideLoad();showToast('❌ Koneksi gagal','error');btn.disabled=false;btn.innerHTML='✅ Submit Close Temuan';}
 }
 
-// ── COMPRESS IMAGE ────────────────────────────────────────
-async function compressImage(file, quality = 0.7, maxPx = 1280) {
-  return new Promise(resolve => {
-    const img = new Image();
-    const reader = new FileReader();
-    reader.onload = e => {
-      img.src = e.target.result;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let w = img.width, h = img.height;
-        if (w > maxPx || h > maxPx) {
-          if (w > h) { h = h/w*maxPx; w = maxPx; }
-          else { w = w/h*maxPx; h = maxPx; }
-        }
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-    };
-    reader.readAsDataURL(file);
+async function compressFoto(file,quality=0.7,maxPx=1280){
+  return new Promise(resolve=>{
+    const img=new Image();const rd=new FileReader();
+    rd.onload=e=>{img.src=e.target.result;img.onload=()=>{
+      const c=document.createElement('canvas');let w=img.width,h=img.height;
+      if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h/w*maxPx);w=maxPx;}else{w=Math.round(w/h*maxPx);h=maxPx;}}
+      c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg',quality));
+    }};rd.readAsDataURL(file);
   });
 }
 
-// ── JADWAL ────────────────────────────────────────────────
-async function renderJadwal() {
-  try {
-    const res = await fetch(APPS_SCRIPT_URL + '?action=getJadwal');
-    const json = await res.json();
-    allJadwal = json.data || [];
-  } catch(e) { allJadwal = getDemoJadwal(); }
+function logout(){if(confirm('Yakin ingin keluar?')){localStorage.removeItem('msm_session');window.location.href='login.html';}}
+function showLoad(msg){document.getElementById('lo').classList.add('show');document.getElementById('loMsg').textContent=msg||'Loading...'}
+function hideLoad(){document.getElementById('lo').classList.remove('show')}
+function showToast(msg,type='info'){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.className='toast show '+type;setTimeout(()=>t.classList.remove('show'),4000)}
 
-  const statusBadge = { OVERDUE:'b-overdue', UPCOMING:'b-upcoming', ON_TIME:'b-ontime' };
-  const rows = allJadwal.map(j => `
-    <tr>
-      <td>${j.nama_subarea}</td>
-      <td>${j.nama_kategori}</td>
-      <td class="mono">${j.interval_hari} hari</td>
-      <td class="mono">${j.tgl_inspeksi_terakhir || '—'}</td>
-      <td class="mono">${j.tgl_inspeksi_due || '—'}</td>
-      <td><span class="badge ${statusBadge[j.status_jadwal]||'b-ontime'}">${j.status_jadwal}</span></td>
-      <td>${j.nama_pic || '—'}</td>
-    </tr>`).join('');
-
-  document.getElementById('jadwalTableWrap').innerHTML = `
-    <div style="overflow-x:auto">
-      <table>
-        <thead><tr><th>SubArea</th><th>Kategori</th><th>Interval</th><th>Terakhir</th><th>Due</th><th>Status</th><th>PIC</th></tr></thead>
-        <tbody>${rows || '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">Belum ada jadwal</td></tr>'}</tbody>
-      </table>
-    </div>`;
-}
-
-// ── MASTER (Admin) ────────────────────────────────────────
-function renderMaster() {
-  const masters = [
-    { icon:'👥', name:'Employee & PIC', desc:'Kelola user & set aktif/cuti', count:'36 user', action:()=>goPage('employee') },
-    { icon:'🗺️', name:'Area & SubArea', desc:'Lokasi tambang', count:'2 area · 17 subarea', action:null },
-    { icon:'📋', name:'Kategori & Pertanyaan', desc:'Checklist inspeksi', count:'17 kategori · 173 item', action:null },
-    { icon:'🔧', name:'PIC Exception', desc:'PIC khusus per kategori', count:'7 exception', action:null },
-    { icon:'🧰', name:'Toolbox', desc:'Tipe, isi & aset toolbox', count:'4 tipe · 317 item', action:null },
-    { icon:'⚠️', name:'SLA & Risiko', desc:'Batas waktu per risiko', count:'4 level', action:null },
-  ];
-
-  document.getElementById('masterGrid').innerHTML = masters.map(m => `
-    <div class="master-card" onclick="${m.action ? m.action.toString().replace('()=>','').trim()+'()' : "showToast('Kelola langsung di Google Sheets MASTER_v2', 'success')"}">
-      <div class="master-icon">${m.icon}</div>
-      <div class="master-name">${m.name}</div>
-      <div class="master-desc">${m.desc}</div>
-      <div class="master-count">${m.count}</div>
-    </div>`).join('');
-
-  document.getElementById('logTableWrap').innerHTML = `
-    <div style="overflow-x:auto">
-      <table>
-        <thead><tr><th>Waktu</th><th>Aksi</th><th>Oleh</th><th>Detail</th></tr></thead>
-        <tbody>
-          <tr><td class="mono">Hari ini 08:30</td><td><span class="badge b-open">CREATE_TEMUAN</span></td><td>Dimas (Inspector)</td><td>TM-2026-000001 — Frame/Pelindung</td></tr>
-          <tr><td class="mono">Hari ini 09:00</td><td><span class="badge b-ontime">INSPEKSI_SUBMIT</span></td><td>Dimas (Inspector)</td><td>INS-2026-000043 — WS HE CIA</td></tr>
-          <tr><td class="mono">Kemarin 15:30</td><td><span class="badge b-closed">CLOSED</span></td><td>Zainal (PIC)</td><td>TM-2026-000038 — Eyewash PCR Utara</td></tr>
-        </tbody>
-      </table>
-    </div>`;
-}
-
-// ── EMPLOYEE (Admin) ──────────────────────────────────────
-async function renderEmployee() {
-  // Demo data
-  allEmployee = [
-    { nik:'EMP003', nama:'Zainal', email:'zainaltyre@gmail.com', role:'PIC', subarea_id:'SA001', aktif:'Y' },
-    { nik:'EMP007', nama:'Masduki', email:'', role:'PIC', subarea_id:'SA001', aktif:'Y' },
-    { nik:'EMP002', nama:'Zanuar Pribadi', email:'', role:'PIC', subarea_id:'SA001', aktif:'N' },
-    { nik:'EMP001', nama:'Abdul Azis', email:'admin@demo.com', role:'ADMIN', subarea_id:'', aktif:'Y' },
-    { nik:'EMP010', nama:'Dimas Kamaja', email:'dimas@demo.com', role:'INSPECTOR', subarea_id:'SA001', aktif:'Y' },
-  ];
-  filterEmployee();
-}
-
-function filterEmployee() {
-  const q = (document.getElementById('searchEmp')?.value || '').toLowerCase();
-  const role = document.getElementById('filterRole')?.value || '';
-
-  const filtered = allEmployee.filter(e => {
-    if (role && e.role !== role) return false;
-    if (q && !e.nama.toLowerCase().includes(q) && !e.email.toLowerCase().includes(q)) return false;
-    return true;
-  });
-
-  const rows = filtered.map(e => `
-    <tr>
-      <td class="mono">${e.nik}</td>
-      <td style="font-weight:500">${e.nama}</td>
-      <td style="color:${e.email?'var(--text)':'var(--red)'}">${e.email || '⚠️ Belum ada email'}</td>
-      <td>${e.role}</td>
-      <td>${e.subarea_id || '—'}</td>
-      <td>
-        <span class="badge ${e.aktif==='Y'?'b-ontime':'b-high'}">${e.aktif==='Y'?'Aktif':'Cuti'}</span>
-      </td>
-      <td>
-        <button class="btn-sm" style="font-size:11px;padding:4px 10px" 
-          onclick="toggleAktif('${e.nik}','${e.aktif==='Y'?'N':'Y'}','${e.nama}')">
-          ${e.aktif==='Y'?'Set Cuti':'Aktifkan'}
-        </button>
-      </td>
-    </tr>`).join('');
-
-  document.getElementById('empTableWrap').innerHTML = `
-    <div style="overflow-x:auto">
-      <table>
-        <thead><tr><th>NIK</th><th>Nama</th><th>Email</th><th>Role</th><th>SubArea</th><th>Status</th><th>Aksi</th></tr></thead>
-        <tbody>${rows || '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">Tidak ada data</td></tr>'}</tbody>
-      </table>
-    </div>`;
-}
-
-async function toggleAktif(nik, newAktif, nama) {
-  try {
-    await fetch(APPS_SCRIPT_URL, {
-      method:'POST',
-      body:JSON.stringify({ action:'updateEmployee', nik, aktif: newAktif })
-    });
-  } catch(e) {}
-
-  // Update local
-  allEmployee = allEmployee.map(e => e.nik === nik ? {...e, aktif: newAktif} : e);
-  filterEmployee();
-  showToast(`${nama} → ${newAktif==='Y'?'Aktif kembali':'Set cuti (PIC 2 aktif otomatis)'}`, 'success');
-}
-
-// ── TOAST ─────────────────────────────────────────────────
-function showToast(msg, type = 'success') {
-  const t = document.getElementById('toast');
-  document.getElementById('toastMsg').textContent = msg;
-  document.getElementById('toastIcon').textContent = type === 'success' ? '✅' : '❌';
-  t.className = 'toast show ' + type;
-  setTimeout(() => t.classList.remove('show'), 4000);
-}
-
-// ── LOGOUT ────────────────────────────────────────────────
-function doLogout() {
-  localStorage.removeItem('msm_session');
-  window.location.href = 'login.html';
-}
-
-// ── DEMO DATA ─────────────────────────────────────────────
-function getDemoTemuan() {
+function getDemoTemuan(){
   return [
-    { temuan_id:'TM-2026-000001', inspeksi_id:'INS-2026-000043', pertanyaan:'Frame / Pelindung retak hampir lepas', remarks_inspector:'Retakan besar sisi kanan', nama_alat:'Bor Listrik Makita', no_asset:'AST-042', nama_area:'KGB', nama_subarea:'WS HE CIA', nama_kategori:'Alat Listrik Portable', risiko:'CRITICAL', due_date:'2026-01-16', sla_status:'OVERDUE', pic_nik:'EMP003', nama_pic:'Zainal', email_pic:'zainaltyre@gmail.com', tanggal_temuan:'2026-01-15', nama_inspektor:'Dimas Kamaja', status_temuan:'OPEN', sumber_temuan:'CHECKLIST', tgl_open:'2026-01-15T08:30:00Z' },
-    { temuan_id:'TM-2026-000002', inspeksi_id:'INS-2026-000043', pertanyaan:'Kabel dan plug isolasi terkelupas', remarks_inspector:'Terkelupas ±5cm bagian tengah', nama_alat:'Bor Listrik Makita', no_asset:'AST-042', nama_area:'KGB', nama_subarea:'WS HE CIA', nama_kategori:'Alat Listrik Portable', risiko:'CRITICAL', due_date:'2026-01-16', sla_status:'OVERDUE', pic_nik:'EMP003', nama_pic:'Zainal', email_pic:'zainaltyre@gmail.com', tanggal_temuan:'2026-01-15', nama_inspektor:'Dimas Kamaja', status_temuan:'OPEN', sumber_temuan:'CHECKLIST', tgl_open:'2026-01-15T08:30:00Z' },
-    { temuan_id:'TM-2026-000003', inspeksi_id:'INS-2026-000041', pertanyaan:'APAR — Kondisi Gauge merah', remarks_inspector:'Gauge di bawah minimum', nama_alat:'APAR CO2 Unit 3', no_asset:'AST-091', nama_area:'KGB', nama_subarea:'WS Suppeq', nama_kategori:'APAR', risiko:'HIGH', due_date:'2026-01-18', sla_status:'ON_TIME', pic_nik:'EMP004', nama_pic:'Yulius', email_pic:'', tanggal_temuan:'2026-01-15', nama_inspektor:'Ahmad Fauzi', status_temuan:'OPEN', sumber_temuan:'CHECKLIST', tgl_open:'2026-01-15T10:00:00Z' },
-    { temuan_id:'TM-2026-000004', inspeksi_id:'INS-2026-000038', pertanyaan:'Anak tangga kondisi licin', remarks_inspector:'Kontaminasi oli di 3 anak tangga', nama_alat:'Tangga Portable B7', no_asset:'AST-055', nama_area:'KGB', nama_subarea:'WS Tyre', nama_kategori:'Tangga Portable', risiko:'MEDIUM', due_date:'2026-01-22', sla_status:'ON_TIME', pic_nik:'EMP031', nama_pic:'Abdul Ajis', email_pic:'', tanggal_temuan:'2026-01-13', nama_inspektor:'Dimas Kamaja', status_temuan:'CLOSED', tindakan_close:'Anak tangga dibersihkan dan ditambah grip anti slip', tgl_closed:'2026-01-15', sumber_temuan:'CHECKLIST', tgl_open:'2026-01-13T09:00:00Z' },
-  ];
-}
-
-function getDemoJadwal() {
-  return [
-    { nama_subarea:'WS HE CIA', nama_kategori:'Oil Trap / Washpad', interval_hari:7, tgl_inspeksi_terakhir:'2026-01-08', tgl_inspeksi_due:'2026-01-15', status_jadwal:'OVERDUE', nama_pic:'Zainal' },
-    { nama_subarea:'WS Suppeq', nama_kategori:'APAR', interval_hari:30, tgl_inspeksi_terakhir:'2025-12-16', tgl_inspeksi_due:'2026-01-15', status_jadwal:'UPCOMING', nama_pic:'Yulius' },
-    { nama_subarea:'WS Tyre', nama_kategori:'Tangga Portable', interval_hari:30, tgl_inspeksi_terakhir:'2025-12-20', tgl_inspeksi_due:'2026-01-19', status_jadwal:'ON_TIME', nama_pic:'Abdul Ajis' },
-    { nama_subarea:'WS HE CIA', nama_kategori:'Hook & Penyangga', interval_hari:90, tgl_inspeksi_terakhir:'2025-10-18', tgl_inspeksi_due:'2026-01-16', status_jadwal:'UPCOMING', nama_pic:'Ibrahim' },
+    {temuan_id:'TM-001',inspeksi_id:'INS-001',status_temuan:'OPEN',nama_alat:'Bor Listrik Makita',nama_subarea:'WS HE CIA',nama_kategori:'Alat Listrik Portable',pertanyaan:'Kabel dan plug dalam kondisi baik',remarks_inspector:'Kabel terkelupas di dekat plug',risiko:'HIGH',sla_hari:3,due_date:new Date(Date.now()-86400000).toISOString().split('T')[0],sla_status:'OVERDUE',umur_hari:4,nama_inspektor:'Budi',tanggal_temuan:'2026-06-13',pic_nik:'EMP003',nama_pic:'Zainal',email_pic:'dimayy17@gmail.com'},
+    {temuan_id:'TM-002',inspeksi_id:'INS-001',status_temuan:'OPEN',nama_alat:'Bor Listrik Makita',nama_subarea:'WS HE CIA',nama_kategori:'Alat Listrik Portable',pertanyaan:'Grounding terpasang',remarks_inspector:'Grounding copot',risiko:'HIGH',sla_hari:3,due_date:new Date(Date.now()-86400000).toISOString().split('T')[0],sla_status:'OVERDUE',umur_hari:4,nama_inspektor:'Budi',tanggal_temuan:'2026-06-13',pic_nik:'EMP003',nama_pic:'Zainal',email_pic:'dimayy17@gmail.com'},
+    {temuan_id:'TM-003',inspeksi_id:'INS-002',status_temuan:'OPEN',nama_alat:'Jack Stand 10T',nama_subarea:'WS HE CIA',nama_kategori:'Jack Stand',pertanyaan:'Kondisi fisik baik',remarks_inspector:'Ada retakan di kaki stand',risiko:'CRITICAL',sla_hari:1,due_date:new Date().toISOString().split('T')[0],sla_status:'ON_TIME',umur_hari:1,nama_inspektor:'Andi',tanggal_temuan:'2026-06-16',pic_nik:'EMP003',nama_pic:'Zainal',email_pic:'dimayy17@gmail.com'},
+    {temuan_id:'TM-004',inspeksi_id:'INS-003',status_temuan:'CLOSED',nama_alat:'APAR 6kg',nama_subarea:'WS HE CIA',nama_kategori:'Apar',pertanyaan:'Gauge tekanan hijau',remarks_inspector:'Gauge merah',risiko:'MEDIUM',sla_hari:7,due_date:'2026-06-20',sla_status:'ON_TIME',umur_hari:2,nama_inspektor:'Sari',tanggal_temuan:'2026-06-14',tgl_closed:new Date().toISOString().split('T')[0],tindakan_close:'Ganti APAR baru',nama_closer:'Zainal',pic_nik:'EMP003',nama_pic:'Zainal',email_pic:'dimayy17@gmail.com'},
   ];
 }
 </script>
