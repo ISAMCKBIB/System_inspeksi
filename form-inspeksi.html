@@ -105,66 +105,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .hint{padding:10px 12px;border-radius:8px;font-size:13px;margin-top:6px;display:none;align-items:flex-start;gap:8px;line-height:1.5}
 .hint.found{background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green)}
 .hint.new{background:var(--yellow-bg);border:1px solid var(--yellow-bd);color:var(--yellow)}
-.hint.searching{background:var(--blue-bg);border:1px solid var(--blue-bd);color:var(--blue)}
 .hint.show{display:flex}
-
-/* Asset search */
-.asset-input-wrap{position:relative}
-.asset-search-icon{
-  position:absolute;right:12px;top:50%;transform:translateY(-50%);
-  font-size:16px;color:var(--muted2);pointer-events:none;transition:all .2s;
-}
-#noId{padding-right:40px}
-
-/* Spinner */
-.asset-spinner{
-  width:16px;height:16px;border:2.5px solid var(--blue-bd);
-  border-top-color:var(--blue);border-radius:50%;
-  animation:spin .7s linear infinite;flex-shrink:0;
-}
-
-/* Overlay loading saat fetch asset — block input lain */
-.asset-loading-overlay{
-  position:absolute;inset:0;
-  background:rgba(255,255,255,.85);
-  border-radius:8px;
-  display:none;align-items:center;justify-content:center;
-  flex-direction:column;gap:8px;
-  z-index:10;font-size:12px;color:var(--blue);font-weight:600;
-  backdrop-filter:blur(2px);
-}
-.asset-loading-overlay.show{display:flex}
-
-/* Disable style saat loading */
-.field-disabled{
-  opacity:.5;pointer-events:none;
-  transition:opacity .3s;
-}
-.field-disabled input,.field-disabled select{
-  background:var(--bg)!important;cursor:not-allowed;
-}
-
-/* Autocomplete dropdown */
-.asset-dropdown{
-  position:absolute;top:calc(100% + 4px);left:0;right:0;
-  background:#fff;border:1.5px solid var(--accent);
-  border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);
-  z-index:200;max-height:240px;overflow-y:auto;
-  display:none;
-}
-.asset-dropdown.show{display:block}
-.asset-dropdown-item{
-  padding:11px 14px;cursor:pointer;font-size:13px;
-  border-bottom:1px solid var(--border);transition:background .1s;
-  display:flex;flex-direction:column;gap:3px;
-}
-.asset-dropdown-item:last-child{border-bottom:none}
-.asset-dropdown-item:hover,.asset-dropdown-item.active{background:var(--blue-bg)}
-.asset-dropdown-item .adi-name{font-weight:600;color:var(--text)}
-.asset-dropdown-item .adi-meta{font-size:11px;color:var(--muted)}
-.asset-dropdown-empty{
-  padding:16px;text-align:center;font-size:13px;color:var(--muted);
-}
 
 /* PIC BOX */
 .pic-box{
@@ -488,44 +429,27 @@ table.tbtbl input[type=text]{
 
     <!-- Non-toolbox -->
     <div id="nonTb">
-      <!-- No ID dengan search autocomplete -->
-      <div class="field mb10" style="position:relative">
-        <label>No ID <span class="req">*</span></label>
-        <div class="asset-input-wrap" style="position:relative">
-          <input type="text" id="noId" placeholder="Ketik no id atau nama alat..." 
-            oninput="onAssetDebounce(this.value)"
-            onkeydown="onAssetKeydown(event)"
-            autocomplete="off">
-          <span class="asset-search-icon" id="assetSearchIcon">🔍</span>
-          <!-- Dropdown hasil search -->
-          <div class="asset-dropdown" id="assetDropdown"></div>
+      <div class="g2 mb10">
+        <div class="field">
+          <label>No Asset <span class="req">*</span></label>
+          <input type="text" id="noAsset" placeholder="AST-001" oninput="onAsset(this.value)" autocomplete="off">
         </div>
-        <div id="assetHint" class="hint" style="margin-top:6px"></div>
+        <div class="field">
+          <label>No Register</label>
+          <input type="text" id="noReg" placeholder="REG-001" autocomplete="off">
+        </div>
       </div>
-
-      <!-- Fields lain — dilock saat loading -->
-      <div id="assetFields">
-        <!-- Loading overlay -->
-        <div class="asset-loading-overlay" id="assetLoadingOverlay">
-          <div class="asset-spinner"></div>
-          <div id="assetLoadingMsg">Mengambil data aset...</div>
+      <div class="g2 mb10">
+        <div class="field">
+          <label>Nama Alat <span class="req">*</span></label>
+          <input type="text" id="namaAlat" placeholder="cth: Bor Listrik Makita">
         </div>
-
-        <div class="g2 mb10">
-          <div class="field" id="fieldNoReg">
-            <label>No Asset</label>
-            <input type="text" id="noAsset" placeholder="AST-001" autocomplete="off">
-          </div>
-          <div class="field" id="fieldNamaAlat">
-            <label>Nama Alat <span class="req">*</span></label>
-            <input type="text" id="namaAlat" placeholder="cth: Bor Listrik Makita">
-          </div>
-        </div>
-        <div class="field" id="fieldMerk">
+        <div class="field">
           <label>Merk</label>
           <input type="text" id="merkAlat" placeholder="cth: Makita, Bosch">
         </div>
       </div>
+      <div id="assetHint" class="hint"></div>
     </div>
 
     <!-- Toolbox -->
@@ -545,7 +469,7 @@ table.tbtbl input[type=text]{
             </select>
           </div>
           <div class="field">
-            <label>No ID Toolbox</label>
+            <label>No Asset Toolbox</label>
             <input type="text" id="tbNoAsset" placeholder="(isi jika ada)" autocomplete="off">
           </div>
         </div>
@@ -905,174 +829,32 @@ async function showPIC(sec){
   }
 }
 
-// ── ASSET SEARCH dengan autocomplete ────────────────
-let assetDebounceTimer = null;
-let assetLastKeyTime = 0;
-let assetTypingSpeed = [];
-let assetDropdownItems = [];
-let assetDropdownIndex = -1;
-
-function lockAssetFields(msg) {
-  // Lock semua field di bawah no id saat loading
-  const overlay = document.getElementById('assetLoadingOverlay');
-  const msgEl = document.getElementById('assetLoadingMsg');
-  if (overlay) { overlay.classList.add('show'); }
-  if (msgEl && msg) msgEl.textContent = msg;
-  ['fieldNoReg','fieldNamaAlat','fieldMerk'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.add('field-disabled');
-  });
-}
-
-function unlockAssetFields() {
-  const overlay = document.getElementById('assetLoadingOverlay');
-  if (overlay) overlay.classList.remove('show');
-  ['fieldNoReg','fieldNamaAlat','fieldMerk'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('field-disabled');
-  });
-}
-
-function closeAssetDropdown() {
-  const dd = document.getElementById('assetDropdown');
-  if (dd) { dd.innerHTML=''; dd.classList.remove('show'); }
-  assetDropdownItems = [];
-  assetDropdownIndex = -1;
-}
-
-function onAssetKeydown(e) {
-  const dd = document.getElementById('assetDropdown');
-  if (!dd || !dd.classList.contains('show')) return;
-  const items = dd.querySelectorAll('.asset-dropdown-item');
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    assetDropdownIndex = Math.min(assetDropdownIndex + 1, items.length - 1);
-    items.forEach((it, i) => it.classList.toggle('active', i === assetDropdownIndex));
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    assetDropdownIndex = Math.max(assetDropdownIndex - 1, 0);
-    items.forEach((it, i) => it.classList.toggle('active', i === assetDropdownIndex));
-  } else if (e.key === 'Enter' && assetDropdownIndex >= 0) {
-    e.preventDefault();
-    items[assetDropdownIndex]?.click();
-  } else if (e.key === 'Escape') {
-    closeAssetDropdown();
-  }
-}
-
-function onAssetDebounce(v) {
-  const h = document.getElementById('assetHint');
-  const icon = document.getElementById('assetSearchIcon');
-  closeAssetDropdown();
-
-  if (v.length < 2) {
-    h.className = 'hint';
-    icon.textContent = '🔍';
-    unlockAssetFields();
-    clearTimeout(assetDebounceTimer);
-    assetTypingSpeed = [];
-    return;
-  }
-
-  // Deteksi kecepatan input
-  const now = Date.now();
-  if (assetLastKeyTime > 0) {
-    assetTypingSpeed.push(now - assetLastKeyTime);
-    if (assetTypingSpeed.length > 5) assetTypingSpeed.shift();
-  }
-  assetLastKeyTime = now;
-
-  const avgSpeed = assetTypingSpeed.length > 0
-    ? assetTypingSpeed.reduce((a,b) => a+b, 0) / assetTypingSpeed.length : 999;
-  const isScanner = avgSpeed < 50 && assetTypingSpeed.length >= 3;
-
-  // Tampilkan loading + lock fields
-  h.innerHTML = '<div class="asset-spinner"></div> ' + (isScanner ? 'Memproses scan...' : 'Mencari aset...');
-  h.className = 'hint searching show';
-  icon.textContent = '⏳';
-  lockAssetFields(isScanner ? 'Memproses scan barcode...' : 'Mengambil data aset...');
-
-  clearTimeout(assetDebounceTimer);
-  const delay = isScanner ? 150 : 600;
-
-  assetDebounceTimer = setTimeout(() => {
-    assetTypingSpeed = [];
-    onAsset(v);
-  }, delay);
-}
-
 async function onAsset(v){
-  const h = document.getElementById('assetHint');
-  const icon = document.getElementById('assetSearchIcon');
-  const dd = document.getElementById('assetDropdown');
-
-  try {
-    const r = await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=asset_check&no_id='+encodeURIComponent(v));
-    const j = await r.json();
-
-    if (j.data?.found && j.data.asset) {
-      // ── ASET DITEMUKAN — auto-fill langsung ──
-      const a = j.data.asset;
-      fillAssetFields(a);
-      h.innerHTML = '✅ <strong>Aset ditemukan!</strong> Semua data terisi otomatis'
-        + (a.tgl_inspeksi_terakhir ? '<br>🕒 Terakhir inspeksi: <strong>' + a.tgl_inspeksi_terakhir + '</strong>' : '')
-        + (a.status_aset_terakhir ? ' · <span style="color:' + (a.status_aset_terakhir==='LAIK'?'var(--green)':'var(--red)') + '">' + a.status_aset_terakhir + '</span>' : '');
-      h.className = 'hint found show';
-      icon.textContent = '✅';
-      unlockAssetFields();
-      closeAssetDropdown();
+  const h=document.getElementById('assetHint');
+  if(v.length<3){h.className='hint';return;}
+  try{
+    const r=await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=asset_check&no_asset='+encodeURIComponent(v));
+    const j=await r.json();
+    if(j.data?.found && j.data.asset){
+      const a=j.data.asset;
+      // Auto-fill semua field dari MASTER_ASSET
+      if(a.nama_alat) document.getElementById('namaAlat').value=a.nama_alat;
+      if(a.no_register) document.getElementById('noReg').value=a.no_register;
+      if(a.merk) document.getElementById('merkAlat').value=a.merk;
+      h.innerHTML='✅ <strong>Aset ditemukan!</strong> Data terisi otomatis'
+        +(a.tgl_inspeksi_terakhir?'<br>Terakhir inspeksi: <strong>'+a.tgl_inspeksi_terakhir+'</strong>':'')
+        +(a.status_aset_terakhir?' · Status: <strong>'+a.status_aset_terakhir+'</strong>':'');
+      h.className='hint found show';
       return;
     }
-  } catch(e) {}
-
-  // ── ASET TIDAK DITEMUKAN ──
-  // Kosongkan field
-  document.getElementById('namaAlat').value = '';
-  document.getElementById('noAsset').value = '';
-  document.getElementById('merkAlat').value = '';
-  h.innerHTML = '➕ Aset baru — akan otomatis terdaftar ke MASTER_ASSET saat submit.<br><span style="font-size:11px;color:var(--muted)">Isi Nama Alat dan Merk di bawah.</span>';
-  h.className = 'hint new show';
-  icon.textContent = '🆕';
-  unlockAssetFields();
-  closeAssetDropdown();
-
-  // Fokus otomatis ke Nama Alat supaya Inspector langsung isi
-  setTimeout(() => {
-    document.getElementById('namaAlat')?.focus();
-  }, 100);
+  }catch(e){}
+  // Kosongkan field kalau asset tidak ditemukan
+  document.getElementById('namaAlat').value='';
+  document.getElementById('noReg').value='';
+  document.getElementById('merkAlat').value='';
+  h.innerHTML='➕ Aset baru — akan otomatis terdaftar ke MASTER_ASSET saat submit';
+  h.className='hint new show';
 }
-
-function fillAssetFields(a) {
-  // Isi semua field dengan animasi
-  const fields = [
-    { id: 'namaAlat', val: a.nama_alat },
-    { id: 'noAsset',    val: a.no_id },
-    { id: 'merkAlat', val: a.merk },
-  ];
-  fields.forEach(f => {
-    const el = document.getElementById(f.id);
-    if (!el) return;
-    if (f.val) {
-      el.value = f.val;
-      // Flash animation — visual feedback
-      el.style.background = 'var(--green-bg)';
-      el.style.borderColor = 'var(--green-bd)';
-      setTimeout(() => {
-        el.style.background = '';
-        el.style.borderColor = '';
-        el.style.transition = 'all .5s';
-        setTimeout(() => { el.style.transition = ''; }, 500);
-      }, 800);
-    }
-  });
-}
-
-// Tutup dropdown kalau klik di luar
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.asset-input-wrap')) {
-    closeAssetDropdown();
-  }
-});
 
 function resetTb(){
   document.getElementById('tbFields').style.display='none';
@@ -1486,8 +1268,8 @@ async function doSubmit(){
     nama_kategori:katName,
     nama_alat:isTb?tbTipeName:document.getElementById('namaAlat').value,
     merk:isTb?'':(document.getElementById('merkAlat')?.value||''),
-    no_id:isTb?document.getElementById('tbNoAsset').value:document.getElementById('noId').value,
-    no_id:isTb?'':document.getElementById('noAsset').value,
+    no_asset:isTb?document.getElementById('tbNoAsset').value:document.getElementById('noAsset').value,
+    no_register:isTb?'':document.getElementById('noReg').value,
     nik_inspektor:document.getElementById('nikIns').value,
     nama_inspektor:document.getElementById('namaIns').value,
     risiko:selRisiko||'LOW',
@@ -1573,7 +1355,7 @@ function resetForm(){
   document.getElementById('subSel').disabled=true;
   document.getElementById('katSel').innerHTML='<option value="">-- Pilih sub area dulu --</option>';
   document.getElementById('katSel').disabled=true;
-  ['namaAlat','merkAlat','noId','noAsset','nikIns','namaIns','tbNoAsset'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['namaAlat','merkAlat','noAsset','noReg','nikIns','namaIns','tbNoAsset'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('assetHint').className='hint';
   document.getElementById('pRow').innerHTML='';
   document.getElementById('uzone').style.display='flex';
