@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Form Inspeksi System Asset Management</title>
+<title>Form Inspeksi K3 — Mining Ship</title>
 <!-- System font dipakai — tidak perlu download font eksternal -->
 <style>
 :root{
@@ -226,7 +226,7 @@ tr.tb-ng td{background:var(--red-bg)}
 
 /* TOOLBOX TABLE */
 table.tbtbl th,table.tbtbl td{font-size:12px;padding:8px 8px}
-table.tbtbl{min-width:480px}
+table.tbtbl{min-width:360px}
 table.tbtbl input[type=number]{
   width:50px;text-align:center;font-size:14px;
   border:1.5px solid var(--border);border-radius:6px;
@@ -444,10 +444,10 @@ table.tbtbl input[type=text]{
 <!-- ══ STEP 1: IDENTITAS ══ -->
 <div class="page active" id="page1">
   <div class="card">
-    <div class="card-title">👤 Data Inspekto</div>
+    <div class="card-title">👤 Data Inspektur</div>
     <div class="g2 mb10">
       <div class="field">
-        <label>Nama Inspektor <span class="req">*</span></label>
+        <label>Nama Inspektur <span class="req">*</span></label>
         <input type="text" id="namaIns" placeholder="Nama lengkap" autocomplete="name">
       </div>
       <div class="field">
@@ -492,7 +492,7 @@ table.tbtbl input[type=text]{
       <div class="field mb10" style="position:relative">
         <label>No ID <span class="req">*</span></label>
         <div class="asset-input-wrap" style="position:relative">
-          <input type="text" id="noId" placeholder="Ketik no id atau no register..." 
+          <input type="text" id="noId" placeholder="Ketik no id atau nama alat..." 
             oninput="onAssetDebounce(this.value)"
             onkeydown="onAssetKeydown(event)"
             autocomplete="off">
@@ -600,13 +600,11 @@ table.tbtbl input[type=text]{
         <table class="tbtbl">
           <thead><tr>
             <th style="width:26px">No</th>
-            <th style="width:150px">Deskripsi</th>
-            <th style="width:68px">Part no</th>
+            <th>Deskripsi</th>
             <th style="width:34px;text-align:center">Std</th>
-            <th style="width:52px;text-align:center">Aktual</th>
+            <th style="width:60px;text-align:center">Aktual</th>
             <th style="width:36px">Unit</th>
             <th style="width:88px">Kondisi</th>
-            <th>Remarks</th>
           </tr></thead>
           <tbody id="tbBody">
             <tr><td colspan="8"><div class="mload"><span class="md"></span><span class="md"></span><span class="md"></span></div></td></tr>
@@ -885,9 +883,8 @@ async function showPIC(sec){
   picInfo=pic;
   const box=document.getElementById('picBox');
   if(pic){
-    const emailInfo=pic.email
-      ?`<span style="color:var(--muted);font-size:12px">${pic.email}</span>`
-      :`<span class="pic-email-warn">⚠️ Email belum diisi di MASTER_EMPLOYEE</span>`;
+    // Email disembunyikan dari tampilan (tersimpan internal)
+    const emailInfo='';
     const delegateInfo=pic.is_delegate
       ?`<div style="font-size:12px;color:var(--yellow);margin-top:2px">↳ Menggantikan <strong>${pic.original_nama}</strong> (sedang cuti)</div>`
       :'';
@@ -1249,19 +1246,26 @@ function renderTb(){
     if(isNg) tr.classList.add('tb-ng');
     tr.innerHTML=`
       <td style="color:var(--muted2);font-size:10px;font-weight:700">${i+1}</td>
-      <td style="font-size:12px;line-height:1.4;font-weight:${isNg?600:400}">${item.deskripsi}</td>
-      <td style="font-size:10px;color:var(--muted)">${item.part_number||'—'}</td>
-      <td style="text-align:center;font-weight:700">${item.qty_standar}</td>
+      <td style="font-size:13px;line-height:1.4;font-weight:${isNg?600:400}">
+        <span>${item.deskripsi}</span>
+        ${isNg?`<div style="margin-top:6px">
+          <input type="text" placeholder="Catatan kondisi..." value="${a.remarks||''}"
+            onchange="setTb('${item.content_id}','remarks',this.value,'${item.qty_standar}')"
+            style="width:100%;font-size:13px;border:1.5px solid var(--red-bd);border-radius:6px;
+            padding:5px 8px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;outline:none">
+        </div>`:''}
+      </td>
+      <td style="text-align:center;font-weight:700;font-size:13px">${item.qty_standar}</td>
       <td><input type="number" inputmode="numeric" min="0" placeholder="0" value="${a.aktual}"
-          onchange="setTb('${item.content_id}','aktual',this.value,'${item.qty_standar}')"></td>
-      <td style="font-size:11px">${item.unit}</td>
-      <td><select onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}')">
+          onchange="setTb('${item.content_id}','aktual',this.value,'${item.qty_standar}')"
+          style="width:52px;text-align:center;font-size:16px;border:1.5px solid var(--border);border-radius:6px;padding:6px 4px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif"></td>
+      <td style="font-size:11px;color:var(--muted)">${item.unit}</td>
+      <td><select onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}')"
+          style="font-size:13px;padding:6px 6px;border:1.5px solid var(--border);border-radius:6px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif">
         <option${a.kondisi==='BAIK'?' selected':''}>BAIK</option>
         <option${a.kondisi==='RUSAK'?' selected':''}>RUSAK</option>
         <option${a.kondisi==='HILANG'?' selected':''}>HILANG</option>
-      </select></td>
-      <td><input type="text" placeholder="catatan..." value="${a.remarks||''}"
-          onchange="setTb('${item.content_id}','remarks',this.value,'${item.qty_standar}')"></td>`;
+      </select></td>`;
     tbody.appendChild(tr);
   });
   const ng=tbContent.filter(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG');}).length;
@@ -1275,22 +1279,45 @@ function setR(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers
 function setTb(cid,f,v,std){
   if(!tbAnswers[cid])tbAnswers[cid]={aktual:'',kondisi:'BAIK',remarks:''};
   tbAnswers[cid][f]=v;
-  // Jangan renderTb() — hanya update visual baris yang berubah
-  // Cek apakah ada temuan di baris ini
   const a=tbAnswers[cid];
   const isNg=a.kondisi==='RUSAK'||a.kondisi==='HILANG'||
     (a.aktual!==''&&parseInt(a.aktual)<parseInt(std));
-  // Update warna baris saja tanpa re-render semua
+
+  // Update warna baris
   const row=document.querySelector(`tr[data-cid="${cid}"]`);
   if(row){
     row.className=isNg?'tb-ng':'';
+    // Update remarks area di cell deskripsi (td ke-2)
+    const descCell=row.cells[1];
+    if(descCell){
+      const item=tbContent.find(i=>i.content_id===cid);
+      const deskripsi=item?item.deskripsi:'';
+      if(isNg){
+        // Tampilkan remarks input
+        const rmkId='rmk-'+cid;
+        if(!descCell.querySelector('#'+rmkId)){
+          descCell.innerHTML=`<span style="font-size:13px;font-weight:600;line-height:1.4">${deskripsi}</span>
+            <div style="margin-top:6px">
+              <input id="${rmkId}" type="text" placeholder="Catatan kondisi..." 
+                value="${a.remarks||''}"
+                onchange="setTb('${cid}','remarks',this.value,'${std}')"
+                style="width:100%;font-size:13px;border:1.5px solid var(--red-bd);border-radius:6px;
+                padding:5px 8px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;outline:none">
+            </div>`;
+        }
+      } else {
+        // Sembunyikan remarks input
+        descCell.innerHTML=`<span style="font-size:13px;line-height:1.4">${deskripsi}</span>`;
+      }
+    }
   }
-  // Update counter temuan
-  const ng=Object.entries(tbAnswers).filter(([k,a])=>{
+
+  // Update counter
+  const ng=Object.entries(tbAnswers).filter(([k,ans])=>{
     const item=tbContent.find(i=>i.content_id===k);
     if(!item)return false;
-    return a.kondisi==='RUSAK'||a.kondisi==='HILANG'||
-      (a.aktual!==''&&parseInt(a.aktual)<parseInt(item.qty_standar));
+    return ans.kondisi==='RUSAK'||ans.kondisi==='HILANG'||
+      (ans.aktual!==''&&parseInt(ans.aktual)<parseInt(item.qty_standar));
   }).length;
   document.getElementById('progNote').textContent=ng>0?ng+' temuan':'Isi qty & kondisi';
   document.getElementById('fillNote').textContent=ng>0?ng+' temuan toolbox':'';
