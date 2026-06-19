@@ -1240,7 +1240,9 @@ function renderTb(){
   tbody.innerHTML='';
   tbContent.forEach((item,i)=>{
     const a=tbAnswers[item.content_id]||{aktual:'',kondisi:'BAIK',remarks:''};
-    const isNg=a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(a.aktual!==''&&parseInt(a.aktual)<parseInt(item.qty_standar));
+    // isNg hanya kalau kondisi RUSAK/HILANG, atau aktual sudah diisi user dan kurang dari standar
+    const aktualDiisi = a.aktual !== '' && a.aktual !== '0' && a.aktual !== null;
+    const isNg=a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(aktualDiisi&&parseInt(a.aktual)<parseInt(item.qty_standar));
     const tr=document.createElement('tr');
     tr.setAttribute('data-cid', item.content_id);
     if(isNg) tr.classList.add('tb-ng');
@@ -1337,7 +1339,9 @@ function toStep3(){
   if(isTb){
     hasTemuan=tbContent.some(i=>{
       const a=tbAnswers[i.content_id];
-      return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(a.aktual!==''&&parseInt(a.aktual)<parseInt(i.qty_standar)));
+      if(!a)return false;
+      const aktDiisi=a.aktual!==''&&a.aktual!=='0'&&a.aktual!==null;
+      return a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(aktDiisi&&parseInt(a.aktual)<parseInt(i.qty_standar));
     });
   } else {
     hasTemuan=pertanyaan.some(p=>
@@ -1364,7 +1368,7 @@ function buildReview(){
   let total,ok,ng,na,items=[];
   if(isTb){
     total=tbContent.length;
-    items=tbContent.filter(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(a.aktual!==''&&parseInt(a.aktual)<parseInt(i.qty_standar)));})
+    items=tbContent.filter(i=>{const a=tbAnswers[i.content_id];if(!a)return false;const aktDiisi=a.aktual!==''&&a.aktual!=='0';return a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(aktDiisi&&parseInt(a.aktual)<parseInt(i.qty_standar));})
       .map(i=>({q:`${i.deskripsi} — ${tbAnswers[i.content_id].kondisi}`,rmk:tbAnswers[i.content_id].remarks||''}));
     ng=items.length; ok=total-ng; na=0;
   } else {
