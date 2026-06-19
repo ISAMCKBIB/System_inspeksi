@@ -1277,51 +1277,22 @@ function setA(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers
 function setAV(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers[qid].val=val;}
 function setR(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers[qid].remarks=val;}
 function setTb(cid,f,v,std){
+  // Simpan nilai semua input yang sedang tampil SEBELUM update
+  document.querySelectorAll('tr[data-cid]').forEach(row=>{
+    const rcid=row.getAttribute('data-cid');
+    if(!tbAnswers[rcid])tbAnswers[rcid]={aktual:'',kondisi:'BAIK',remarks:''};
+    const aktualEl=row.querySelector('input[type=number]');
+    const kondisiEl=row.querySelector('select');
+    const remarksEl=row.querySelector('input[type=text]');
+    if(aktualEl) tbAnswers[rcid].aktual=aktualEl.value;
+    if(kondisiEl) tbAnswers[rcid].kondisi=kondisiEl.value;
+    if(remarksEl) tbAnswers[rcid].remarks=remarksEl.value;
+  });
+  // Baru update nilai yang baru diisi
   if(!tbAnswers[cid])tbAnswers[cid]={aktual:'',kondisi:'BAIK',remarks:''};
   tbAnswers[cid][f]=v;
-  const a=tbAnswers[cid];
-  const isNg=a.kondisi==='RUSAK'||a.kondisi==='HILANG'||
-    (a.aktual!==''&&parseInt(a.aktual)<parseInt(std));
-
-  // Update warna baris
-  const row=document.querySelector(`tr[data-cid="${cid}"]`);
-  if(row){
-    row.className=isNg?'tb-ng':'';
-    // Update remarks area di cell deskripsi (td ke-2)
-    const descCell=row.cells[1];
-    if(descCell){
-      const item=tbContent.find(i=>i.content_id===cid);
-      const deskripsi=item?item.deskripsi:'';
-      if(isNg){
-        // Tampilkan remarks input
-        const rmkId='rmk-'+cid;
-        if(!descCell.querySelector('#'+rmkId)){
-          descCell.innerHTML=`<span style="font-size:13px;font-weight:600;line-height:1.4">${deskripsi}</span>
-            <div style="margin-top:6px">
-              <input id="${rmkId}" type="text" placeholder="Catatan kondisi..." 
-                value="${a.remarks||''}"
-                onchange="setTb('${cid}','remarks',this.value,'${std}')"
-                style="width:100%;font-size:13px;border:1.5px solid var(--red-bd);border-radius:6px;
-                padding:5px 8px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;outline:none">
-            </div>`;
-        }
-      } else {
-        // Sembunyikan remarks input
-        descCell.innerHTML=`<span style="font-size:13px;line-height:1.4">${deskripsi}</span>`;
-      }
-    }
-  }
-
-  // Update counter
-  const ng=Object.entries(tbAnswers).filter(([k,ans])=>{
-    const item=tbContent.find(i=>i.content_id===k);
-    if(!item)return false;
-    return ans.kondisi==='RUSAK'||ans.kondisi==='HILANG'||
-      (ans.aktual!==''&&parseInt(ans.aktual)<parseInt(item.qty_standar));
-  }).length;
-  document.getElementById('progNote').textContent=ng>0?ng+' temuan':'Isi qty & kondisi';
-  document.getElementById('fillNote').textContent=ng>0?ng+' temuan toolbox':'';
-  document.getElementById('tbCount').textContent=tbContent.length+' item';
+  // Re-render tabel dengan semua jawaban tersimpan
+  renderTb();
 }
 
 // ── STEP 3 ───────────────────────────────────────────
