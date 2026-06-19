@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Form Inspeksi K3 — Mining Ship</title>
+<title>Form Inspeksi System Asset Management</title>
 <!-- System font dipakai — tidak perlu download font eksternal -->
 <style>
 :root{
@@ -444,10 +444,10 @@ table.tbtbl input[type=text]{
 <!-- ══ STEP 1: IDENTITAS ══ -->
 <div class="page active" id="page1">
   <div class="card">
-    <div class="card-title">👤 Data Inspektur</div>
+    <div class="card-title">👤 Data Inspekto</div>
     <div class="g2 mb10">
       <div class="field">
-        <label>Nama Inspektur <span class="req">*</span></label>
+        <label>Nama Inspektor <span class="req">*</span></label>
         <input type="text" id="namaIns" placeholder="Nama lengkap" autocomplete="name">
       </div>
       <div class="field">
@@ -492,7 +492,7 @@ table.tbtbl input[type=text]{
       <div class="field mb10" style="position:relative">
         <label>No ID <span class="req">*</span></label>
         <div class="asset-input-wrap" style="position:relative">
-          <input type="text" id="noId" placeholder="Ketik no id atau nama alat..." 
+          <input type="text" id="noId" placeholder="Ketik no id atau no register..." 
             oninput="onAssetDebounce(this.value)"
             onkeydown="onAssetKeydown(event)"
             autocomplete="off">
@@ -1245,6 +1245,7 @@ function renderTb(){
     const a=tbAnswers[item.content_id]||{aktual:'',kondisi:'BAIK',remarks:''};
     const isNg=a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(a.aktual!==''&&parseInt(a.aktual)<parseInt(item.qty_standar));
     const tr=document.createElement('tr');
+    tr.setAttribute('data-cid', item.content_id);
     if(isNg) tr.classList.add('tb-ng');
     tr.innerHTML=`
       <td style="color:var(--muted2);font-size:10px;font-weight:700">${i+1}</td>
@@ -1273,7 +1274,27 @@ function setAV(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answer
 function setR(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers[qid].remarks=val;}
 function setTb(cid,f,v,std){
   if(!tbAnswers[cid])tbAnswers[cid]={aktual:'',kondisi:'BAIK',remarks:''};
-  tbAnswers[cid][f]=v; renderTb();
+  tbAnswers[cid][f]=v;
+  // Jangan renderTb() — hanya update visual baris yang berubah
+  // Cek apakah ada temuan di baris ini
+  const a=tbAnswers[cid];
+  const isNg=a.kondisi==='RUSAK'||a.kondisi==='HILANG'||
+    (a.aktual!==''&&parseInt(a.aktual)<parseInt(std));
+  // Update warna baris saja tanpa re-render semua
+  const row=document.querySelector(`tr[data-cid="${cid}"]`);
+  if(row){
+    row.className=isNg?'tb-ng':'';
+  }
+  // Update counter temuan
+  const ng=Object.entries(tbAnswers).filter(([k,a])=>{
+    const item=tbContent.find(i=>i.content_id===k);
+    if(!item)return false;
+    return a.kondisi==='RUSAK'||a.kondisi==='HILANG'||
+      (a.aktual!==''&&parseInt(a.aktual)<parseInt(item.qty_standar));
+  }).length;
+  document.getElementById('progNote').textContent=ng>0?ng+' temuan':'Isi qty & kondisi';
+  document.getElementById('fillNote').textContent=ng>0?ng+' temuan toolbox':'';
+  document.getElementById('tbCount').textContent=tbContent.length+' item';
 }
 
 // ── STEP 3 ───────────────────────────────────────────
@@ -1487,7 +1508,7 @@ async function doSubmit(){
     nama_alat:isTb?tbTipeName:document.getElementById('namaAlat').value,
     merk:isTb?'':(document.getElementById('merkAlat')?.value||''),
     no_id:isTb?document.getElementById('tbNoAsset').value:document.getElementById('noId').value,
-    no_id:isTb?'':document.getElementById('noAsset').value,
+    no_asset:isTb?'':document.getElementById('noAsset').value,
     nik_inspektor:document.getElementById('nikIns').value,
     nama_inspektor:document.getElementById('namaIns').value,
     risiko:selRisiko||'LOW',
