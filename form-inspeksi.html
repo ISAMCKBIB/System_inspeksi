@@ -488,15 +488,23 @@ table.tbtbl input[type=text]{
 
     <!-- Non-toolbox -->
     <div id="nonTb">
-      <!-- No ID dengan search autocomplete -->
+      <!-- No ID + tombol scan -->
       <div class="field mb10" style="position:relative">
         <label>No ID <span class="req">*</span></label>
         <div class="asset-input-wrap" style="position:relative">
-          <input type="text" id="noId" placeholder="Ketik no id atau nama alat..." 
+          <input type="text" id="noId" placeholder="Ketik no id atau scan 📷"
             oninput="onAssetDebounce(this.value)"
             onkeydown="onAssetKeydown(event)"
-            autocomplete="off">
+            autocomplete="off"
+            style="padding-right:80px">
           <span class="asset-search-icon" id="assetSearchIcon">🔍</span>
+          <button type="button" onclick="openQRScanner()"
+            title="Scan QR / Barcode"
+            style="position:absolute;right:36px;top:50%;transform:translateY(-50%);
+            width:32px;height:32px;border-radius:8px;background:#1B4FD8;
+            border:none;cursor:pointer;font-size:15px;color:#fff;
+            display:flex;align-items:center;justify-content:center;
+            box-shadow:0 2px 6px rgba(27,79,216,.3)">📷</button>
           <!-- Dropdown hasil search -->
           <div class="asset-dropdown" id="assetDropdown"></div>
         </div>
@@ -510,7 +518,6 @@ table.tbtbl input[type=text]{
           <div class="asset-spinner"></div>
           <div id="assetLoadingMsg">Mengambil data aset...</div>
         </div>
-
         <div class="g2 mb10">
           <div class="field" id="fieldNoReg">
             <label>No Asset</label>
@@ -526,6 +533,7 @@ table.tbtbl input[type=text]{
           <input type="text" id="merkAlat" placeholder="cth: Makita, Bosch">
         </div>
       </div>
+      <div id="assetScanInfo" style="display:none"></div>
     </div>
 
     <!-- Toolbox -->
@@ -1048,36 +1056,89 @@ async function onAsset(v){
 }
 
 function fillAssetFields(a) {
-  // Isi semua field dengan animasi
-  const fields = [
-    { id: 'namaAlat', val: a.nama_alat },
-    { id: 'noAsset',    val: a.no_id },
-    { id: 'merkAlat', val: a.merk },
+  // ── 1. Isi field teks ──
+  const textFields = [
+    { id:'namaAlat', val:a.nama_alat },
+    { id:'noAsset',  val:a.no_asset || a.no_id },
+    { id:'merkAlat', val:a.merk },
   ];
-  fields.forEach(f => {
+  textFields.forEach(f => {
     const el = document.getElementById(f.id);
-    if (!el) return;
-    if (f.val) {
-      el.value = f.val;
-      // Flash animation — visual feedback
-      el.style.background = 'var(--green-bg)';
-      el.style.borderColor = 'var(--green-bd)';
-      setTimeout(() => {
-        el.style.background = '';
-        el.style.borderColor = '';
-        el.style.transition = 'all .5s';
-        setTimeout(() => { el.style.transition = ''; }, 500);
-      }, 800);
+    if (!el || !f.val) return;
+    el.value = f.val;
+    el.style.background = 'var(--green-bg)';
+    el.style.borderColor = 'var(--green-bd)';
+    setTimeout(() => { el.style.background=''; el.style.borderColor=''; }, 1500);
+  });
+
+  // ── 2. Auto-fill dropdown Area → SubArea → Kategori (cascade) ──
+  if (a.area_id || a.subarea_id || a.kategori_id) {
+    autoFillDropdowns(a);
+  }
+}
+
+async function autoFillDropdowns(a) {
+  // Step 1: Set Area
+  if (a.area_id) {
+    const aEl = document.getElementById('areaSel');
+    if (aEl) {
+      // Tunggu master data loaded
+      await waitForOptions(aEl, a.area_id, 3000);
+      aEl.value = a.area_id;
+      aEl.dispatchEvent(new Event('change'));
+      flash(aEl);
     }
+  }
+
+  // Step 2: Set SubArea (setelah area change populate subarea)
+  if (a.subarea_id) {
+    await sleep(600);
+    const sEl = document.getElementById('subSel');
+    if (sEl) {
+      await waitForOptions(sEl, a.subarea_id, 3000);
+      sEl.value = a.subarea_id;
+      sEl.disabled = false;
+      sEl.dispatchEvent(new Event('change'));
+      flash(sEl);
+    }
+  }
+
+  // Step 3: Set Kategori (setelah subarea change populate kategori)
+  if (a.kategori_id) {
+    await sleep(800);
+    const kEl = document.getElementById('katSel');
+    if (kEl) {
+      await waitForOptions(kEl, a.kategori_id, 3000);
+      kEl.value = a.kategori_id;
+      kEl.disabled = false;
+      kEl.dispatchEvent(new Event('change'));
+      flash(kEl);
+    }
+  }
+}
+
+// Tunggu sampai option tersedia di select
+function waitForOptions(selectEl, value, timeout) {
+  return new Promise(resolve => {
+    const start = Date.now();
+    const check = () => {
+      const hasOption = [...selectEl.options].some(o => o.value === value);
+      if (hasOption || Date.now()-start > timeout) { resolve(); return; }
+      setTimeout(check, 100);
+    };
+    check();
   });
 }
 
-// Tutup dropdown kalau klik di luar
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.asset-input-wrap')) {
-    closeAssetDropdown();
-  }
-});
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function flash(el) {
+  if (!el) return;
+  el.style.background = 'var(--green-bg)';
+  el.style.borderColor = 'var(--green-bd)';
+  setTimeout(() => { el.style.background=''; el.style.borderColor=''; }, 1500);
+}
+
 
 function resetTb(){
   document.getElementById('tbFields').style.display='none';
