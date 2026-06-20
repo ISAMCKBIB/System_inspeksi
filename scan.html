@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Scan Asset — ISAM CK BIB</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:#0F1A3C;color:#fff;min-height:100vh;display:flex;flex-direction:column}
+
+.topbar{padding:16px 20px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.1)}
+.btn-back{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);border:none;cursor:pointer;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center}
+.topbar-title{font-size:16px;font-weight:700}
+.topbar-sub{font-size:11px;color:rgba(255,255,255,.6);margin-top:1px}
+
+/* Viewfinder */
+.scanner-wrap{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+#video{width:100%;max-width:400px;border-radius:16px;aspect-ratio:1;object-fit:cover;background:#000}
+.viewfinder{position:absolute;width:65%;max-width:260px;aspect-ratio:1}
+.vf-corner{position:absolute;width:24px;height:24px;border-color:#1B4FD8;border-style:solid}
+.vf-tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:4px 0 0 0}
+.vf-tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 4px 0 0}
+.vf-bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 4px}
+.vf-br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 4px 0}
+.scan-line{position:absolute;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,#1B4FD8,transparent);animation:scanline 2s linear infinite}
+@keyframes scanline{0%{top:10%}100%{top:90%}}
+
+.scan-hint{margin-top:20px;text-align:center}
+.scan-hint-text{font-size:14px;color:rgba(255,255,255,.7);margin-bottom:8px}
+.scan-hint-sub{font-size:12px;color:rgba(255,255,255,.4)}
+
+/* Result */
+.result-card{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-radius:20px 20px 0 0;
+  padding:20px;color:#0F1A3C;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 -4px 30px rgba(0,0,0,.3);
+}
+.result-card.show{transform:translateY(0)}
+.result-pull{width:36px;height:4px;background:#E5E9F0;border-radius:2px;margin:0 auto 16px}
+.result-status{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.result-icon{font-size:32px}
+.result-title{font-size:16px;font-weight:700}
+.result-sub{font-size:12px;color:#6B7494;margin-top:2px}
+.result-info{background:#F0F4FF;border-radius:12px;padding:14px;margin-bottom:16px}
+.result-row{display:flex;gap:8px;margin-bottom:8px;font-size:13px}
+.result-row:last-child{margin-bottom:0}
+.result-label{color:#6B7494;min-width:80px;flex-shrink:0}
+.result-val{font-weight:600}
+.btn-lanjut{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#1B4FD8,#1338B0);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+.btn-manual{width:100%;padding:12px;border-radius:12px;border:1.5px solid #D4DCEF;background:#fff;color:#6B7494;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+
+/* Manual input */
+.manual-wrap{margin-top:20px;width:100%;max-width:400px}
+.manual-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.6);text-align:center;margin-bottom:10px}
+.manual-row{display:flex;gap:8px}
+.manual-input{flex:1;padding:12px 16px;border-radius:12px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:15px;font-family:inherit;outline:none}
+.manual-input::placeholder{color:rgba(255,255,255,.4)}
+.manual-input:focus{border-color:#1B4FD8;background:rgba(27,79,216,.2)}
+.btn-manual-go{padding:12px 20px;border-radius:12px;border:none;background:#1B4FD8;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+
+/* Status */
+.status-bar{padding:12px 20px;text-align:center;font-size:13px;color:rgba(255,255,255,.6)}
+.status-bar.scanning{color:#60A5FA}
+.status-bar.error{color:#FCA5A5}
+
+/* Loading cam */
+.cam-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(0,0,0,.8);border-radius:16px}
+.cam-spin{width:36px;height:36px;border:3px solid rgba(255,255,255,.2);border-top-color:#1B4FD8;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <button class="btn-back" onclick="goBack()">←</button>
+  <div>
+    <div class="topbar-title">📷 Scan Asset</div>
+    <div class="topbar-sub">QR Code atau Barcode</div>
+  </div>
+</div>
+
+<!-- SCANNER -->
+<div class="scanner-wrap">
+  <div style="position:relative;width:100%;max-width:400px">
+    <video id="video" playsinline autoplay muted></video>
+    <canvas id="canvas" style="display:none"></canvas>
+    <!-- Loading kamera -->
+    <div class="cam-loading" id="camLoading">
+      <div class="cam-spin"></div>
+      <div style="font-size:13px;color:rgba(255,255,255,.7)">Membuka kamera...</div>
+    </div>
+    <!-- Viewfinder overlay -->
+    <div class="viewfinder" style="top:50%;left:50%;transform:translate(-50%,-50%)">
+      <div class="vf-corner vf-tl"></div>
+      <div class="vf-corner vf-tr"></div>
+      <div class="vf-corner vf-bl"></div>
+      <div class="vf-corner vf-br"></div>
+      <div class="scan-line"></div>
+    </div>
+  </div>
+
+  <div class="scan-hint">
+    <div class="scan-hint-text" id="scanHintText">Arahkan kamera ke QR Code atau Barcode asset</div>
+    <div class="scan-hint-sub">Pastikan pencahayaan cukup</div>
+  </div>
+
+  <!-- Manual input -->
+  <div class="manual-wrap">
+    <div class="manual-title">— atau ketik No ID manual —</div>
+    <div class="manual-row">
+      <input type="text" class="manual-input" id="manualInput" placeholder="Contoh: EQ-001" autocomplete="off" autocapitalize="characters"
+        onkeydown="if(event.key==='Enter')manualLookup()">
+      <button class="btn-manual-go" onclick="manualLookup()">Cari →</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS -->
+<div class="status-bar scanning" id="statusBar">🔍 Mencari QR Code / Barcode...</div>
+
+<!-- RESULT CARD -->
+<div class="result-card" id="resultCard">
+  <div class="result-pull"></div>
+  <div class="result-status">
+    <div class="result-icon" id="resultIcon">✅</div>
+    <div>
+      <div class="result-title" id="resultTitle">Asset ditemukan!</div>
+      <div class="result-sub" id="resultSub">Data akan diisi otomatis</div>
+    </div>
+  </div>
+  <div class="result-info" id="resultInfo"></div>
+  <button class="btn-lanjut" id="btnLanjut" onclick="goToForm()">
+    ➡️ Lanjut ke Form Inspeksi
+  </button>
+  <button class="btn-manual" onclick="resetScanner()">🔄 Scan Ulang</button>
+</div>
+
+<!-- Load jsQR untuk scan QR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4k8CSXxUQmahghLAqRtUDgk1vy3tc0qvEaqorklJvIZIgzVUpxdfm-9pCr3u-hw1ugQ/exec';
+
+let stream = null;
+let scanning = false;
+let scanInterval = null;
+let foundAssetId = null;
+let foundAssetData = null;
+let lastScanned = '';
+let lastScannedTime = 0;
+
+// Get return URL dari params
+const urlParams = new URLSearchParams(window.location.search);
+const returnUrl = urlParams.get('return') || 'form-inspeksi.html';
+
+// ── INIT KAMERA ──
+async function initCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    const video = document.getElementById('video');
+    video.srcObject = stream;
+    video.onloadedmetadata = () => {
+      video.play();
+      document.getElementById('camLoading').style.display = 'none';
+      scanning = true;
+      startScanLoop();
+    };
+  } catch(e) {
+    document.getElementById('camLoading').innerHTML = `
+      <div style="font-size:24px">📵</div>
+      <div style="font-size:13px;color:#FCA5A5;text-align:center;padding:0 20px">Kamera tidak bisa diakses.<br>Gunakan input manual di bawah.</div>`;
+    document.getElementById('statusBar').textContent = '⚠️ Kamera tidak tersedia — gunakan input manual';
+    document.getElementById('statusBar').className = 'status-bar error';
+    document.getElementById('manualInput').focus();
+  }
+}
+
+// ── SCAN LOOP ──
+function startScanLoop() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  scanInterval = setInterval(() => {
+    if (!scanning || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Try QR Code (jsQR)
+    const qrCode = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+    if (qrCode) {
+      handleScanResult(qrCode.data);
+      return;
+    }
+
+    // Try Barcode via BarcodeDetector (native, Chrome/Android)
+    if ('BarcodeDetector' in window) {
+      const bd = new BarcodeDetector({ formats: ['code_128','code_39','ean_13','ean_8','upc_a','upc_e','data_matrix'] });
+      bd.detect(canvas).then(barcodes => {
+        if (barcodes.length > 0) handleScanResult(barcodes[0].rawValue);
+      }).catch(()=>{});
+    }
+  }, 200);
+}
+
+// ── HANDLE HASIL SCAN ──
+async function handleScanResult(rawValue) {
+  if (!rawValue || !scanning) return;
+
+  // Debounce — jangan proses scan yang sama dalam 3 detik
+  const now = Date.now();
+  if (rawValue === lastScanned && now - lastScannedTime < 3000) return;
+  lastScanned = rawValue;
+  lastScannedTime = now;
+
+  // Stop scanning
+  scanning = false;
+  clearInterval(scanInterval);
+  vibrate();
+
+  // Extract no_id dari URL kalau QR berisi full URL
+  let noId = rawValue;
+  if (rawValue.includes('?asset=')) {
+    noId = new URLSearchParams(rawValue.split('?')[1]).get('asset') || rawValue;
+  } else if (rawValue.includes('asset=')) {
+    noId = rawValue.split('asset=')[1].split('&')[0] || rawValue;
+  }
+  noId = noId.trim().toUpperCase();
+
+  document.getElementById('scanHintText').textContent = '✅ Terdeteksi: ' + noId;
+  document.getElementById('statusBar').textContent = '🔍 Mencari asset ' + noId + ' di database...';
+
+  await lookupAndShow(noId);
+}
+
+// ── LOOKUP ASSET ──
+async function lookupAndShow(noId) {
+  foundAssetId = noId;
+  try {
+    const r = await fetch(APPS_SCRIPT_URL + '?' + new URLSearchParams({
+      action: 'getMasterData',
+      type: 'asset_check',
+      no_id: noId
+    }));
+    const j = await r.json();
+
+    if (j.data?.found && j.data.asset) {
+      foundAssetData = j.data.asset;
+      showResult('found', foundAssetData);
+    } else {
+      foundAssetData = null;
+      showResult('new', null);
+    }
+  } catch(e) {
+    foundAssetData = null;
+    showResult('new', null);
+  }
+}
+
+// ── TAMPILKAN RESULT CARD ──
+function showResult(status, asset) {
+  const card = document.getElementById('resultCard');
+  const icon = document.getElementById('resultIcon');
+  const title = document.getElementById('resultTitle');
+  const sub = document.getElementById('resultSub');
+  const info = document.getElementById('resultInfo');
+
+  if (status === 'found' && asset) {
+    icon.textContent = '✅';
+    title.textContent = asset.nama_alat || 'Asset ditemukan!';
+    sub.textContent = 'No ID: ' + foundAssetId + ' · Data akan diisi otomatis';
+    info.innerHTML = `
+      <div class="result-row"><span class="result-label">Nama Alat</span><span class="result-val">${asset.nama_alat||'-'}</span></div>
+      <div class="result-row"><span class="result-label">Merk</span><span class="result-val">${asset.merk||'-'}</span></div>
+      <div class="result-row"><span class="result-label">No Asset</span><span class="result-val">${asset.no_asset||'-'}</span></div>
+      <div class="result-row"><span class="result-label">Terakhir</span><span class="result-val">${asset.tgl_inspeksi_terakhir||'Belum pernah'}</span></div>
+      <div class="result-row"><span class="result-label">Status</span><span class="result-val" style="color:${asset.status_aset_terakhir==='LAYAK'?'#16A34A':'#DC2626'}">${asset.status_aset_terakhir||'-'}</span></div>`;
+    document.getElementById('statusBar').textContent = '✅ Asset ditemukan — ' + asset.nama_alat;
+  } else {
+    icon.textContent = '🆕';
+    title.textContent = 'Asset Baru';
+    sub.textContent = 'No ID: ' + foundAssetId + ' · Isi data di form';
+    info.innerHTML = `
+      <div class="result-row"><span class="result-label">No ID</span><span class="result-val">${foundAssetId}</span></div>
+      <div class="result-row" style="color:#D97706"><span class="result-label">Status</span><span class="result-val">Belum terdaftar — akan otomatis terdaftar setelah submit</span></div>`;
+    document.getElementById('statusBar').textContent = '🆕 Asset baru — isi data di form';
+  }
+  card.classList.add('show');
+}
+
+// ── GO TO FORM ──
+function goToForm() {
+  const formUrl = decodeURIComponent(returnUrl);
+  const target = formUrl + '?asset=' + encodeURIComponent(foundAssetId);
+  stopCamera();
+  window.location.href = target;
+}
+
+// ── MANUAL LOOKUP ──
+async function manualLookup() {
+  const val = document.getElementById('manualInput').value.trim().toUpperCase();
+  if (!val) { document.getElementById('manualInput').focus(); return; }
+  scanning = false;
+  clearInterval(scanInterval);
+  document.getElementById('statusBar').textContent = '🔍 Mencari ' + val + '...';
+  await lookupAndShow(val);
+}
+
+// ── RESET / SCAN ULANG ──
+function resetScanner() {
+  document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('scanHintText').textContent = 'Arahkan kamera ke QR Code atau Barcode asset';
+  document.getElementById('statusBar').textContent = '🔍 Mencari QR Code / Barcode...';
+  document.getElementById('manualInput').value = '';
+  foundAssetId = null; foundAssetData = null;
+  lastScanned = ''; lastScannedTime = 0;
+  scanning = true;
+  startScanLoop();
+}
+
+// ── HELPERS ──
+function vibrate() { if (navigator.vibrate) navigator.vibrate([50, 30, 50]); }
+
+function stopCamera() {
+  clearInterval(scanInterval);
+  if (stream) stream.getTracks().forEach(t => t.stop());
+}
+
+function goBack() {
+  stopCamera();
+  window.history.back();
+}
+
+// ── START ──
+initCamera();
+window.addEventListener('beforeunload', stopCamera);
+</script>
+</body>
+</html>
