@@ -167,7 +167,11 @@ select:focus,input[type=text]:focus{border-color:var(--primary)}
   <div class="stat-item"><div class="stat-dot" style="background:#1B4FD8"></div><span id="statTotal">0 Asset</span></div>
   <div class="stat-item"><div class="stat-dot" style="background:#16A34A"></div><span id="statLayak">0 Layak</span></div>
   <div class="stat-item"><div class="stat-dot" style="background:#DC2626"></div><span id="statTidak">0 Tidak Layak</span></div>
-  <div class="stat-item" style="margin-left:auto;color:var(--primary);font-weight:600" id="statSelected"></div>
+  <div class="stat-item" id="dataSource" style="font-size:11px;color:var(--muted)"></div>
+  <div class="stat-item" style="margin-left:auto">
+    <button onclick="location.reload()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--border);background:#fff;font-size:12px;cursor:pointer;color:var(--primary);font-family:inherit">🔄 Refresh</button>
+  </div>
+  <div class="stat-item" style="color:var(--primary);font-weight:600" id="statSelected"></div>
 </div>
 
 <!-- GRID -->
@@ -201,19 +205,29 @@ window.onload = async () => {
 
 async function loadAssets() {
   try {
-    const res = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'crudMaster', action_type: 'READ_ASSET', caller_nik: 'ADMIN' })
-    });
+    // Coba GET endpoint dulu (lebih simpel, tidak perlu deploy ulang)
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getMasterData&type=all');
     const json = await res.json();
-    if (json.status === 'ok' && json.data?.assets?.length) {
-      allAssets = json.data.assets.filter(a => a.aktif !== 'N');
-    } else {
-      allAssets = getDummyAssets();
+
+    if (json.status === 'ok' && json.data) {
+      // Ambil dari MASTER_ASSET via crudMaster POST
+      const res2 = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'crudMaster', action_type: 'READ', sheet_name: 'MASTER_ASSET', caller_nik: 'ADMIN' })
+      });
+      const j2 = await res2.json();
+      if (j2.status === 'ok' && j2.data?.length) {
+        allAssets = j2.data.filter(a => String(a.aktif) !== 'N');
+        console.log('✅ Asset dari Apps Script:', allAssets.length);
+      } else {
+        throw new Error('Data kosong dari crudMaster');
+      }
     }
   } catch(e) {
+    console.warn('Apps Script gagal, pakai dummy:', e);
     allAssets = getDummyAssets();
   }
+
   buildAreaFilter();
   filteredAssets = [...allAssets];
   updateStats();
@@ -231,8 +245,15 @@ function updateStats() {
   document.getElementById('statTotal').textContent = filteredAssets.length + ' Asset';
   document.getElementById('statLayak').textContent = filteredAssets.filter(a=>a.status_aset_terakhir==='LAYAK').length + ' Layak';
   document.getElementById('statTidak').textContent = filteredAssets.filter(a=>a.status_aset_terakhir==='TIDAK LAYAK').length + ' Tidak Layak';
-  const selCount = [...selectedIds].filter(id => filteredAssets.find(a=>a.no_id===id)).length;
+  const selCount = [...selectedIds].filter(id => filteredAssets.find(a=>(a.no_id||a.asset_id)===id)).length;
   document.getElementById('statSelected').textContent = selCount > 0 ? selCount + ' dipilih' : '';
+  // Tampilkan sumber data
+  const src = document.getElementById('dataSource');
+  if (src) {
+    const isDemo = allAssets.length > 0 && allAssets[0].asset_id === 'AST-001' && !allAssets[0].company_id;
+    src.textContent = isDemo ? '⚠️ Data dummy (Apps Script belum terhubung)' : '✅ Data dari Google Sheets';
+    src.style.color = isDemo ? '#D97706' : '#16A34A';
+  }
 }
 
 // ── FILTER ──
@@ -266,14 +287,14 @@ function renderGrid() {
   }
 
   grid.innerHTML = filteredAssets.map(a => `
-    <div class="asset-card${selectedIds.has(a.no_id)?' selected':''}" id="card-${a.no_id}" onclick="toggleSelect('${a.no_id}')">
-      <div class="card-check">${selectedIds.has(a.no_id)?'✓':''}</div>
-      <div class="card-qr" id="qr-wrap-${a.no_id}"></div>
+    <div class="asset-card${selectedIds.has(a.no_id||a.asset_id)?' selected':''}" id="card-${a.no_id||a.asset_id}" onclick="toggleSelect('${a.no_id||a.asset_id}')">
+      <div class="card-check">${selectedIds.has(a.no_id||a.asset_id)?'✓':''}</div>
+      <div class="card-qr" id="qr-wrap-${a.no_id||a.asset_id}"></div>
       <div class="card-info">
-        <div class="card-noid">${a.no_id||'-'}</div>
+        <div class="card-noid">${a.no_id||a.asset_id||'-'}</div>
         <div class="card-nama">${a.nama_alat||'-'}</div>
         <div class="card-merk">${a.merk||'-'}</div>
-        <div class="card-area">📍 ${a.nama_subarea||'-'}</div>
+        <div class="card-area">📍 ${a.nama_subarea||a.subarea_id||'-'}</div>
         <span class="card-status ${a.status_aset_terakhir==='LAYAK'?'s-layak':'s-tidak'}">
           ${a.status_aset_terakhir==='LAYAK'?'✅ LAYAK':'❌ TDK LAYAK'}
         </span>
@@ -282,9 +303,10 @@ function renderGrid() {
 
   // Generate QR per card
   filteredAssets.forEach(a => {
-    const wrap = document.getElementById('qr-wrap-' + a.no_id);
+    const assetKey = a.no_id || a.asset_id;
+    const wrap = document.getElementById('qr-wrap-' + assetKey);
     if (!wrap) return;
-    const url = FORM_URL + '?asset=' + encodeURIComponent(a.no_id);
+    const url = FORM_URL + '?asset=' + encodeURIComponent(assetKey);
     try {
       new QRCode(wrap, {
         text: url,
@@ -302,6 +324,7 @@ function regenAll() { renderGrid(); }
 
 // ── SELECT ──
 function toggleSelect(noId) {
+  if (!noId || noId === 'undefined') return;
   if (selectedIds.has(noId)) selectedIds.delete(noId);
   else selectedIds.add(noId);
   const card = document.getElementById('card-' + noId);
