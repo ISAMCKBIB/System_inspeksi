@@ -702,11 +702,19 @@ const TB_SECTIONS={SA001:['Wheel','Rebuild'],SA005:['Digger','Auxiliary']};
 // ── INIT ────────────────────────────────────────────
 // Tampilkan form langsung tanpa nunggu data
 document.addEventListener('DOMContentLoaded',()=>{
-  // Mulai dari step 1 selalu
   goStep(1);
   document.getElementById('tgl').value=new Date().toISOString().split('T')[0];
-  // Load master di background
   loadMaster();
+
+  // ── Handle URL param ?asset=EQ-001 dari scan QR ──
+  const urlParams = new URLSearchParams(window.location.search);
+  const assetParam = urlParams.get('asset');
+  if (assetParam) {
+    // Tampilkan banner scan
+    showScanBanner(assetParam);
+    // Tunggu master data loaded, lalu auto-fetch asset
+    setTimeout(() => fetchAssetFromURL(assetParam), 1500);
+  }
 });
 
 // ── LOAD MASTER ─────────────────────────────────────
@@ -1771,6 +1779,100 @@ function demoPIC(subId,katId,sec){
   };
   const key=katId==='KT017'?`${subId}-${sec}`:`${subId}-null`;
   return pics[key]||{nama:'PIC Area',email:'',is_delegate:false};
+}
+
+// ══════════════════════════════════════════════════
+// QR / BARCODE SCAN FUNCTIONS
+// ══════════════════════════════════════════════════
+function showScanBanner(noId) {
+  let b = document.getElementById('scanBanner');
+  if (!b) {
+    b = document.createElement('div');
+    b.id = 'scanBanner';
+    Object.assign(b.style, {
+      position:'fixed',top:'0',left:'0',right:'0',zIndex:'9999',
+      background:'linear-gradient(135deg,#1B4FD8,#1338B0)',
+      color:'#fff',padding:'12px 20px',
+      display:'flex',alignItems:'center',gap:'10px',
+      fontFamily:'Inter,sans-serif',fontSize:'14px',
+      boxShadow:'0 2px 12px rgba(27,79,216,.4)'
+    });
+    document.body.prepend(b);
+    document.body.style.paddingTop = '52px';
+  }
+  b.innerHTML = `<div style="font-size:20px">📷</div>
+    <div style="flex:1">
+      <div style="font-size:11px;opacity:.8">Scan QR Berhasil</div>
+      <div style="font-size:14px;font-weight:700">Mencari: ${noId}...</div>
+    </div>
+    <div style="width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite"></div>`;
+}
+
+function hideScanBanner(status, msg) {
+  const b = document.getElementById('scanBanner');
+  if (!b) return;
+  const bg = {found:'#16A34A',new:'#D97706',error:'#DC2626'};
+  const ic = {found:'✅',new:'🆕',error:'❌'};
+  b.style.background = bg[status]||'#1B4FD8';
+  b.innerHTML = `<div style="font-size:20px">${ic[status]||'ℹ️'}</div><div style="font-size:14px;font-weight:600">${msg}</div>`;
+  setTimeout(()=>{b.style.transition='opacity .5s';b.style.opacity='0';setTimeout(()=>{b.remove();document.body.style.paddingTop='';},500);},4000);
+}
+
+function openQRScanner() {
+  const ret = encodeURIComponent(window.location.href.split('?')[0]);
+  window.location.href = 'scan.html?return=' + ret;
+}
+
+async function fetchAssetFromURL(noId) {
+  if (!noId) return;
+  try {
+    // Lock field noId
+    const el = document.getElementById('noId');
+    if (el) { el.value=noId; el.readOnly=true; el.style.background='#EEF3FF'; el.style.color='#1B4FD8'; el.style.fontWeight='700'; }
+
+    // Fetch asset dari Apps Script
+    const r = await fetch(APPS_SCRIPT_URL + '?' + new URLSearchParams({action:'getMasterData',type:'asset_check',no_id:noId}));
+    const j = await r.json();
+
+    if (j.data?.found && j.data.asset) {
+      const a = j.data.asset;
+      fillAssetFields(a);
+
+      // Auto-select subarea
+      if (a.subarea_id) {
+        const se = document.getElementById('subSel');
+        if (se) { const opt=[...se.options].find(o=>o.value===a.subarea_id); if(opt){se.value=a.subarea_id;se.dispatchEvent(new Event('change'));} }
+      }
+      // Auto-select kategori setelah delay
+      if (a.kategori_id) {
+        setTimeout(()=>{ const ke=document.getElementById('kategori'); if(ke){const opt=[...ke.options].find(o=>o.value===a.kategori_id);if(opt){ke.value=a.kategori_id;ke.dispatchEvent(new Event('change'));}} },1200);
+      }
+
+      hideScanBanner('found','✅ Asset ditemukan: '+a.nama_alat);
+
+      // Info box
+      let info = document.getElementById('assetScanInfo');
+      if (!info) { info=document.createElement('div'); info.id='assetScanInfo'; const noIdWrap=document.getElementById('noId')?.parentElement?.parentElement; if(noIdWrap)noIdWrap.after(info); }
+      info.style.display='block';
+      info.innerHTML = `<div style="background:#EEF3FF;border:1.5px solid #C7D7FF;border-radius:10px;padding:12px;margin-top:8px;font-size:13px">
+        <div style="font-weight:700;color:#1B4FD8;margin-bottom:6px">📷 Asset dari QR Scan</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <div>🔧 <strong>${a.nama_alat||'-'}</strong></div>
+          <div>🏷️ ${a.merk||'-'}</div>
+          <div>No Asset: ${a.no_asset||'-'}</div>
+          <div>${a.tgl_inspeksi_terakhir?'Terakhir: '+a.tgl_inspeksi_terakhir:'Belum pernah'}</div>
+        </div>
+        ${a.status_aset_terakhir?`<div style="margin-top:8px;font-weight:600;color:${a.status_aset_terakhir==='LAYAK'?'#16A34A':'#DC2626'}">${a.status_aset_terakhir==='LAYAK'?'✅ LAYAK':'❌ TIDAK LAYAK'}</div>`:''}
+      </div>`;
+
+    } else {
+      hideScanBanner('new','🆕 Asset baru: '+noId+' — isi data manual');
+      const ne=document.getElementById('namaAlat'); if(ne){ne.focus();ne.placeholder='Isi nama alat untuk asset baru';}
+    }
+  } catch(e) {
+    hideScanBanner('error','Gagal ambil data — isi manual');
+    console.error('fetchAssetFromURL:', e);
+  }
 }
 </script>
 </body>
