@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Form Inspeksi K3 — Mining Ship</title>
+<title>Form Inspeksi System Asset Management - CK BIB</title>
 <!-- System font dipakai — tidak perlu download font eksternal -->
 <style>
 :root{
@@ -425,8 +425,8 @@ table.tbtbl input[type=text]{
 <div class="hdr">
   <div class="hdr-icon">⛏️</div>
   <div>
-    <div class="hdr-title">Form Inspeksi K3</div>
-    <div class="hdr-sub">Mining Ship · KGB & GRB</div>
+    <div class="hdr-title">Form Inspeksi Asset Management</div>
+    <div class="hdr-sub">KGB & GRB</div>
   </div>
   <a href="dashboard.html" class="hdr-link">Dashboard</a>
 </div>
@@ -443,47 +443,101 @@ table.tbtbl input[type=text]{
 
 <!-- ══ STEP 1: IDENTITAS ══ -->
 <div class="page active" id="page1">
-  <div class="card">
-    <div class="card-title">👤 Data Inspektur</div>
-    <div class="g2 mb10">
-      <div class="field">
-        <label>Nama Inspektur <span class="req">*</span></label>
-        <input type="text" id="namaIns" placeholder="Nama lengkap" autocomplete="name">
-      </div>
-      <div class="field">
-        <label>NIK / SN</label>
-        <input type="text" id="nikIns" placeholder="NIK atau SN" autocomplete="off">
+  <!-- ── CARD 1: DATA INSPEKTUR ── -->
+  <div class="card" style="border:none;padding:0;background:transparent;box-shadow:none">
+    <!-- Header card dengan gradient -->
+    <div style="background:linear-gradient(135deg,#1B4FD8,#1338B0);border-radius:16px 16px 0 0;padding:16px 20px;display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">👤</div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#fff">Data Inspektor</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:1px">Identitas petugas yang melakukan inspeksi</div>
       </div>
     </div>
-    <div class="field">
-      <label>Tanggal <span class="req">*</span></label>
-      <input type="date" id="tgl">
+    <div style="background:#fff;border-radius:0 0 16px 16px;padding:18px 20px;border:1px solid #E5E9F0;border-top:none;box-shadow:0 4px 16px rgba(27,79,216,.08)">
+      <!-- Nama + NIK -->
+      <div class="g2 mb10">
+        <div class="field">
+          <label style="color:#1B4FD8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Nama Inspektor <span class="req">*</span></label>
+          <input type="text" id="namaIns" placeholder="Nama lengkap" autocomplete="name"
+            style="border:1.5px solid #D4DCEF;border-radius:10px;padding:11px 14px;font-size:14px;transition:border-color .2s">
+        </div>
+        <div class="field">
+          <label style="color:#1B4FD8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">NIK / SN</label>
+          <input type="text" id="nikIns" placeholder="NIK atau nomor SN" autocomplete="off"
+            style="border:1.5px solid #D4DCEF;border-radius:10px;padding:11px 14px;font-size:14px;transition:border-color .2s">
+        </div>
+      </div>
+      <!-- Perusahaan + Tanggal -->
+      <div class="g2 mb10">
+        <div class="field">
+          <label style="color:#1B4FD8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Perusahaan <span class="req">*</span></label>
+          <select id="compSel"
+            style="border:1.5px solid #D4DCEF;border-radius:10px;padding:11px 14px;font-size:14px;background:#fff;width:100%;appearance:auto">
+            <option value="">-- Pilih --</option>
+          </select>
+        </div>
+        <div class="field">
+          <label style="color:#1B4FD8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Tanggal <span class="req">*</span></label>
+          <input type="date" id="tgl"
+            style="border:1.5px solid #D4DCEF;border-radius:10px;padding:11px 14px;font-size:14px;width:100%">
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-title">🏢 Perusahaan & Lokasi</div>
-    <div class="field mb10">
-      <label>Perusahaan <span class="req">*</span></label>
-      <select id="compSel"><option value="">-- Pilih perusahaan --</option></select>
-    </div>
-    <div class="g2 mb10">
-      <div class="field">
-        <label>Area <span class="req">*</span></label>
-        <select id="areaSel" onchange="onArea()"><option value="">-- Pilih --</option></select>
-      </div>
-      <div class="field">
-        <label>Sub Area <span class="req">*</span></label>
-        <select id="subSel" onchange="onSub()" disabled><option value="">-- Pilih area --</option></select>
+  <!-- ── CARD 2: LOKASI & PERALATAN ── -->
+  <div class="card" style="border:none;padding:0;background:transparent;box-shadow:none;margin-top:16px">
+    <div style="background:linear-gradient(135deg,#0F4C8A,#1B4FD8);border-radius:16px 16px 0 0;padding:16px 20px;display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📍</div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#fff">Lokasi & Peralatan</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:1px">Area inspeksi dan identitas alat</div>
       </div>
     </div>
-    <div class="field">
-      <label>Kategori <span class="req">*</span></label>
-      <select id="katSel" onchange="onKat(this.value)" disabled><option value="">-- Pilih sub area dulu --</option></select>
-    </div>
-  </div>
+    <div style="background:#fff;border-radius:0 0 16px 16px;padding:18px 20px;border:1px solid #E5E9F0;border-top:none;box-shadow:0 4px 16px rgba(27,79,216,.08)">
 
-  <div class="card">
+      <!-- Divider label -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <div style="height:1px;flex:1;background:linear-gradient(90deg,#E5E9F0,transparent)"></div>
+        <span style="font-size:10px;font-weight:700;color:#8FA0BE;text-transform:uppercase;letter-spacing:.8px">Lokasi</span>
+        <div style="height:1px;flex:1;background:linear-gradient(270deg,#E5E9F0,transparent)"></div>
+      </div>
+
+      <!-- Area + Sub Area -->
+      <div class="g2 mb10">
+        <div class="field">
+          <label style="color:#1B4FD8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Area <span class="req">*</span></label>
+          <select id="areaSel" onchange="onArea()"
+            style="border:1.5px solid #D4DCEF;border-radius:10px;padding:11px 14px;font-size:14px;background:#fff;width:100%;appearance:auto">
+            <option value="">-- Pilih --</option>
+          </select>
+        </div>
+        <div class="field">
+          <label style="color:#1B4FD8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Sub Area <span class="req">*</span></label>
+          <select id="subSel" onchange="onSub()" disabled
+            style="border:1.5px solid #D4DCEF;border-radius:10px;padding:11px 14px;font-size:14px;background:#F8F9FC;width:100%;appearance:auto">
+            <option value="">-- Pilih area --</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Kategori -->
+      <div class="field mb10">
+        <label style="color:#1B4FD8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Kategori <span class="req">*</span></label>
+        <select id="katSel" onchange="onKat(this.value)" disabled
+          style="border:1.5px solid #D4DCEF;border-radius:10px;padding:11px 14px;font-size:14px;background:#F8F9FC;width:100%;appearance:auto">
+          <option value="">-- Pilih sub area dulu --</option>
+        </select>
+      </div>
+
+      <!-- Divider label -->
+      <div style="display:flex;align-items:center;gap:8px;margin:16px 0 14px">
+        <div style="height:1px;flex:1;background:linear-gradient(90deg,#E5E9F0,transparent)"></div>
+        <span style="font-size:10px;font-weight:700;color:#8FA0BE;text-transform:uppercase;letter-spacing:.8px">Peralatan</span>
+        <div style="height:1px;flex:1;background:linear-gradient(270deg,#E5E9F0,transparent)"></div>
+      </div>
+
+<div class="card">
     <div class="card-title">🔧 Peralatan</div>
 
     <!-- Non-toolbox -->
@@ -1152,7 +1206,7 @@ function resetTb(){
 }
 
 async function toStep2(){
-  const checks=[['namaIns','Nama inspektur'],['compSel','Perusahaan'],['areaSel','Area'],['subSel','Sub area'],['katSel','Kategori']];
+  const checks=[['namaIns','Nama inspektor'],['compSel','Perusahaan'],['areaSel','Area'],['subSel','Sub area'],['katSel','Kategori']];
   for(const[id,lbl]of checks){
     if(!document.getElementById(id).value){toast('⚠️ '+lbl+' wajib diisi','warn');return;}
   }
@@ -1516,7 +1570,7 @@ function renderPhotos(){
   document.getElementById('uzone').style.display=fotos.length>=3?'none':'flex';
 }
 
-// KOMPRES — otomatis oleh sistem, bukan inspektur
+// KOMPRES — otomatis oleh sistem, bukan inspektor
 async function compress(file,quality=0.7,maxPx=1280){
   return new Promise(resolve=>{
     const img=new Image();
