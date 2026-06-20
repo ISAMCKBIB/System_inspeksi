@@ -205,73 +205,71 @@ window.onload = async () => {
 };
 
 async function loadAssets() {
+  const srcEl = document.getElementById('dataSource');
+
+  // ── Sumber 1: crudMaster MASTER_ASSET (paling akurat) ──
   try {
-    // Pakai getInspeksi untuk cek koneksi dulu
-    // Lalu ambil asset dari getMasterData - endpoint yang SUDAH ADA
-    const res = await fetch(APPS_SCRIPT_URL + '?action=getMasterData&type=all', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
+    const r = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'crudMaster',
+        action_type: 'READ',
+        sheet_name: 'MASTER_ASSET',
+        caller_nik: 'ADMIN'
+      })
     });
-    const json = await res.json();
-    console.log('getMasterData response:', json);
-
-    if (json.status === 'ok' && json.data) {
-      // getMasterData tidak return asset list langsung
-      // Pakai getInspeksi untuk ambil data asset dari TBL_INSPEKSI_HEADER
-      // lalu extract unique asset
-      const res2 = await fetch(APPS_SCRIPT_URL + '?action=getInspeksi');
-      const j2 = await res2.json();
-      console.log('getInspeksi response:', j2);
-
-      if (j2.status === 'ok' && j2.data?.length) {
-        // Extract unique asset dari header inspeksi
-        const seen = new Set();
-        const assets = [];
-        j2.data.forEach(h => {
-          const key = h.no_id || h.nama_alat;
-          if (key && !seen.has(key)) {
-            seen.add(key);
-            assets.push({
-              asset_id: h.inspeksi_id,
-              no_id: h.no_id || '',
-              no_asset: h.no_asset || '',
-              nama_alat: h.nama_alat || '',
-              merk: h.merk || '',
-              nama_subarea: h.nama_subarea || '',
-              subarea_id: h.subarea_id || '',
-              kategori_id: h.kategori_id || '',
-              status_aset_terakhir: h.status_kelayakan || 'LAYAK',
-              tgl_inspeksi_terakhir: h.tanggal_inspeksi || '',
-              aktif: 'Y'
-            });
-          }
-        });
-
-        if (assets.length > 0) {
-          allAssets = assets;
-          console.log('✅ Asset dari Inspeksi Header:', allAssets.length);
-          document.getElementById('dataSource').textContent = '✅ Data dari Google Sheets (' + allAssets.length + ' asset)';
-          document.getElementById('dataSource').style.color = '#16A34A';
-        } else {
-          throw new Error('Tidak ada data inspeksi');
-        }
-      } else {
-        throw new Error('getInspeksi gagal');
+    const j = await r.json();
+    console.log('crudMaster result:', j.status, j.count);
+    if (j.status === 'ok' && j.data && j.data.length > 0) {
+      allAssets = j.data.filter(a => String(a.aktif) !== 'N');
+      if (allAssets.length > 0) {
+        if (srcEl) { srcEl.textContent = '✅ Data dari MASTER_ASSET (' + allAssets.length + ' asset)'; srcEl.style.color = '#16A34A'; }
+        buildAreaFilter(); filteredAssets = [...allAssets]; updateStats(); renderGrid();
+        return;
       }
-    } else {
-      throw new Error('getMasterData gagal');
     }
-  } catch(e) {
-    console.warn('⚠️ Fallback ke dummy:', e.message);
-    allAssets = getDummyAssets();
-    document.getElementById('dataSource').textContent = '⚠️ Pakai dummy (belum ada data inspeksi)';
-    document.getElementById('dataSource').style.color = '#D97706';
-  }
+  } catch(e) { console.warn('crudMaster gagal:', e.message); }
 
-  buildAreaFilter();
-  filteredAssets = [...allAssets];
-  updateStats();
-  renderGrid();
+  // ── Sumber 2: getInspeksi (extract unique asset) ──
+  try {
+    const r = await fetch(APPS_SCRIPT_URL + '?action=getInspeksi');
+    const j = await r.json();
+    console.log('getInspeksi result:', j.status, j.count);
+    if (j.status === 'ok' && j.data && j.data.length > 0) {
+      const seen = new Set();
+      const assets = [];
+      j.data.forEach(h => {
+        const key = (h.no_id || '').trim() || (h.nama_alat || '').trim();
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        assets.push({
+          asset_id: h.inspeksi_id || key,
+          no_id: h.no_id || '',
+          no_asset: h.no_asset || '',
+          nama_alat: h.nama_alat || '-',
+          merk: h.merk || '-',
+          nama_subarea: h.nama_subarea || '-',
+          subarea_id: h.subarea_id || '',
+          kategori_id: h.kategori_id || '',
+          status_aset_terakhir: h.status_kelayakan || 'LAYAK',
+          tgl_inspeksi_terakhir: h.tanggal_inspeksi || '',
+          aktif: 'Y'
+        });
+      });
+      if (assets.length > 0) {
+        allAssets = assets;
+        if (srcEl) { srcEl.textContent = '✅ Data dari riwayat inspeksi (' + allAssets.length + ' asset)'; srcEl.style.color = '#16A34A'; }
+        buildAreaFilter(); filteredAssets = [...allAssets]; updateStats(); renderGrid();
+        return;
+      }
+    }
+  } catch(e) { console.warn('getInspeksi gagal:', e.message); }
+
+  // ── Sumber 3: Dummy data ──
+  console.warn('Fallback dummy');
+  allAssets = getDummyAssets();
+  if (srcEl) { srcEl.textContent = '⚠️ Data dummy — deploy Apps Script terbaru'; srcEl.style.color = '#D97706'; }
+  buildAreaFilter(); filteredAssets = [...allAssets]; updateStats(); renderGrid();
 }
 
 function buildAreaFilter() {
