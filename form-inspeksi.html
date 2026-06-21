@@ -1679,6 +1679,142 @@ async function doSubmit(){
     if(btn){btn.disabled=false;btn.textContent='✅ Submit Inspeksi';}
   }
 }
+
+// ══════════════════════════════════════════════
+// DEMO DATA FUNCTIONS
+// ══════════════════════════════════════════════
+function demoMaster(){
+  return {
+    companies:[{company_id:'CMP001',nama_perusahaan:'PT Cipta Kridatama'}],
+    areas:[{area_id:'AR001',nama_area:'KGB'}],
+    subareas:[
+      {subarea_id:'SA001',area_id:'AR001',nama_subarea:'WS HE CIA'},
+      {subarea_id:'SA002',area_id:'AR001',nama_subarea:'BAY CP'},
+      {subarea_id:'SA003',area_id:'AR001',nama_subarea:'WS Tyre'},
+      {subarea_id:'SA004',area_id:'AR001',nama_subarea:'GRB'},
+    ],
+    kategoris:[
+      {kategori_id:'KT001',subarea_id:'SA001',nama_kategori:'Alat Berat',tipe:'CHECK'},
+      {kategori_id:'KT002',subarea_id:'SA001',nama_kategori:'Dump Truck',tipe:'CHECK'},
+      {kategori_id:'KT003',subarea_id:'SA001',nama_kategori:'Alat Listrik Portable',tipe:'CHECK'},
+      {kategori_id:'KT004',subarea_id:'SA001',nama_kategori:'Jack Stand',tipe:'CHECK'},
+      {kategori_id:'KT005',subarea_id:'SA001',nama_kategori:'Apar',tipe:'CHECK'},
+      {kategori_id:'KT006',subarea_id:'SA001',nama_kategori:'Kompresor',tipe:'CHECK'},
+      {kategori_id:'KT007',subarea_id:'SA001',nama_kategori:'Crane Workshop',tipe:'CHECK'},
+      {kategori_id:'KT017',subarea_id:'SA001',nama_kategori:'Toolbox Inventory',tipe:'TOOLBOX_INVENTORY'},
+    ],
+    pics:{}
+  };
+}
+
+function demoPertanyaan(katId){
+  return [
+    {question_id:katId+'-Q001',pertanyaan:'Kondisi fisik alat baik (tidak rusak/retak)',tipe_jawaban:'PILIHAN'},
+    {question_id:katId+'-Q002',pertanyaan:'Tidak ada kebocoran oli/bahan bakar',tipe_jawaban:'PILIHAN'},
+    {question_id:katId+'-Q003',pertanyaan:'Semua baut dan mur terpasang dengan kencang',tipe_jawaban:'PILIHAN'},
+    {question_id:katId+'-Q004',pertanyaan:'Label/stiker identifikasi alat terbaca jelas',tipe_jawaban:'PILIHAN'},
+    {question_id:katId+'-Q005',pertanyaan:'Alat berfungsi normal sesuai peruntukannya',tipe_jawaban:'PILIHAN'},
+    {question_id:katId+'-Q006',pertanyaan:'Tidak ada kerusakan pada kabel/selang',tipe_jawaban:'PILIHAN'},
+    {question_id:katId+'-Q007',pertanyaan:'Area sekitar alat bersih dan aman',tipe_jawaban:'PILIHAN'},
+  ];
+}
+
+function demoTbContent(tipeId){
+  return [
+    {item_id:'TB001',nama_item:'Kunci Ring 10-19mm (set)',qty_standar:1},
+    {item_id:'TB002',nama_item:'Kunci Pas 10-19mm (set)',qty_standar:1},
+    {item_id:'TB003',nama_item:'Obeng Plus (+)',qty_standar:3},
+    {item_id:'TB004',nama_item:'Obeng Minus (-)',qty_standar:3},
+    {item_id:'TB005',nama_item:'Tang Kombinasi',qty_standar:2},
+    {item_id:'TB006',nama_item:'Tang Potong',qty_standar:1},
+    {item_id:'TB007',nama_item:'Palu Besi',qty_standar:1},
+    {item_id:'TB008',nama_item:'Kunci L (Hex) Set',qty_standar:1},
+    {item_id:'TB009',nama_item:'Meteran 5m',qty_standar:1},
+    {item_id:'TB010',nama_item:'Senter',qty_standar:1},
+  ];
+}
+
+// ══════════════════════════════════════════════
+// QR SCAN FUNCTIONS
+// ══════════════════════════════════════════════
+function showScanBanner(noId) {
+  if (!document.getElementById('scanBannerStyle')) {
+    const s = document.createElement('style');
+    s.id = 'scanBannerStyle';
+    s.textContent = `
+      @keyframes sbSlideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+      @keyframes sbProgress{from{width:0}to{width:90%}}
+      @keyframes sbDots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+      #scanBanner{animation:sbSlideDown .35s cubic-bezier(.34,1.2,.64,1)}
+      .sb-dot::after{content:'';animation:sbDots 1.2s infinite}
+      .sb-progress-fill{animation:sbProgress 2s ease-out forwards}
+    `;
+    document.head.appendChild(s);
+  }
+  let b = document.getElementById('scanBanner');
+  if (!b) {
+    b = document.createElement('div');
+    b.id = 'scanBanner';
+    Object.assign(b.style, {
+      position:'fixed',top:'0',left:'0',right:'0',zIndex:'9999',
+      background:'linear-gradient(135deg,#1B4FD8,#1338B0)',
+      color:'#fff',fontFamily:'Inter,-apple-system,sans-serif',
+      boxShadow:'0 4px 20px rgba(27,79,216,.5)',overflow:'hidden'
+    });
+    document.body.prepend(b);
+  }
+  b.innerHTML = `
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.2)">
+      <div class="sb-progress-fill" style="height:100%;background:rgba(255,255,255,.8);width:0"></div>
+    </div>
+    <div style="padding:12px 16px 14px;display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:20px">📷</div>
+      <div style="flex:1">
+        <div style="font-size:11px;opacity:.75">SCAN QR BERHASIL</div>
+        <div style="font-size:14px;font-weight:700">Memverifikasi <span style="font-family:monospace;background:rgba(255,255,255,.15);padding:1px 6px;border-radius:4px">${noId}</span><span class="sb-dot"></span></div>
+        <div style="font-size:11px;opacity:.6;margin-top:2px">Mengambil data dari database...</div>
+      </div>
+      <div style="width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></div>
+    </div>`;
+  document.body.style.paddingTop = '68px';
+}
+
+function hideScanBanner(status, msg, assetData) {
+  const b = document.getElementById('scanBanner');
+  if (!b) return;
+  const bg = {found:'linear-gradient(135deg,#15803D,#16A34A)',new:'linear-gradient(135deg,#B45309,#D97706)',error:'linear-gradient(135deg,#B91C1C,#DC2626)'};
+  const ic = {found:'✅',new:'🆕',error:'❌'};
+  b.style.background = bg[status]||bg.error;
+  const area = assetData?.nama_subarea||'';
+  b.innerHTML = `
+    <div style="padding:12px 16px 14px;display:flex;align-items:center;gap:12px">
+      <div style="font-size:24px">${ic[status]||'ℹ️'}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700">${msg}</div>
+        ${area?`<div style="font-size:11px;opacity:.8;margin-top:2px">📍 ${area}</div>`:''}
+      </div>
+    </div>`;
+  setTimeout(()=>{
+    b.style.transition='transform .4s ease-in,opacity .4s';
+    b.style.transform='translateY(-100%)';
+    b.style.opacity='0';
+    setTimeout(()=>{b.remove();document.body.style.paddingTop='';},400);
+  },3500);
+}
+
+function openQRScanner() {
+  const ret = encodeURIComponent(window.location.href.split('?')[0]);
+  window.location.href = 'scan.html?return=' + ret;
+}
+
+// ══════════════════════════════════════════════
+// LOGOUT
+// ══════════════════════════════════════════════
+function logout() {
+  localStorage.clear();
+  sessionStorage.clear();
+  window.location.replace('login.html?logout=1&t=' + Date.now());
+}
 </script>
 </body>
 </html>
