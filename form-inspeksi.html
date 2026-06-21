@@ -612,7 +612,12 @@ table.tbtbl input[type=text]{
           </div>
           <div class="field">
             <label>No ID Toolbox</label>
-            <input type="text" id="tbNoAsset" placeholder="(isi jika ada)" autocomplete="off">
+            <div style="position:relative">
+              <input type="text" id="tbNoAsset" placeholder="No ID Toolbox (EQ-001)" autocomplete="off"
+                oninput="checkTbAsset(this.value)" style="padding-right:36px">
+              <span id="tbAssetStatus" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:14px"></span>
+            </div>
+            <div id="tbAssetHint" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
           </div>
         </div>
       </div>
@@ -1430,30 +1435,52 @@ function toast(msg, type='info'){
 // ── STEP 3: REVIEW ──
 function toStep3(){
   if(!isTb){
-    // Debug: lihat semua jawaban
-    console.log('Checking answers:', pertanyaan.map(p=>({
-      qid: p.question_id,
-      val: answers[p.question_id]?.val || 'KOSONG'
-    })));
-
-    const unanswered = pertanyaan.filter(p => {
-      const a = answers[p.question_id];
-      return !a || !a.val;
-    });
-
+    // Cek semua pertanyaan sudah dijawab
+    const unanswered = pertanyaan.filter(p => !answers[p.question_id]?.val);
     if(unanswered.length > 0){
       toast(`⚠️ ${unanswered.length} pertanyaan belum dijawab`, 'warn');
-      console.log('Unanswered:', unanswered.map(p=>p.question_id));
+      return;
+    }
+    // Cek remarks wajib untuk yang TIDAK
+    const noRemarks = pertanyaan.filter(p =>
+      answers[p.question_id]?.val === 'TIDAK' && !answers[p.question_id]?.remarks?.trim()
+    );
+    if(noRemarks.length > 0){
+      toast(`✏️ ${noRemarks.length} temuan wajib diisi remarks-nya`, 'warn');
+      return;
+    }
+    // Kalau tidak ada temuan (semua YA/NA) → langsung submit
+    const hasTemuan = pertanyaan.some(p => answers[p.question_id]?.val === 'TIDAK');
+    if(!hasTemuan){
+      doSubmit();
+      return;
+    }
+  } else {
+    // Toolbox: cek remarks wajib untuk yang bermasalah
+    const noRemarks = tbContent.filter(item => {
+      const a = tbAnswers[item.content_id];
+      if(!a) return false;
+      const aktualDiisi = a.aktual !== '' && a.aktual !== '0';
+      const isNg = a.kondisi==='RUSAK' || a.kondisi==='HILANG' || (aktualDiisi && parseInt(a.aktual) < parseInt(item.qty_standar));
+      return isNg && !a.remarks?.trim();
+    });
+    if(noRemarks.length > 0){
+      toast(`✏️ ${noRemarks.length} item wajib diisi remarks-nya`, 'warn');
+      return;
+    }
+    // Toolbox: kalau semua sesuai STD → langsung submit
+    const hasTbTemuan = tbContent.some(item => {
+      const a = tbAnswers[item.content_id];
+      if(!a) return false;
+      const aktualDiisi = a.aktual !== '' && a.aktual !== '0';
+      return a.kondisi==='RUSAK' || a.kondisi==='HILANG' || (aktualDiisi && parseInt(a.aktual) < parseInt(item.qty_standar));
+    });
+    if(!hasTbTemuan){
+      doSubmit();
       return;
     }
   }
-
-  // Cek apakah ada temuan
-  const hasTemuan = isTb
-    ? tbContent.some(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG');})
-    : pertanyaan.some(p=>answers[p.question_id]?.val==='TIDAK');
-
-  console.log('toStep3: hasTemuan='+hasTemuan+', calling buildReview');
+  // Ada temuan → ke review
   buildReview();
   goStep(3);
   window.scrollTo({top:0, behavior:'smooth'});
@@ -1492,9 +1519,9 @@ function buildReview(){
   listEl.innerHTML=''; selRisiko='';
   if(!items.length){noT.style.display='block';document.getElementById('critAlert').className='crit-alert';document.getElementById('fotoWarn').style.display='none';return;}
   noT.style.display='none';
-  // Foto WAJIB jika ada temuan
-  document.getElementById('fotoWarn').style.display='block';
-  document.getElementById('fotoWarn').textContent='📷 Foto wajib untuk semua tingkat risiko';
+  // Foto WAJIB min 1 maks 3
+  const fw = document.getElementById('fotoWarn');
+  if(fw){ fw.style.display='block'; fw.textContent='📷 Wajib lampirkan foto (min 1, maks 3) — dikompres otomatis'; }
 
   const rOpts=[{v:'LOW',l:'Low — 14 hari',c:'sel-low'},{v:'MEDIUM',l:'Medium — 7 hari',c:'sel-medium'},{v:'HIGH',l:'High — 3 hari',c:'sel-high'},{v:'CRITICAL',l:'Critical — 1 hari',c:'sel-critical'}];
   listEl.innerHTML=`
@@ -1560,10 +1587,14 @@ function renderCheck(){
     if(isNg){
       const rr=document.createElement('tr');
       rr.classList.add('ng');
+      const hasRmk = a.remarks?.trim().length > 0;
       rr.innerHTML=`<td></td><td colspan="3">
-        <div class="rmk-wrap">
-          <div class="rmk-lbl">✏️ Remarks — Jelaskan kondisi *</div>
-          <textarea class="rmk-inp" rows="2" placeholder="Jelaskan kondisi yang ditemukan..." onchange="setR('${qid}',this.value)">${a.remarks||''}</textarea>
+        <div class="rmk-wrap" style="border:1.5px solid ${hasRmk?'var(--green-bd)':'var(--red-bd)'};border-radius:8px;padding:8px 10px;background:${hasRmk?'var(--green-bg)':'var(--red-bg)'};margin:4px 0">
+          <div class="rmk-lbl" style="color:${hasRmk?'var(--green)':'var(--red)'};font-size:11px;font-weight:700;margin-bottom:4px">✏️ Remarks — Jelaskan kondisi * ${hasRmk?'✓':''}</div>
+          <textarea class="rmk-inp" rows="2" 
+            style="width:100%;border:none;background:transparent;font-size:13px;font-family:inherit;resize:vertical;outline:none;color:var(--text)"
+            placeholder="Jelaskan kondisi yang ditemukan..." 
+            oninput="setR('${qid}',this.value);renderCheck()">${a.remarks||''}</textarea>
         </div></td>`;
       tbody.appendChild(rr);
     }
@@ -1612,8 +1643,12 @@ function renderTb(){
   tbContent.forEach((item,i)=>{
     const a=tbAnswers[item.content_id]||{aktual:'',kondisi:'BAIK',remarks:''};
     // isNg hanya kalau kondisi RUSAK/HILANG, atau aktual sudah diisi user dan kurang dari standar
-    const aktualDiisi = a.aktual !== '' && a.aktual !== '0' && a.aktual !== null;
-    const isNg=a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(aktualDiisi&&parseInt(a.aktual)<parseInt(item.qty_standar));
+    const aktualDiisi = a.aktual !== '' && a.aktual !== null;
+    const aktualNum = parseInt(a.aktual);
+    const stdNum = parseInt(item.qty_standar);
+    // NG kalau: RUSAK/HILANG, atau aktual kurang dari standar (termasuk 0)
+    const isNg = a.kondisi==='RUSAK' || a.kondisi==='HILANG' ||
+                 (aktualDiisi && !isNaN(aktualNum) && aktualNum < stdNum);
     const tr=document.createElement('tr');
     tr.setAttribute('data-cid', item.content_id);
     if(isNg) tr.classList.add('tb-ng');
@@ -1621,19 +1656,19 @@ function renderTb(){
       <td style="color:var(--muted2);font-size:10px;font-weight:700">${i+1}</td>
       <td style="font-size:13px;line-height:1.4;font-weight:${isNg?600:400}">
         <span>${item.deskripsi}</span>
-        ${isNg?`<div style="margin-top:6px">
-          <input type="text" placeholder="Catatan kondisi..." value="${a.remarks||''}"
-            onchange="setTb('${item.content_id}','remarks',this.value,'${item.qty_standar}')"
-            style="width:100%;font-size:13px;border:1.5px solid var(--red-bd);border-radius:6px;
-            padding:5px 8px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;outline:none">
+        ${isNg?`<div style="margin-top:6px;border:1.5px solid ${a.remarks?.trim()?'var(--green-bd)':'var(--red-bd)'};border-radius:8px;padding:6px 8px;background:${a.remarks?.trim()?'var(--green-bg)':'var(--red-bg)'}">
+          <div style="font-size:10px;font-weight:700;color:${a.remarks?.trim()?'var(--green)':'var(--red)'};margin-bottom:3px">✏️ Keterangan wajib * ${a.remarks?.trim()?'✓':''}</div>
+          <textarea rows="2" placeholder="Jelaskan kondisi / tindakan yang diambil..."
+            oninput="setTb('${item.content_id}','remarks',this.value,'${item.qty_standar}');renderTb()"
+            style="width:100%;border:none;background:transparent;font-size:12px;font-family:inherit;resize:none;outline:none;color:var(--text)">${a.remarks||''}</textarea>
         </div>`:''}
       </td>
       <td style="text-align:center;font-weight:700;font-size:13px">${item.qty_standar}</td>
       <td><input type="number" inputmode="numeric" min="0" placeholder="0" value="${a.aktual}"
-          onchange="setTb('${item.content_id}','aktual',this.value,'${item.qty_standar}')"
+          oninput="setTb('${item.content_id}','aktual',this.value,'${item.qty_standar}');renderTb()"
           style="width:52px;text-align:center;font-size:16px;border:1.5px solid var(--border);border-radius:6px;padding:6px 4px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif"></td>
       <td style="font-size:11px;color:var(--muted)">${item.unit}</td>
-      <td><select onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}')"
+      <td><select onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}');renderTb()"
           style="font-size:13px;padding:6px 6px;border:1.5px solid var(--border);border-radius:6px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif">
         <option${a.kondisi==='BAIK'?' selected':''}>BAIK</option>
         <option${a.kondisi==='RUSAK'?' selected':''}>RUSAK</option>
@@ -1646,9 +1681,9 @@ function renderTb(){
   document.getElementById('fillNote').textContent=ng>0?`${ng} temuan toolbox`:'';
 }
 
-function setTb(i,field,val){
-  if(!tbAnswers[i])tbAnswers[i]={};
-  tbAnswers[i][field]=val;
+function setTb(cid, field, val, std){
+  if(!tbAnswers[cid]) tbAnswers[cid]={aktual:'',kondisi:'BAIK',remarks:''};
+  tbAnswers[cid][field] = val;
 }
 
 // ── SUBMIT ──
