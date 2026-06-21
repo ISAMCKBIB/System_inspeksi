@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta http-equiv="Content-Security-Policy"
-content="
-default-src 'self';
-script-src 'self' https://cdn.jsdelivr.net;
-style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-font-src https://fonts.gstatic.com;
-img-src 'self' data: https:;
-">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ISAM CK BIB — Dashboard</title>
@@ -775,9 +767,9 @@ window.onload = async () => {
   const raw = localStorage.getItem('msm_session');
   const urlParams = new URLSearchParams(window.location.search);
   const targetIns = urlParams.get('inspeksi');
-  if (!raw) { if(targetIns) sessionStorage.setItem('redirect_inspeksi',targetIns); window.location.href='index.html'; return; }
+  if (!raw) { if(targetIns) sessionStorage.setItem('redirect_inspeksi',targetIns); window.location.href='login.html'; return; }
   SESSION = JSON.parse(raw);
-  if ((new Date()-new Date(SESSION.login_at))/3600000 > 8) { localStorage.removeItem('msm_session'); window.location.href='index.html'; return; }
+  if ((new Date()-new Date(SESSION.login_at))/3600000 > 8) { localStorage.removeItem('msm_session'); window.location.href='login.html'; return; }
   const role = (SESSION.role||'PIC').toUpperCase();
   renderTopbar();
   renderProfil();
@@ -1241,7 +1233,7 @@ function fmtDate(dateStr) {
   } catch(e) { return dateStr; }
 }
 
-function logout(){if(confirm('Yakin ingin keluar?')){localStorage.removeItem('msm_session');window.location.href='index.html';}}
+function logout(){if(confirm('Yakin ingin keluar?')){localStorage.removeItem('msm_session');window.location.href='login.html';}}
 function showLoad(msg){document.getElementById('lo').classList.add('show');document.getElementById('loMsg').textContent=msg||'Loading...'}
 function hideLoad(){document.getElementById('lo').classList.remove('show')}
 function showToast(msg,type='info'){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.className='toast show '+type;setTimeout(()=>t.classList.remove('show'),3500)}
