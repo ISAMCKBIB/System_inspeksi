@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta http-equiv="Content-Security-Policy"
-content="
-default-src 'self';
-script-src 'self' https://cdn.jsdelivr.net;
-style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-font-src https://fonts.gstatic.com;
-img-src 'self' data: https:;
-">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ISAM — Inspection System Asset Management</title>
@@ -412,7 +404,7 @@ a{text-decoration:none;color:inherit}
       <h3>Dashboard Monitoring</h3>
       <div class="tag" style="color:#16a34a">Power BI</div>
       <p>Lihat dashboard KPI, grafik, dan laporan temuan secara real-time melalui Power BI.</p>
-      <a href="monitoring.html" class="access-btn" style="color:#16a34a">Lihat Dashboard (Power BI) ↗</a>
+      <a href="#" class="access-btn" style="color:#16a34a">Lihat Dashboard (Power BI) ↗</a>
     </div>
     <div class="access-card">
       <div class="access-icon" style="background:#7c3aed">📊</div>
@@ -523,16 +515,17 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4k8CSXxUQmahg
 
 async function doLogin() {
   const email = document.getElementById('emailInput').value.trim();
+  const pw = document.getElementById('pwInput').value.trim();
+
+  // Validasi dulu SEBELUM disable button
   if (!email) { showAlert('error', 'Masukkan email kamu dulu'); return; }
+  if (!pw) { showAlert('error', 'Masukkan password dulu'); return; }
 
   const btn = document.getElementById('btnLogin');
   const btnText = document.getElementById('btnText');
   btn.disabled = true;
   btnText.innerHTML = '<div class="spinner"></div> Memverifikasi...';
   hideAlerts();
-
-  const pw = document.getElementById('pwInput').value.trim();
-  if (!pw) { showAlert('error', 'Masukkan password dulu'); return; }
 
   try {
     // Call Apps Script untuk verifikasi email + password dari MASTER_EMPLOYEE
