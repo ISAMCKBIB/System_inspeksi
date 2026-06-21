@@ -1241,7 +1241,7 @@ async function toStep2(){
     pertanyaan=[];
     answers={};
     // Load langsung (bukan background)
-    loadPertanyaan();
+    await loadPertanyaan();
   }
 }
 
@@ -1265,30 +1265,30 @@ async function loadChecklist(){
 }
 
 async function loadPertanyaan(){
-  // Tampilkan loading
   const tbody = document.getElementById('checkBody');
-  if(tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">⏳ Memuat pertanyaan...</td></tr>';
+  if(tbody) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#6B7494">⏳ Memuat pertanyaan dari database...</td></tr>';
+  }
 
   try{
-    const r = await fetch(APPS_SCRIPT_URL+'?action=getMasterData&type=pertanyaan&kategori_id='+encodeURIComponent(katId));
+    const r = await fetch(APPS_SCRIPT_URL + '?action=getMasterData&type=pertanyaan&kategori_id=' + encodeURIComponent(katId));
     const j = await r.json();
+    
     console.log('Pertanyaan response:', j);
 
-    if(j.status==='ok' && j.data?.pertanyaan?.length){
+    if(j.status === 'ok' && j.data?.pertanyaan?.length > 0){
       pertanyaan = j.data.pertanyaan;
       answers = {};
+      console.log(`✅ Berhasil load ${pertanyaan.length} pertanyaan untuk ${katId}`);
       renderCheck();
-      console.log('✅ Pertanyaan loaded:', pertanyaan.length);
     } else {
-      // Fallback ke demo
-      console.warn('⚠️ Pertanyaan kosong dari API, pakai demo:', j);
+      console.warn('⚠️ Data pertanyaan kosong dari API, pakai demo');
       pertanyaan = demoPertanyaan(katId);
       answers = {};
       renderCheck();
     }
   } catch(e) {
-    console.error('❌ loadPertanyaan error:', e);
-    // Fallback ke demo
+    console.error('❌ Gagal fetch pertanyaan:', e);
     pertanyaan = demoPertanyaan(katId);
     answers = {};
     renderCheck();
