@@ -1235,10 +1235,12 @@ async function toStep2(){
     document.getElementById('modeBadge').className='mbadge mb-check';
     document.getElementById('modeBadge').textContent='📋 Checklist';
     document.getElementById('modeDesc').textContent=katName;
-    pertanyaan=demoPertanyaan(katId);
+    // Tampilkan loading dulu
+    const tbody=document.getElementById('checkBody');
+    if(tbody) tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:#6B7494">⏳ Memuat pertanyaan dari master...</td></tr>';
+    pertanyaan=[];
     answers={};
-    renderCheck();
-    // Load asli di background
+    // Load langsung (bukan background)
     loadPertanyaan();
   }
 }
