@@ -299,6 +299,32 @@ body{padding-bottom:var(--nav-h)}
 .toast.success{background:var(--green)}.toast.error{background:var(--red)}.toast.warn{background:var(--yellow)}
 @media(min-width:768px){.toast{bottom:24px}}
 
+/* ── NOTIFIKASI ── */
+.notif-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:14px 16px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;position:relative;cursor:default;transition:all .15s}
+.notif-card.unread{border-left:4px solid var(--primary);background:#fafbff}
+.notif-card.unread-red{border-left:4px solid var(--red);background:#fff8f8}
+.notif-card.unread-yellow{border-left:4px solid var(--yellow);background:#fffdf5}
+.notif-card.unread-green{border-left:4px solid var(--green);background:#f8fff9}
+.notif-icon-wrap{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.notif-body{flex:1;min-width:0}
+.notif-title{font-size:13px;font-weight:600;margin-bottom:3px;line-height:1.4}
+.notif-sub{font-size:12px;color:var(--muted);line-height:1.4}
+.notif-time{font-size:10px;color:var(--muted2);margin-top:4px;font-weight:500}
+.notif-unread-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:4px}
+
+/* ── NOTIF CARDS ── */
+.notif-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:13px 16px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:background .15s}
+.notif-card:hover{background:var(--surface2)}
+.notif-card.unread-red{border-left:3px solid var(--red);background:var(--red-bg)}
+.notif-card.unread-yellow{border-left:3px solid var(--yellow);background:var(--yellow-bg)}
+.notif-card.unread-green{border-left:3px solid var(--green);background:var(--green-bg)}
+.notif-icon-wrap{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.notif-body{flex:1;min-width:0}
+.notif-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.notif-sub{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:4px}
+.notif-time{font-size:10px;color:var(--muted2);font-weight:500}
+.notif-unread-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:4px}
+
 /* View */
 .view{display:none}.view.active{display:block}
 </style>
@@ -338,9 +364,7 @@ body{padding-bottom:var(--nav-h)}
   <div class="drawer-body">
     <div class="info-grid2" id="drawerInfo"></div>
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px">Daftar Temuan</div>
-    <div id="drawerTemuanList" style="margin-bottom:12px"></div>
-    <!-- Foto Before dari Inspektor -->
-    <div id="drawerFotoBefore" style="display:none;margin-bottom:16px"></div>
+    <div id="drawerTemuanList" style="margin-bottom:16px"></div>
     <div class="dfield">
       <label>📷 Foto After — Bukti Perbaikan *</label>
       <div class="foto-zone" id="fotoZone">
@@ -456,12 +480,12 @@ body{padding-bottom:var(--nav-h)}
   <!-- JADWAL -->
   <div class="view" id="viewJadwal">
     <div class="chips">
-      <div class="chip active">Semua</div>
-      <div class="chip">Hari Ini</div>
-      <div class="chip">Minggu Ini</div>
-      <div class="chip">Bulan Ini</div>
+      <div class="chip active" onclick="filterJadwal('semua',this)">Semua</div>
+      <div class="chip" onclick="filterJadwal('hari',this)">Hari Ini</div>
+      <div class="chip" onclick="filterJadwal('minggu',this)">Minggu Ini</div>
+      <div class="chip" onclick="filterJadwal('bulan',this)">Bulan Ini</div>
     </div>
-    <div class="sec-hdr"><div class="sec-title">Jadwal Inspeksi</div></div>
+    <div class="sec-hdr"><div class="sec-title" id="jadwalSectionTitle">Jadwal Inspeksi</div></div>
     <div id="jadwalList"><div class="skel" style="height:72px;margin-bottom:10px"></div><div class="skel" style="height:72px"></div></div>
   </div>
 
@@ -708,8 +732,8 @@ body{padding-bottom:var(--nav-h)}
   <!-- NOTIFIKASI -->
   <div class="view" id="viewNotif">
     <div class="sec-hdr" style="margin-bottom:14px">
-      <div class="sec-title">Notifikasi</div>
-      <div class="sec-link" onclick="document.getElementById('notifDot').style.display='none'">Tandai dibaca</div>
+      <div class="sec-title">Notifikasi <span id="notifBadgeTitle" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle"></span></div>
+      <div class="sec-link" onclick="markAllNotifRead()">Tandai dibaca</div>
     </div>
     <div id="notifList"><div class="empty"><div class="empty-icon">🔔</div><div class="empty-title">Belum ada notifikasi</div></div></div>
   </div>
@@ -740,7 +764,6 @@ body{padding-bottom:var(--nav-h)}
 
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXYIMZh1r63PBehuExXDXJ8NqAHrJ5AwhivLGh5XcFYD61TTNCo_YWS5j2HLIczJur0Q/exec';
-  
 let SESSION=null, allTemuan=[], closeFotos=[], activeInsId=null, currentFilter='open';
 
 // ── NAV CONFIG per ROLE ──
@@ -763,14 +786,21 @@ const NAV_CONFIG = {
   ],
 };
 
+// ── ANTI BFCACHE ──
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) {
+    window.location.reload();
+  }
+});
+
 // ── INIT ──
 window.onload = async () => {
-  const raw = localStorage.getItem('msm_session');
+  const raw = localStorage.getItem('msm_session') || sessionStorage.getItem('msm_session');
   const urlParams = new URLSearchParams(window.location.search);
   const targetIns = urlParams.get('inspeksi');
-  if (!raw) { if(targetIns) sessionStorage.setItem('redirect_inspeksi',targetIns); window.location.href='login.html'; return; }
+  if (!raw) { if(targetIns) sessionStorage.setItem('redirect_inspeksi',targetIns); window.location.href='index.html'; return; }
   SESSION = JSON.parse(raw);
-  if ((new Date()-new Date(SESSION.login_at))/3600000 > 8) { localStorage.removeItem('msm_session'); window.location.href='login.html'; return; }
+  if ((new Date()-new Date(SESSION.login_at))/3600000 > 8) { localStorage.removeItem('msm_session'); window.location.href='index.html'; return; }
   const role = (SESSION.role||'PIC').toUpperCase();
   renderTopbar();
   renderProfil();
@@ -872,6 +902,7 @@ function triggerView(view, bnavEl, snavId) {
   if (view==='adminActLog') { loadActLog(false); }
   if (view==='adminTemuan') renderAdminTemuan();
   if (view==='adminMaster') loadMasterSheet(masterSheetActive, masterKeyCol);
+  if (view==='notif') loadNotif();
 }
 
 function renderTopbar() {
@@ -892,9 +923,45 @@ function renderProfil() {
   rb.textContent = role; rb.className = 'profil-role-badge prb-'+role.toLowerCase();
   document.getElementById('pNik').textContent = SESSION.nik||'-';
   document.getElementById('pEmail').textContent = SESSION.email||'-';
-  document.getElementById('pCompany').textContent = SESSION.company_id||'-';
-  document.getElementById('pArea').textContent = (SESSION.area_id||'-')+' / '+(SESSION.subarea_id||'-');
+  document.getElementById('pCompany').textContent = SESSION.company_id||'-'; // sementara, akan di-resolve
+  document.getElementById('pArea').textContent = (SESSION.area_id||'-')+' / '+(SESSION.subarea_id||'-'); // sementara
   document.getElementById('pRole').textContent = role;
+  // Resolve kode ke nama dari master data
+  resolveProfilNames();
+}
+
+async function resolveProfilNames() {
+  try {
+    const mkBody = (sheet) => JSON.stringify({action:'crudMaster', action_type:'READ', sheet_name:sheet, caller_nik:SESSION.nik||'SYSTEM'});
+    const [resCmp, resArea, resSub] = await Promise.all([
+      fetch(APPS_SCRIPT_URL, {method:'POST', body:mkBody('MASTER_PERUSAHAAN')}),
+      fetch(APPS_SCRIPT_URL, {method:'POST', body:mkBody('MASTER_AREA')}),
+      fetch(APPS_SCRIPT_URL, {method:'POST', body:mkBody('MASTER_SUBAREA')}),
+    ]);
+    const [jCmp, jArea, jSub] = await Promise.all([resCmp.json(), resArea.json(), resSub.json()]);
+
+    // Resolve nama perusahaan
+    if (jCmp.status === 'ok' && jCmp.data) {
+      const cmp = jCmp.data.find(r => r.company_id === SESSION.company_id);
+      if (cmp) document.getElementById('pCompany').textContent = cmp.nama_perusahaan || SESSION.company_id;
+    }
+
+    // Resolve nama area & subarea
+    let namaArea = SESSION.area_id || '-';
+    let namaSubarea = SESSION.subarea_id || '-';
+    if (jArea.status === 'ok' && jArea.data) {
+      const area = jArea.data.find(r => r.area_id === SESSION.area_id);
+      if (area) namaArea = area.nama_area || SESSION.area_id;
+    }
+    if (jSub.status === 'ok' && jSub.data) {
+      const sub = jSub.data.find(r => r.subarea_id === SESSION.subarea_id);
+      if (sub) namaSubarea = sub.nama_subarea || SESSION.subarea_id;
+    }
+    document.getElementById('pArea').textContent = namaArea + ' / ' + namaSubarea;
+  } catch(e) {
+    // Fallback tetap tampilkan kode jika gagal fetch
+    console.warn('resolveProfilNames error:', e);
+  }
 }
 
 // ── LOAD DATA ──
@@ -939,6 +1006,206 @@ function renderStats() {
   const badge2=document.getElementById('navBadge2');
   if(badge2){badge2.textContent=open;badge2.style.display=open>0?'block':'none'}
   if(ov>0) document.getElementById('notifDot').style.display='block';
+  // Render notifikasi otomatis dari data temuan & jadwal
+  loadNotif();
+}
+
+// ── NOTIFIKASI SYSTEM ──
+let notifReadIds = new Set(JSON.parse(localStorage.getItem('notif_read') || '[]'));
+
+function fmtDate(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  return d.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+}
+
+function loadNotif() {
+  const notifs = [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr = today.toISOString().split('T')[0];
+
+  // 1. Temuan OVERDUE
+  const overdueTemuan = getFiltered('overdue');
+  if (overdueTemuan.length > 0) {
+    notifs.push({
+      id: 'overdue_'+todayStr,
+      type: 'overdue', filter: 'overdue',
+      icon: '🚨', iconBg: 'background:var(--red-bg)',
+      title: overdueTemuan.length + ' Temuan Melewati Batas Waktu!',
+      sub: overdueTemuan.slice(0,3).map(t=>'• '+t.nama_alat+' ('+t.nama_subarea+')').join('\n') + (overdueTemuan.length>3?' dan '+(overdueTemuan.length-3)+' lainnya...':''),
+      time: 'Hari ini', color: 'unread-red',
+    });
+  }
+
+  // 2. Temuan due hari ini
+  const dueTodayTemuan = getFiltered('today');
+  if (dueTodayTemuan.length > 0) {
+    notifs.push({
+      id: 'today_'+todayStr,
+      type: 'today', filter: 'open',
+      icon: '⏰', iconBg: 'background:var(--yellow-bg)',
+      title: dueTodayTemuan.length + ' Temuan Jatuh Tempo Hari Ini',
+      sub: dueTodayTemuan.slice(0,3).map(t=>'• '+t.nama_alat+' ('+t.nama_subarea+')').join('\n') + (dueTodayTemuan.length>3?' dan '+(dueTodayTemuan.length-3)+' lainnya...':''),
+      time: 'Hari ini', color: 'unread-yellow',
+    });
+  }
+
+  // 3. Temuan OPEN per risiko CRITICAL/HIGH
+  const critical = getFiltered('critical');
+  if (critical.length > 0) {
+    notifs.push({
+      id: 'critical_'+todayStr,
+      type: 'critical', filter: 'critical',
+      icon: '🔥', iconBg: 'background:var(--purple-bg)',
+      title: critical.length + ' Temuan Risiko CRITICAL Belum Selesai',
+      sub: critical.slice(0,3).map(t=>'• '+t.nama_alat+' — due '+fmtDate(t.due_date)).join('\n'),
+      time: 'Hari ini', color: 'unread-red',
+    });
+  }
+  const high = getFiltered('high');
+  if (high.length > 0) {
+    notifs.push({
+      id: 'high_'+todayStr,
+      type: 'high', filter: 'high',
+      icon: '🔴', iconBg: 'background:var(--red-bg)',
+      title: high.length + ' Temuan Risiko HIGH Belum Selesai',
+      sub: high.slice(0,3).map(t=>'• '+t.nama_alat+' — due '+fmtDate(t.due_date)).join('\n'),
+      time: 'Hari ini', color: 'unread-red',
+    });
+  }
+
+  // 4. Jadwal inspeksi yang OVERDUE/UPCOMING (dari allJadwal)
+  if (allJadwal && allJadwal.length > 0) {
+    const overdueJadwal = allJadwal.filter(j=>j.status_jadwal==='OVERDUE');
+    if (overdueJadwal.length > 0) {
+      notifs.push({
+        id: 'jadwal_overdue_'+todayStr,
+        type: 'jadwal_overdue',
+        icon: '📅',
+        iconBg: 'background:var(--red-bg)',
+        title: overdueJadwal.length + ' Jadwal Inspeksi Terlambat!',
+        sub: overdueJadwal.slice(0,3).map(j=>'• '+j.nama_subarea+' — '+j.nama_kategori).join('\n'),
+        time: 'Hari ini',
+        color: 'unread-red',
+      });
+    }
+    const upcomingJadwal = allJadwal.filter(j=>j.status_jadwal==='UPCOMING');
+    if (upcomingJadwal.length > 0) {
+      notifs.push({
+        id: 'jadwal_upcoming_'+todayStr,
+        type: 'jadwal_upcoming',
+        icon: '📋',
+        iconBg: 'background:var(--yellow-bg)',
+        title: upcomingJadwal.length + ' Jadwal Inspeksi Segera Jatuh Tempo',
+        sub: upcomingJadwal.slice(0,3).map(j=>'• '+j.nama_subarea+' — '+j.nama_kategori+' ('+j.tgl_inspeksi_due+')').join('\n'),
+        time: 'Hari ini',
+        color: 'unread-yellow',
+      });
+    }
+  }
+
+  // 5. Kalau semua beres — notif positif
+  if (notifs.length === 0) {
+    const cl = getFiltered('closed').length;
+    if (cl > 0) {
+      notifs.push({
+        id: 'allclear_'+todayStr,
+        type: 'allclear',
+        icon: '✅',
+        iconBg: 'background:var(--green-bg)',
+        title: 'Semua Temuan Terkendali',
+        sub: cl + ' temuan berhasil diselesaikan bulan ini. Kerja bagus!',
+        time: 'Hari ini',
+        color: 'unread-green',
+      });
+    }
+  }
+
+  renderNotif(notifs);
+}
+
+function renderNotif(notifs) {
+  const el = document.getElementById('notifList');
+  const badge = document.getElementById('notifBadgeTitle');
+  const dot = document.getElementById('notifDot');
+
+  if (!notifs.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🔔</div><div class="empty-title">Belum ada notifikasi</div><div class="empty-sub">Semua kondisi aman, tidak ada yang perlu ditindaklanjuti.</div></div>';
+    if (badge) badge.style.display = 'none';
+    return;
+  }
+
+  const unreadCount = notifs.filter(n => !notifReadIds.has(n.id)).length;
+  if (badge) {
+    badge.textContent = unreadCount;
+    badge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+  }
+  if (dot) dot.style.display = unreadCount > 0 ? 'block' : 'none';
+
+  el.innerHTML = notifs.map(n => {
+    const isRead = notifReadIds.has(n.id);
+    const subLines = n.sub.split('\n').map(s=>`<div>${s}</div>`).join('');
+    const navAttr = n.inspeksi_id ? `data-ins="${n.inspeksi_id}"` : (n.filter ? `data-filter="${n.filter}"` : '');
+    return `<div class="notif-card ${isRead ? '' : n.color}" ${navAttr} onclick="handleNotifClick(event,'${n.id}',this)">
+      <div class="notif-icon-wrap" style="${n.iconBg}">${n.icon}</div>
+      <div class="notif-body">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-sub">${subLines}</div>
+        <div class="notif-time">${n.time} &nbsp;·&nbsp; <span style="color:var(--primary);font-weight:600">Lihat temuan →</span></div>
+      </div>
+      ${!isRead ? '<div class="notif-unread-dot"></div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function handleNotifClick(e, id, el) {
+  // Mark as read
+  markNotifRead(id, el);
+  // Navigate ke view home (temuan list)
+  triggerView('home');
+  // Kalau ada filter spesifik, apply setelah nav
+  const filter = el.getAttribute('data-filter');
+  const insId  = el.getAttribute('data-ins');
+  setTimeout(() => {
+    if (insId) {
+      openDrawerByIns(insId);
+    } else if (filter) {
+      const chip = [...document.querySelectorAll('#viewHome .chip')].find(c => c.textContent.trim().toLowerCase().includes(filter));
+      filterTemuan(filter, chip || null);
+    } else {
+      filterTemuan('overdue', null);
+    }
+  }, 100);
+}
+
+function markNotifRead(id, el) {
+  notifReadIds.add(id);
+  localStorage.setItem('notif_read', JSON.stringify([...notifReadIds]));
+  if (el) {
+    el.classList.remove('unread','unread-red','unread-yellow','unread-green');
+    const dot = el.querySelector('.notif-unread-dot');
+    if (dot) dot.remove();
+  }
+  // update badge
+  const badge = document.getElementById('notifBadgeTitle');
+  const allCards = document.querySelectorAll('#notifList .notif-unread-dot');
+  if (badge) { badge.textContent = allCards.length; badge.style.display = allCards.length > 0 ? 'inline-block' : 'none'; }
+  if (allCards.length === 0) document.getElementById('notifDot').style.display = 'none';
+}
+
+function markAllNotifRead() {
+  document.querySelectorAll('#notifList .notif-card').forEach(card => {
+    const id = card.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+    if (id) notifReadIds.add(id);
+    card.classList.remove('unread','unread-red','unread-yellow','unread-green');
+    const dot = card.querySelector('.notif-unread-dot');
+    if (dot) dot.remove();
+  });
+  localStorage.setItem('notif_read', JSON.stringify([...notifReadIds]));
+  const badge = document.getElementById('notifBadgeTitle');
+  if (badge) badge.style.display = 'none';
+  document.getElementById('notifDot').style.display = 'none';
+  showToast('Semua notifikasi ditandai dibaca','success');
 }
 
 function filterTemuan(filter, chipEl) {
@@ -959,7 +1226,7 @@ function renderTemuanList(data) {
     const isOv=f.sla_status==='OVERDUE', isTod=f.due_date===today;
     const rc=(f.risiko||'low').toLowerCase();
     const rLabel={CRITICAL:'🔥 CRITICAL',HIGH:'🔴 HIGH',MEDIUM:'🟡 MEDIUM',LOW:'🟢 LOW'}[f.risiko]||f.risiko;
-    const dLabel=isOv?'🚨 Overdue':isTod?'⏰ Due hari ini!':'📅 Due: '+(f.due_date||'-');
+    const dLabel=isOv?'🚨 Overdue':isTod?'⏰ Due hari ini!':'📅 Due: '+formatTgl(f.due_date, true);
     const dClass=isOv?'overdue':isTod?'urgent':'ontime';
     const findings=temuan.slice(0,2).map(t=>`<div class="tc-finding">⚠️ ${t.pertanyaan||'-'}</div>`).join('');
     const more=temuan.length>2?`<div class="tc-finding" style="color:var(--muted2)">+${temuan.length-2} lainnya</div>`:'';
@@ -1079,13 +1346,56 @@ function renderAnalytics() {
 }
 
 // ── JADWAL ──
+let allJadwal = [];
+
 async function loadJadwal() {
   try {
     const res=await fetch(APPS_SCRIPT_URL+'?action=getJadwal');
     const json=await res.json();
-    renderJadwal(json.status==='ok'?json.data:getDemoJadwal());
-  } catch(e){renderJadwal(getDemoJadwal())}
+    allJadwal = json.status==='ok' ? json.data : getDemoJadwal();
+  } catch(e){ allJadwal = getDemoJadwal(); }
+  renderJadwal(allJadwal);
 }
+
+function filterJadwal(mode, el) {
+  // update active chip
+  document.querySelectorAll('#viewJadwal .chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr = today.toISOString().split('T')[0];
+
+  let filtered = allJadwal;
+  let title = 'Jadwal Inspeksi';
+
+  if (mode === 'hari') {
+    filtered = allJadwal.filter(j => {
+      if (!j.tgl_inspeksi_due) return false;
+      return j.tgl_inspeksi_due.split('T')[0] === todayStr;
+    });
+    title = 'Jadwal Hari Ini';
+  } else if (mode === 'minggu') {
+    const endOfWeek = new Date(today); endOfWeek.setDate(today.getDate() + 6);
+    filtered = allJadwal.filter(j => {
+      if (!j.tgl_inspeksi_due) return false;
+      const d = new Date(j.tgl_inspeksi_due); d.setHours(0,0,0,0);
+      return d >= today && d <= endOfWeek;
+    });
+    title = 'Jadwal Minggu Ini';
+  } else if (mode === 'bulan') {
+    filtered = allJadwal.filter(j => {
+      if (!j.tgl_inspeksi_due) return false;
+      const d = new Date(j.tgl_inspeksi_due);
+      return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+    });
+    title = 'Jadwal Bulan Ini';
+  }
+
+  const titleEl = document.getElementById('jadwalSectionTitle');
+  if (titleEl) titleEl.textContent = title + (filtered.length ? ' (' + filtered.length + ')' : '');
+  renderJadwal(filtered);
+}
+
 function renderJadwal(data) {
   const el=document.getElementById('jadwalList');
   if(!data.length){el.innerHTML='<div class="empty"><div class="empty-icon">📅</div><div class="empty-title">Tidak ada jadwal</div></div>';return;}
@@ -1113,47 +1423,14 @@ function openDrawer(insId) {
   document.getElementById('drawerInfo').innerHTML=`
     <div class="ig-cell"><div class="ig-label">Alat</div><div class="ig-val">${f.nama_alat||'-'}</div></div>
     <div class="ig-cell"><div class="ig-label">Area</div><div class="ig-val">${f.nama_subarea||'-'}</div></div>
-    <div class="ig-cell"><div class="ig-label">Tanggal</div><div class="ig-val">${fmtDate(f.tanggal_temuan)}</div></div>
-    <div class="ig-cell"><div class="ig-label" style="color:${f.sla_status==='OVERDUE'?'var(--red)':'var(--muted)'}">Due Date</div><div class="ig-val" style="color:${f.sla_status==='OVERDUE'?'var(--red)':'inherit'}">${fmtDate(f.due_date)}</div></div>`;
+    <div class="ig-cell"><div class="ig-label">Tanggal</div><div class="ig-val">${f.tanggal_temuan||'-'}</div></div>
+    <div class="ig-cell"><div class="ig-label" style="color:${f.sla_status==='OVERDUE'?'var(--red)':'var(--muted)'}">Due Date</div><div class="ig-val" style="color:${f.sla_status==='OVERDUE'?'var(--red)':'inherit'}">${formatTgl(f.due_date, true)}</div></div>`;
   document.getElementById('drawerTemuanList').innerHTML=temuan.map((t,i)=>`
     <div class="temuan-item">
       <div class="temuan-no">Temuan ${i+1}</div>
       <div class="temuan-q">${t.pertanyaan||'-'}</div>
       ${t.remarks_inspector?`<div class="temuan-rmk">📝 ${t.remarks_inspector}</div>`:''}
     </div>`).join('');
-
-  // Tampilkan foto temuan (before) kalau ada
-  const fotoTemuan = temuan[0]?.foto_temuan;
-  const fotoEl = document.getElementById('drawerFotoBefore');
-  if (fotoEl) {
-    if (fotoTemuan) {
-      const urls = fotoTemuan.split(',').map(u=>u.trim()).filter(Boolean);
-      fotoEl.style.display = 'block';
-      fotoEl.innerHTML = `
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
-          letter-spacing:.3px;margin-bottom:8px">📸 Foto Before (dari Inspektor)</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          ${urls.map(url=>`
-            <a href="${url}" target="_blank" style="display:block;width:80px;height:80px;flex-shrink:0">
-              <img src="${url}" 
-                style="width:80px;height:80px;object-fit:cover;border-radius:10px;
-                border:2px solid var(--border);cursor:pointer"
-                onerror="this.parentElement.innerHTML='<div style=\'width:80px;height:80px;background:var(--surface2);border-radius:10px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px\'>📷</div>'"
-              >
-            </a>`).join('')}
-        </div>`;
-    } else {
-      fotoEl.style.display = 'block';
-      fotoEl.innerHTML = `
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
-          letter-spacing:.3px;margin-bottom:6px">📸 Foto Before (dari Inspektor)</div>
-        <div style="background:var(--surface2);border-radius:10px;padding:14px;
-          text-align:center;border:1.5px dashed var(--border)">
-          <div style="font-size:20px;margin-bottom:4px">📷</div>
-          <div style="font-size:12px;color:var(--muted)">Tidak ada foto before</div>
-        </div>`;
-    }
-  }
   document.getElementById('tindakanInput').value='';
   document.getElementById('fotoRow').innerHTML='';
   document.getElementById('fotoZone').style.display='flex';
@@ -1224,17 +1501,26 @@ async function compressFoto(file,q=0.7,maxPx=1280){
   });
 }
 
-// ── HELPERS ──
-function fmtDate(dateStr) {
-  if (!dateStr) return '-';
+// ── FORMAT TANGGAL → dd-mm-yyyy hh:mm:ss (WITA GMT+8) ──
+function formatTgl(val, withTime) {
+  if (!val || val === '-') return '-';
   try {
-    const d = new Date(dateStr);
-    if (isNaN(d)) return dateStr;
-    return d.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
-  } catch(e) { return dateStr; }
+    var d = new Date(val);
+    if (isNaN(d.getTime())) return val;
+    var wita = new Date(d.getTime() + (8 * 60 * 60 * 1000));
+    var dd   = String(wita.getUTCDate()).padStart(2, '0');
+    var mm   = String(wita.getUTCMonth() + 1).padStart(2, '0');
+    var yyyy = wita.getUTCFullYear();
+    if (!withTime) return dd + '-' + mm + '-' + yyyy;
+    var hh   = String(wita.getUTCHours()).padStart(2, '0');
+    var min  = String(wita.getUTCMinutes()).padStart(2, '0');
+    var ss   = String(wita.getUTCSeconds()).padStart(2, '0');
+    return dd + '-' + mm + '-' + yyyy + ' ' + hh + ':' + min + ':' + ss;
+  } catch(e) { return val; }
 }
 
-function logout(){if(confirm('Yakin ingin keluar?')){localStorage.removeItem('msm_session');window.location.href='login.html';}}
+// ── HELPERS ──
+function logout(){if(confirm('Yakin ingin keluar?')){localStorage.clear();sessionStorage.clear();window.location.replace('index.html');}}
 function showLoad(msg){document.getElementById('lo').classList.add('show');document.getElementById('loMsg').textContent=msg||'Loading...'}
 function hideLoad(){document.getElementById('lo').classList.remove('show')}
 function showToast(msg,type='info'){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.className='toast show '+type;setTimeout(()=>t.classList.remove('show'),3500)}
@@ -1468,7 +1754,7 @@ function applyAdminFilter() {
       </div>
       <div class="tc-findings">${temuan.slice(0,2).map(t=>`<div class="tc-finding">⚠️ ${t.pertanyaan||'-'}</div>`).join('')}</div>
       <div class="tc-foot">
-        <div class="tc-due ${isOv?'overdue':f.due_date===today?'urgent':'ontime'}">${isOv?'🚨 Overdue':'📅 '+(f.due_date||'-')}</div>
+        <div class="tc-due ${isOv?'overdue':f.due_date===today?'urgent':'ontime'}">${isOv?'🚨 Overdue':'📅 '+formatTgl(f.due_date, true)}</div>
         <div class="tc-ins">👤 ${f.nama_inspektor||'-'}</div>
         <button class="btn-close-mini" onclick="event.stopPropagation();openDrawer('${insId}')">Close</button>
       </div>
@@ -1921,7 +2207,7 @@ async function deleteMasterRecord(keyVal) {
     else showToast('❌ '+(json.message||'Error'),'error');
   } catch(e) { hideLoad(); showToast('❌ Koneksi gagal','error'); }
 }
- 
+
 // ════════════════════════════════════════════════════════════
 //  DEMO DATA ADMIN
 // ════════════════════════════════════════════════════════════
