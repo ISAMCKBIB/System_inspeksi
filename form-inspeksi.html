@@ -712,9 +712,9 @@ table.tbtbl input[type=text]{
 
   <div class="card">
     <div class="card-title">📷 Foto Dokumentasi (maks 3)</div>
-    <div id="fotoWarn" class="foto-warn">⚠️ Foto wajib untuk temuan HIGH dan CRITICAL</div>
+    <div id="fotoWarn" class="foto-warn">📷 Foto wajib jika ada temuan</div>
     <div class="uzone" id="uzone">
-      <input type="file" accept="image/*" multiple onchange="onFoto(this)">
+      <input type="file" id="fotoInput" accept="image/*" multiple onchange="onFoto(this)">
       <div style="font-size:24px">📸</div>
       <div style="font-weight:600">Ketuk untuk ambil / upload foto</div>
       <div style="font-size:12px;color:var(--muted2);margin-top:4px">Foto dikompres otomatis oleh sistem · Maks 3 foto</div>
@@ -1430,18 +1430,33 @@ function toast(msg, type='info'){
 // ── STEP 3: REVIEW ──
 function toStep3(){
   if(!isTb){
-    // Validasi pakai question_id (sama dengan key di answers)
+    // Debug: lihat semua jawaban
+    console.log('Checking answers:', pertanyaan.map(p=>({
+      qid: p.question_id,
+      val: answers[p.question_id]?.val || 'KOSONG'
+    })));
+
     const unanswered = pertanyaan.filter(p => {
       const a = answers[p.question_id];
       return !a || !a.val;
     });
+
     if(unanswered.length > 0){
       toast(`⚠️ ${unanswered.length} pertanyaan belum dijawab`, 'warn');
+      console.log('Unanswered:', unanswered.map(p=>p.question_id));
       return;
     }
   }
+
+  // Cek apakah ada temuan
+  const hasTemuan = isTb
+    ? tbContent.some(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG');})
+    : pertanyaan.some(p=>answers[p.question_id]?.val==='TIDAK');
+
+  console.log('toStep3: hasTemuan='+hasTemuan+', calling buildReview');
   buildReview();
   goStep(3);
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 // ── STEP 4: SELESAI ──
@@ -1451,58 +1466,47 @@ function toStep4(){
 
 // ── BUILD REVIEW ──
 function buildReview(){
-  const rv=document.getElementById('reviewContent');
-  if(!rv)return;
-  const namaIns=document.getElementById('namaIns')?.value||'-';
-  const nikIns=document.getElementById('nikIns')?.value||'-';
-  const tgl=document.getElementById('tgl')?.value||'-';
-  const areaNama=document.getElementById('areaSel')?.selectedOptions[0]?.text||'-';
-  const subNama=document.getElementById('subSel')?.selectedOptions[0]?.text||'-';
-  const katNama=document.getElementById('katSel')?.selectedOptions[0]?.text||'-';
-  const namaAlat=document.getElementById('namaAlat')?.value||'-';
-  const noId=document.getElementById('noId')?.value||'-';
-  const merkAlat=document.getElementById('merkAlat')?.value||'-';
-  const noAsset=document.getElementById('noAsset')?.value||'-';
+  let total,ok,ng,na,items=[];
+  if(isTb){
+    total=tbContent.length;
+    items=tbContent.filter(i=>{const a=tbAnswers[i.content_id];if(!a)return false;const aktDiisi=a.aktual!==''&&a.aktual!=='0';return a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(aktDiisi&&parseInt(a.aktual)<parseInt(i.qty_standar));})
+      .map(i=>({q:`${i.deskripsi} — ${tbAnswers[i.content_id].kondisi}`,rmk:tbAnswers[i.content_id].remarks||''}));
+    ng=items.length; ok=total-ng; na=0;
+  } else {
+    total=pertanyaan.length;
+    items=pertanyaan.filter(p=>answers[p.question_id]?.val==='TIDAK'||answers[p.question_id]?.val==='MERAH')
+      .map(p=>({q:p.pertanyaan,rmk:answers[p.question_id]?.remarks||''}));
+    ng=items.length;
+    na=pertanyaan.filter(p=>answers[p.question_id]?.val==='N/A').length;
+    ok=total-ng-na;
+  }
+  document.getElementById('statRow').innerHTML=`
+    <div class="sc"><div class="sn">${total}</div><div class="sl">Total</div></div>
+    <div class="sc"><div class="sn" style="color:var(--green)">${ok}</div><div class="sl">OK</div></div>
+    <div class="sc"><div class="sn" style="color:var(--red)">${ng}</div><div class="sl">Temuan</div></div>
+    <div class="sc"><div class="sn" style="color:var(--muted)">${na}</div><div class="sl">N/A</div></div>`;
 
-  // Hitung status
-  let ngCount=0, okCount=0;
-  pertanyaan.forEach((_,i)=>{ if(answers[i]==='NG')ngCount++; else if(answers[i])okCount++; });
-  const status=ngCount>0?'TIDAK LAYAK':'LAYAK';
-  const statusColor=ngCount>0?'#DC2626':'#16A34A';
+  const listEl=document.getElementById('temuanList');
+  const noT=document.getElementById('noTemuan');
+  console.log('buildReview: ng='+ng+', items='+items.length+', listEl='+!!listEl);
+  listEl.innerHTML=''; selRisiko='';
+  if(!items.length){noT.style.display='block';document.getElementById('critAlert').className='crit-alert';document.getElementById('fotoWarn').style.display='none';return;}
+  noT.style.display='none';
+  // Foto WAJIB jika ada temuan
+  document.getElementById('fotoWarn').style.display='block';
+  document.getElementById('fotoWarn').textContent='📷 Foto wajib untuk semua tingkat risiko';
 
-  rv.innerHTML=`
-    <div style="background:#F8FAFC;border-radius:12px;padding:16px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;color:#1B4FD8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">👤 Data Inspektur</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
-        <div><div style="color:#6B7494;font-size:11px">Nama</div><div style="font-weight:600">${namaIns}</div></div>
-        <div><div style="color:#6B7494;font-size:11px">NIK</div><div style="font-weight:600">${nikIns}</div></div>
-        <div><div style="color:#6B7494;font-size:11px">Tanggal</div><div style="font-weight:600">${tgl}</div></div>
-        <div><div style="color:#6B7494;font-size:11px">Area</div><div style="font-weight:600">${subNama}</div></div>
-      </div>
+  const rOpts=[{v:'LOW',l:'Low — 14 hari',c:'sel-low'},{v:'MEDIUM',l:'Medium — 7 hari',c:'sel-medium'},{v:'HIGH',l:'High — 3 hari',c:'sel-high'},{v:'CRITICAL',l:'Critical — 1 hari',c:'sel-critical'}];
+  listEl.innerHTML=`
+    <div style="margin-bottom:14px;padding:12px;background:var(--surface2);border-radius:10px;border:1.5px solid var(--border)">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.3px">Tingkat Risiko Keseluruhan *</div>
+      <div class="risk-row">${rOpts.map(r=>`<button class="rrb" data-v="${r.v}" onclick="pickRisiko('${r.v}','${r.c}',this)">${r.l}</button>`).join('')}</div>
     </div>
-    <div style="background:#F8FAFC;border-radius:12px;padding:16px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;color:#1B4FD8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🔧 Peralatan</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
-        <div><div style="color:#6B7494;font-size:11px">Nama Alat</div><div style="font-weight:600">${namaAlat}</div></div>
-        <div><div style="color:#6B7494;font-size:11px">Merk</div><div style="font-weight:600">${merkAlat}</div></div>
-        <div><div style="color:#6B7494;font-size:11px">No ID</div><div style="font-weight:600">${noId}</div></div>
-        <div><div style="color:#6B7494;font-size:11px">No Asset</div><div style="font-weight:600">${noAsset}</div></div>
-      </div>
-    </div>
-    <div style="background:${ngCount>0?'#FEF2F2':'#F0FDF4'};border:2px solid ${statusColor};border-radius:12px;padding:14px;margin-bottom:12px;text-align:center">
-      <div style="font-size:18px;font-weight:800;color:${statusColor}">${status}</div>
-      <div style="font-size:12px;color:${statusColor};opacity:.8;margin-top:2px">
-        ✅ OK: ${okCount} | ❌ NG: ${ngCount}
-      </div>
-    </div>
-    ${ngCount>0?`
-    <div style="background:#FFF7ED;border-radius:12px;padding:14px">
-      <div style="font-size:11px;font-weight:700;color:#D97706;margin-bottom:8px">⚠️ Temuan (${ngCount} item)</div>
-      ${pertanyaan.filter((_,i)=>answers[i]==='NG').map((p,i)=>`
-        <div style="font-size:12px;padding:6px 0;border-bottom:1px solid #FDE68A;color:#92400E">
-          ${i+1}. ${p.pertanyaan}
-        </div>`).join('')}
-    </div>`:''}`;
+    <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px">Daftar Temuan (${items.length})</div>
+    ${items.map(t=>`<div class="tc">
+      <div class="tc-title">⚠️ ${t.q}</div>
+      <div class="tc-rmk">${t.rmk||'<span style="color:var(--muted2);font-style:italic">Tidak ada remarks</span>'}</div>
+    </div>`).join('')}`;
 }
 
 // ── RENDER CHECKLIST ──
