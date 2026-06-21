@@ -1211,7 +1211,7 @@ function resetTb(){
   selSec=null; tbTipeId=''; tbTipeName=''; katId=''; isTb=false;
 }
 
-async async function toStep2(){
+async function toStep2(){
   const checks=[['namaIns','Nama inspektur'],['compSel','Perusahaan'],['areaSel','Area'],['subSel','Sub area'],['katSel','Kategori']];
   for(const[id,lbl]of checks){
     if(!document.getElementById(id).value){toast('⚠️ '+lbl+' wajib diisi','warn');return;}
