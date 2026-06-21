@@ -1815,6 +1815,38 @@ function logout() {
   sessionStorage.clear();
   window.location.replace('login.html?logout=1&t=' + Date.now());
 }
+
+// ── UTILITY FUNCTIONS ──
+function showLoad(msg){
+  let lo = document.getElementById('loadOverlay');
+  if (!lo) {
+    lo = document.createElement('div');
+    lo.id = 'loadOverlay';
+    Object.assign(lo.style, {
+      position:'fixed',inset:'0',background:'rgba(255,255,255,.9)',
+      display:'flex',flexDirection:'column',alignItems:'center',
+      justifyContent:'center',zIndex:'9998',fontFamily:'Inter,sans-serif'
+    });
+    lo.innerHTML = `<div style="width:36px;height:36px;border:3px solid #E5E9F0;border-top-color:#1B4FD8;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px"></div>
+      <div id="loadMsg" style="font-size:14px;color:#6B7494;font-weight:500">Memuat...</div>`;
+    document.body.appendChild(lo);
+  }
+  lo.style.display = 'flex';
+  const m = document.getElementById('loadMsg');
+  if (m && msg) m.textContent = msg;
+}
+
+function hideLoad(){
+  const lo = document.getElementById('loadOverlay');
+  if (lo) lo.style.display = 'none';
+}
+
+function fmtDate(d){
+  if (!d) return '-';
+  try {
+    return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  } catch(e){ return d; }
+}
 </script>
 </body>
 </html>
