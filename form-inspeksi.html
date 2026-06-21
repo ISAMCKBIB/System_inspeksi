@@ -620,11 +620,13 @@ table.tbtbl input[type=text]{
 
     <div id="picBox" class="pic-box"></div>
   </div>
+</div><!-- end card2 inner -->
+</div><!-- end card2 -->
 
   <!-- Footer Step 1 -->
   <div class="footer">
     <span class="note">* wajib diisi</span>
-    <button class="btn-next" onclick="toStep2()">Lanjut →</button>
+    <button class="btn-next" onclick="handleStep2()">Lanjut →</button>
   </div>
 </div>
 
@@ -1279,19 +1281,22 @@ async function loadPertanyaan(){
       answers = {};
       renderCheck();
       console.log('✅ Berhasil load', pertanyaan.length, 'pertanyaan untuk', katId);
+      // Scroll ke atas setelah render selesai
+      window.scrollTo({top:0,behavior:'smooth'});
     } else {
       // Fallback ke demo
       console.warn('⚠️ Pertanyaan kosong dari API, pakai demo:', j);
       pertanyaan = demoPertanyaan(katId);
       answers = {};
       renderCheck();
+      window.scrollTo({top:0,behavior:'smooth'});
     }
   } catch(e) {
     console.error('❌ loadPertanyaan error:', e);
-    // Fallback ke demo
     pertanyaan = demoPertanyaan(katId);
     answers = {};
     renderCheck();
+    window.scrollTo({top:0,behavior:'smooth'});
   }
 }
 
@@ -1379,10 +1384,16 @@ async function fetchAssetFromURL(noId) {
 // ══════════════════════════════════════════════
 
 // ── STEP NAVIGATION ──
+function handleStep2(){
+  // Wrapper untuk async toStep2 agar onclick bisa handle
+  toStep2().catch(e => console.error('toStep2 error:', e));
+}
+
 function goStep(n){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const pg=document.getElementById('page'+n);
-  if(pg){pg.classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+  console.log('goStep', n, 'pg found:', !!pg);
+  if(pg){pg.classList.add('active');console.log('page'+n+' class:', pg.className);}
   document.querySelectorAll('.step').forEach((s,i)=>{
     s.classList.toggle('done', i<n-1);
     s.classList.toggle('active', i===n-1);
@@ -1494,6 +1505,7 @@ function buildReview(){
 // ── RENDER CHECKLIST ──
 function renderCheck(){
   const tbody=document.getElementById('checkBody');
+  console.log('renderCheck called, pertanyaan:', pertanyaan.length, 'tbody:', tbody);
   if(!pertanyaan.length){
     tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada pertanyaan</td></tr>';
     return;
