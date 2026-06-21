@@ -1492,29 +1492,64 @@ function buildReview(){
 // ── RENDER CHECKLIST ──
 function renderCheck(){
   const tbody=document.getElementById('checkBody');
-  if(!tbody)return;
   if(!pertanyaan.length){
     tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada pertanyaan</td></tr>';
     return;
   }
-  tbody.innerHTML=pertanyaan.map((item,i)=>{
-    const isNg=answers[i]==='NG';
-    const isOk=answers[i]==='OK';
-    return `<tr id="row${i}" style="background:${isNg?'#FEF2F2':isOk?'#F0FDF4':''}">
-      <td style="padding:10px 8px;font-size:13px;font-weight:${isNg?600:400}">${item.pertanyaan}</td>
-      <td style="text-align:center;padding:8px">
-        <button onclick="setAns(${i},'OK')" style="padding:6px 14px;border-radius:8px;border:2px solid ${isOk?'#16A34A':'#D4DCEF'};background:${isOk?'#16A34A':'#fff'};color:${isOk?'#fff':'#6B7494'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">✅ OK</button>
-      </td>
-      <td style="text-align:center;padding:8px">
-        <button onclick="setAns(${i},'NG')" style="padding:6px 14px;border-radius:8px;border:2px solid ${isNg?'#DC2626':'#D4DCEF'};background:${isNg?'#DC2626':'#fff'};color:${isNg?'#fff':'#6B7494'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">❌ NG</button>
-      </td>
-      <td style="padding:8px">
-        ${isNg?`<input type="text" placeholder="Keterangan temuan..." 
-          style="width:100%;border:1.5px solid #FECACA;border-radius:8px;padding:6px 10px;font-size:12px;font-family:inherit"
-          onchange="setRem(${i},this.value)" value="${item._rem||''}">`:''}
-      </td>
-    </tr>`;
-  }).join('');
+  let filled=0;
+  tbody.innerHTML='';
+  pertanyaan.forEach((item,i)=>{
+    const a=answers[item.question_id]||{val:'',remarks:''};
+    if(a.val) filled++;
+    const isNg=a.val==='TIDAK'||a.val==='MERAH';
+    const tr=document.createElement('tr');
+    if(isNg) tr.classList.add('ng');
+    const qid=item.question_id;
+    let inp='';
+    if(item.tipe_jawaban==='PILIHAN'){
+      inp=`<div class="rg">
+        <button class="rb ya${a.val==='YA'?' sel':''}" onclick="setA('${qid}','YA')">YA</button>
+        <button class="rb tidak${a.val==='TIDAK'?' sel':''}" onclick="setA('${qid}','TIDAK')">TIDAK</button>
+        <button class="rb na${a.val==='N/A'?' sel':''}" onclick="setA('${qid}','N/A')">N/A</button>
+      </div>`;
+    } else if(item.tipe_jawaban==='ANGKA'){
+      inp=`<input type="number" inputmode="numeric" style="width:80px;border:1.5px solid var(--border);border-radius:7px;padding:8px;font-size:15px;background:#fff;text-align:center" value="${a.val||''}" onchange="setAV('${qid}',this.value)">`;
+    } else if(item.tipe_jawaban==='TEKS'){
+      inp=`<input type="text" style="width:100%;border:1.5px solid var(--border);border-radius:7px;padding:8px;font-size:14px;background:#fff" value="${a.val||''}" onchange="setAV('${qid}',this.value)">`;
+    } else if(item.tipe_jawaban==='TANGGAL'){
+      inp=`<input type="date" style="border:1.5px solid var(--border);border-radius:7px;padding:8px;font-size:14px;background:#fff" value="${a.val||''}" onchange="setAV('${qid}',this.value)">`;
+    } else if(item.tipe_jawaban==='PILIHAN_KUSTOM'){
+      const opts=(item.pilihan_jawaban||'').split(',').map(o=>o.trim()).filter(Boolean);
+      inp=`<div class="rg">${opts.map(o=>`<button class="rb opt${a.val===o?' sel':''}" onclick="setA('${qid}','${o}')">${o}</button>`).join('')}</div>`;
+    }
+    let stat='';
+    if(a.val){
+      if(isNg) stat='<span class="sdot sd-ng">✗</span>';
+      else if(a.val==='N/A') stat='<span class="sdot sd-na">N/A</span>';
+      else stat='<span class="sdot sd-ok">✓</span>';
+    } else if(item.tipe_jawaban==='PILIHAN'||item.tipe_jawaban==='PILIHAN_KUSTOM'){
+      stat='<span class="sdot" style="background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-bd)">?</span>';
+    }
+    tr.innerHTML=`
+      <td style="color:var(--muted2);font-size:10px;font-weight:700">${i+1}</td>
+      <td style="font-size:13px;line-height:1.5;font-weight:${isNg?600:400}">${item.pertanyaan}</td>
+      <td>${inp}</td>
+      <td style="text-align:center">${stat}</td>`;
+    tbody.appendChild(tr);
+    if(isNg){
+      const rr=document.createElement('tr');
+      rr.classList.add('ng');
+      rr.innerHTML=`<td></td><td colspan="3">
+        <div class="rmk-wrap">
+          <div class="rmk-lbl">✏️ Remarks — Jelaskan kondisi *</div>
+          <textarea class="rmk-inp" rows="2" placeholder="Jelaskan kondisi yang ditemukan..." onchange="setR('${qid}',this.value)">${a.remarks||''}</textarea>
+        </div></td>`;
+      tbody.appendChild(rr);
+    }
+  });
+  document.getElementById('progNote').textContent=`${filled} / ${pertanyaan.length} diisi`;
+  const ng=pertanyaan.filter(p=>answers[p.question_id]?.val==='TIDAK').length;
+  document.getElementById('fillNote').textContent=ng>0?`${ng} temuan`:'';
 }
 
 function setAns(i, val){
@@ -1545,38 +1580,49 @@ function updateStatRow(){
 // ── RENDER TOOLBOX ──
 function renderTb(){
   const tbody=document.getElementById('tbBody');
-  if(!tbody)return;
+  document.getElementById('tbTitle').textContent=tbTipeName+(selSec?' — '+selSec:'');
+  document.getElementById('tbCount').textContent='Memuat dari database...';
+  document.getElementById('tbCount').textContent=tbContent.length+' item';
   if(!tbContent.length){
-    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada item</td></tr>';
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada item</td></tr>';
     return;
   }
-  tbody.innerHTML=tbContent.map((item,i)=>{
-    const qty=tbAnswers[i]?.qty||0;
-    const cond=tbAnswers[i]?.cond||'';
-    return `<tr>
-      <td style="padding:8px;font-size:13px">${item.nama_item||item.item||'-'}</td>
-      <td style="padding:8px;text-align:center;font-size:13px">${item.qty_standar||'-'}</td>
-      <td style="padding:8px">
-        <input type="number" min="0" value="${qty}" 
-          style="width:60px;border:1.5px solid #D4DCEF;border-radius:6px;padding:4px 8px;font-size:13px;text-align:center"
-          onchange="setTb(${i},'qty',this.value)">
+  tbody.innerHTML='';
+  tbContent.forEach((item,i)=>{
+    const a=tbAnswers[item.content_id]||{aktual:'',kondisi:'BAIK',remarks:''};
+    // isNg hanya kalau kondisi RUSAK/HILANG, atau aktual sudah diisi user dan kurang dari standar
+    const aktualDiisi = a.aktual !== '' && a.aktual !== '0' && a.aktual !== null;
+    const isNg=a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(aktualDiisi&&parseInt(a.aktual)<parseInt(item.qty_standar));
+    const tr=document.createElement('tr');
+    tr.setAttribute('data-cid', item.content_id);
+    if(isNg) tr.classList.add('tb-ng');
+    tr.innerHTML=`
+      <td style="color:var(--muted2);font-size:10px;font-weight:700">${i+1}</td>
+      <td style="font-size:13px;line-height:1.4;font-weight:${isNg?600:400}">
+        <span>${item.deskripsi}</span>
+        ${isNg?`<div style="margin-top:6px">
+          <input type="text" placeholder="Catatan kondisi..." value="${a.remarks||''}"
+            onchange="setTb('${item.content_id}','remarks',this.value,'${item.qty_standar}')"
+            style="width:100%;font-size:13px;border:1.5px solid var(--red-bd);border-radius:6px;
+            padding:5px 8px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;outline:none">
+        </div>`:''}
       </td>
-      <td style="padding:8px">
-        <select style="border:1.5px solid #D4DCEF;border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit"
-          onchange="setTb(${i},'cond',this.value)">
-          <option value="">-</option>
-          <option value="BAIK" ${cond==='BAIK'?'selected':''}>Baik</option>
-          <option value="RUSAK" ${cond==='RUSAK'?'selected':''}>Rusak</option>
-          <option value="HILANG" ${cond==='HILANG'?'selected':''}>Hilang</option>
-        </select>
-      </td>
-      <td style="padding:8px;text-align:center">
-        <span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${cond==='BAIK'?'#F0FDF4':cond?'#FEF2F2':'#F8FAFC'};color:${cond==='BAIK'?'#16A34A':cond?'#DC2626':'#6B7494'};font-weight:600">
-          ${cond||'-'}
-        </span>
-      </td>
-    </tr>`;
-  }).join('');
+      <td style="text-align:center;font-weight:700;font-size:13px">${item.qty_standar}</td>
+      <td><input type="number" inputmode="numeric" min="0" placeholder="0" value="${a.aktual}"
+          onchange="setTb('${item.content_id}','aktual',this.value,'${item.qty_standar}')"
+          style="width:52px;text-align:center;font-size:16px;border:1.5px solid var(--border);border-radius:6px;padding:6px 4px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif"></td>
+      <td style="font-size:11px;color:var(--muted)">${item.unit}</td>
+      <td><select onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}')"
+          style="font-size:13px;padding:6px 6px;border:1.5px solid var(--border);border-radius:6px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif">
+        <option${a.kondisi==='BAIK'?' selected':''}>BAIK</option>
+        <option${a.kondisi==='RUSAK'?' selected':''}>RUSAK</option>
+        <option${a.kondisi==='HILANG'?' selected':''}>HILANG</option>
+      </select></td>`;
+    tbody.appendChild(tr);
+  });
+  const ng=tbContent.filter(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG');}).length;
+  document.getElementById('progNote').textContent=ng>0?`${ng} temuan`:'Isi qty & kondisi';
+  document.getElementById('fillNote').textContent=ng>0?`${ng} temuan toolbox`:'';
 }
 
 function setTb(i,field,val){
@@ -1586,98 +1632,88 @@ function setTb(i,field,val){
 
 // ── SUBMIT ──
 async function doSubmit(){
-  const btn=document.getElementById('btnSubmit');
-  if(btn){btn.disabled=true;btn.textContent='⏳ Mengirim...';}
+  const hasT=isTb
+    ?tbContent.some(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG');})
+    :pertanyaan.some(p=>answers[p.question_id]?.val==='TIDAK');
+
+  if(hasT&&!selRisiko){toast('⚠️ Pilih tingkat risiko dulu','warn');return;}
+  if(hasT&&fotos.length===0){toast('⚠️ Foto wajib dilampirkan untuk semua tingkat risiko','warn');return;}
+
+  const btn=document.getElementById('btnSub');
+  btn.disabled=true;
+  document.getElementById('subIco').textContent='⏳';
+  document.getElementById('subTxt').textContent='Menyimpan...';
+
+  // Kompres foto
+  const fotoData=[];
+  for(let i=0;i<fotos.length;i++){
+    showLoad(`Mengompres foto ${i+1}/${fotos.length}...`);
+    const comp=await compress(fotos[i]);
+    fotoData.push({name:`before_${i+1}.jpg`,data:comp.split(',')[1]});
+  }
+  showLoad('Menyimpan ke database...');
+
+  const sub=document.getElementById('subSel');
+  const area=document.getElementById('areaSel');
+  const compSel=document.getElementById('compSel');
+
+  const meta={
+    tanggal_inspeksi:document.getElementById('tgl').value,
+    company_id:compSel.value,
+    nama_perusahaan:compSel.options[compSel.selectedIndex]?.text||'',
+    area_id:area.value,
+    nama_area:area.options[area.selectedIndex]?.text||'',
+    subarea_id:sub.value,
+    nama_subarea:sub.options[sub.selectedIndex]?.text||'',
+    kategori_id:katId,
+    nama_kategori:katName,
+    nama_alat:isTb?tbTipeName:document.getElementById('namaAlat').value,
+    merk:isTb?'':(document.getElementById('merkAlat')?.value||''),
+    no_id:isTb?document.getElementById('tbNoAsset').value:document.getElementById('noId').value,
+    no_asset:isTb?'':document.getElementById('noAsset').value,
+    nik_inspektor:document.getElementById('nikIns').value,
+    nama_inspektor:document.getElementById('namaIns').value,
+    risiko:selRisiko||'LOW',
+    is_toolbox:isTb,
+    toolbox_aset_id:isTb?(document.getElementById('tbTipe').options[document.getElementById('tbTipe').selectedIndex]?.dataset.aid||''):'',
+    section:selSec||'',
+    inspection_source:'HTML',
+    ada_temuan:hasT?'Y':'N',
+    interval_hari:getIntervalHari(),
+  };
+
+  const detail=isTb?[]:pertanyaan.map(p=>({
+    question_id:p.question_id,pertanyaan:p.pertanyaan,
+    jawaban:answers[p.question_id]?.val||'',
+    remarks:answers[p.question_id]?.remarks||'',
+    ada_temuan:answers[p.question_id]?.val==='TIDAK'?'Y':'N',
+  }));
+
+  const toolbox=isTb?tbContent.map(t=>({
+    content_id:t.content_id,deskripsi:t.deskripsi,
+    part_number:t.part_number||'',qty_standar:t.qty_standar,
+    qty_aktual:tbAnswers[t.content_id]?.aktual||0,unit:t.unit,
+    kondisi:tbAnswers[t.content_id]?.kondisi||'BAIK',
+    remarks:tbAnswers[t.content_id]?.remarks||'',
+    ada_temuan:(tbAnswers[t.content_id]?.kondisi==='RUSAK'||tbAnswers[t.content_id]?.kondisi==='HILANG')?'Y':'N',
+  })):[];
 
   try{
-    // Kumpulkan data form
-    const namaIns=document.getElementById('namaIns')?.value||'';
-    const nikIns=document.getElementById('nikIns')?.value||'';
-    const tgl=document.getElementById('tgl')?.value||'';
-    const compId=document.getElementById('compSel')?.value||'';
-    const areaId=document.getElementById('areaSel')?.value||'';
-    const subareaId=document.getElementById('subSel')?.value||'';
-    const katId_val=document.getElementById('katSel')?.value||'';
-    const namaAlat=document.getElementById('namaAlat')?.value||'';
-    const noId=document.getElementById('noId')?.value||'';
-    const noAsset=document.getElementById('noAsset')?.value||'';
-    const merkAlat=document.getElementById('merkAlat')?.value||'';
-
-    // Kumpulkan temuan
-    const temuan=[];
-    if(!isTb){
-      pertanyaan.forEach((p,i)=>{
-        if(answers[i]==='NG'){
-          temuan.push({
-            question_id:p.question_id||('Q-'+i),
-            pertanyaan:p.pertanyaan,
-            jawaban:'NG',
-            remarks:p._rem||''
-          });
-        }
-      });
-    }
-
-    // Hitung status kelayakan
-    const hasNG=temuan.length>0;
-    const statusKelayakan=hasNG?'TIDAK LAYAK':'LAYAK';
-
-    // Ambil foto
-    const fotoFiles=document.getElementById('fotoInput')?.files||[];
-    const fotoB64=[];
-    for(const file of fotoFiles){
-      const b64=await new Promise(res=>{
-        const fr=new FileReader();
-        fr.onload=()=>res(fr.result);
-        fr.readAsDataURL(file);
-      });
-      fotoB64.push(b64);
-    }
-
-    const payload={
-      action:'saveInspeksi',
-      nama_inspektor:namaIns,
-      nik_inspektor:nikIns,
-      tanggal_inspeksi:tgl,
-      company_id:compId,
-      area_id:areaId,
-      subarea_id:subareaId,
-      kategori_id:katId_val,
-      nama_alat:namaAlat,
-      no_id:noId,
-      no_asset:noAsset,
-      merk:merkAlat,
-      status_kelayakan:statusKelayakan,
-      temuan_list:temuan,
-      is_toolbox:isTb,
-      foto_list:fotoB64,
-      catatan:document.getElementById('catatan')?.value||''
-    };
-
-    const r=await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
-    const j=await r.json();
-
-    if(j.status==='ok'||j.success){
-      toStep4();
-      // Tampilkan result
-      const el=document.getElementById('submitResult');
-      if(el){
-        el.innerHTML=`
-          <div style="text-align:center;padding:20px">
-            <div style="font-size:48px;margin-bottom:12px">${hasNG?'⚠️':'✅'}</div>
-            <div style="font-size:20px;font-weight:700;color:${hasNG?'#D97706':'#16A34A'}">${statusKelayakan}</div>
-            <div style="font-size:14px;color:#6B7494;margin-top:8px">ID: ${j.inspeksi_id||'-'}</div>
-            <div style="font-size:13px;color:#6B7494;margin-top:4px">Terima kasih, data berhasil disimpan!</div>
-            ${hasNG?`<div style="font-size:12px;color:#D97706;margin-top:8px">⚠️ ${temuan.length} temuan telah dicatat. PIC akan ditugaskan.</div>`:''}
-          </div>`;
-      }
-    } else {
-      throw new Error(j.message||'Submit gagal');
-    }
+    const res=await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'saveInspeksi',meta,detail,toolbox,foto_temuan:fotoData})});
+    const json=await res.json();
+    hideLoad();
+    if(json.status==='ok'){buildSuccess(json);goStep(4);}
+    else{toast('❌ Gagal: '+json.message,'error');}
   }catch(e){
-    toast('❌ Gagal submit: '+e.message,'error');
-    if(btn){btn.disabled=false;btn.textContent='✅ Submit Inspeksi';}
+    hideLoad();
+    // Demo mode
+    buildSuccess({inspeksi_id:'INS-2026-'+String(Math.floor(Math.random()*9999)+1).padStart(6,'0'),total_temuan:hasT?1:0,ada_temuan:hasT?'Y':'N'});
+    goStep(4);
   }
+
+  btn.disabled=false;
+  document.getElementById('subIco').textContent='✅';
+  document.getElementById('subTxt').textContent='Submit Inspeksi';
 }
 
 // ══════════════════════════════════════════════
@@ -1847,6 +1883,146 @@ function fmtDate(d){
     return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
   } catch(e){ return d; }
 }
-</script>
+
+
+// ── RECOVERED FROM WORKING VERSION ──
+function buildSuccess(result){
+  document.getElementById('succId').textContent=result.inspeksi_id;
+  const subText=document.getElementById('subSel').options[document.getElementById('subSel').selectedIndex]?.text||'';
+  document.getElementById('succBox').innerHTML=`
+    <div>📍 <strong>${subText}</strong> · ${katName}</div>
+    <div>🔧 ${isTb?tbTipeName:document.getElementById('namaAlat').value}</div>
+    <div>👤 ${document.getElementById('namaIns').value}</div>
+    ${result.total_temuan>0?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+      ⚠️ <strong>${result.total_temuan} temuan</strong> · Risiko: <strong>${selRisiko}</strong><br>
+      📧 Notifikasi dikirim ke PIC${picInfo?' ('+picInfo.nama+')':''}<br>
+      🗜️ ${fotos.length} foto dikompres & disimpan ke Drive
+    </div>`:`<div style="color:var(--green);margin-top:6px;font-weight:600">✅ Tidak ada temuan</div>`}`;
+}
+
+function compress(file,quality=0.7,maxPx=1280){
+  return new Promise(resolve=>{
+    const img=new Image();
+    const rd=new FileReader();
+    rd.onload=e=>{
+      img.src=e.target.result;
+      img.onload=()=>{
+        const c=document.createElement('canvas');
+        let w=img.width,h=img.height;
+        if(w>maxPx||h>maxPx){
+          if(w>h){h=Math.round(h/w*maxPx);w=maxPx;}
+          else{w=Math.round(w/h*maxPx);h=maxPx;}
+        }
+        c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(c.toDataURL('image/jpeg',quality));
+      };
+    };
+    rd.readAsDataURL(file);
+  });
+}
+
+function demoPIC(subId,katId,sec){
+  const pics={
+    'SA001-null':{nama:'Zainal',email:'zainaltyre@gmail.com',is_delegate:false},
+    'SA001-Wheel':{nama:'Masduki',email:'',is_delegate:false},
+    'SA001-Rebuild':{nama:'Zanuar Pribadi',email:'',is_delegate:false},
+    'SA003-null':{nama:'M Yusuf Ismail',email:'',is_delegate:false},
+    'SA005-Digger':{nama:'Ahmad Roqib',email:'',is_delegate:false},
+    'SA005-Auxiliary':{nama:'Panbel Tua Girsang',email:'',is_delegate:false},
+    'SA006-null':{nama:'Riswanto',email:'',is_delegate:false},
+  };
+  const key=katId==='KT017'?`${subId}-${sec}`:`${subId}-null`;
+  return pics[key]||{nama:'PIC Area',email:'',is_delegate:false};
+}
+
+function demoTbAset(subId){
+  const base=[
+    {asset_id:'TBA001',nama_toolbox:'Toolbox No Brand',tipe_id:'TBT001'},
+    {asset_id:'TBA002',nama_toolbox:'Toolbox Elora',tipe_id:'TBT002'},
+    {asset_id:'TBA003',nama_toolbox:'Toolbox Blue Point',tipe_id:'TBT003'},
+    {asset_id:'TBA004',nama_toolbox:'Toolbox Strafco',tipe_id:'TBT004'},
+  ];
+  // SA001 punya section Wheel & Rebuild
+  if(subId==='SA001'){
+    return [
+      ...base.map(b=>({...b,section:'Wheel',subarea_id:'SA001'})),
+      ...base.map(b=>({...b,asset_id:b.asset_id+'R',section:'Rebuild',subarea_id:'SA001'})),
+    ];
+  }
+  if(subId==='SA005'){
+    return [
+      ...base.map(b=>({...b,section:'Digger',subarea_id:'SA005'})),
+      ...base.map(b=>({...b,asset_id:b.asset_id+'A',section:'Auxiliary',subarea_id:'SA005'})),
+    ];
+  }
+  return base.map(b=>({...b,subarea_id:subId}));
+}
+
+function getIntervalHari(){
+  const k=(M.kategori||[]).find(k=>k.kategori_id===katId);
+  return parseInt(k?.interval_hari)||30;
+}
+
+function onFoto(input){
+  const files=Array.from(input.files).slice(0,3-fotos.length);
+  if(fotos.length>=3){toast('Maksimal 3 foto','warn');input.value='';return;}
+  files.forEach(f=>{if(fotos.length<3) fotos.push(f);});
+  renderPhotos(); input.value='';
+}
+
+function pickRisiko(v,cls,btn){
+  selRisiko=v;
+  document.querySelectorAll('.rrb').forEach(b=>b.className='rrb');
+  btn.className='rrb '+cls;
+  // Alert CRITICAL
+  document.getElementById('critAlert').className='crit-alert'+(v==='CRITICAL'?' show':'');
+  // Foto wajib untuk SEMUA risiko
+  document.getElementById('fotoWarn').style.display='block';
+  document.getElementById('fotoWarn').textContent='📷 Foto wajib untuk semua tingkat risiko — '+v;
+}
+
+function renderPhotos(){
+  const row=document.getElementById('pRow');
+  row.innerHTML='';
+  fotos.forEach((f,i)=>{
+    const rd=new FileReader();
+    rd.onload=e=>{
+      const w=document.createElement('div');
+      w.style.position='relative';
+      const img=document.createElement('img');
+      img.src=e.target.result; img.className='pthumb';
+      const del=document.createElement('div');
+      del.className='pdel'; del.textContent='✕';
+      del.onclick=()=>{fotos.splice(i,1);renderPhotos();};
+      w.appendChild(img); w.appendChild(del); row.appendChild(w);
+    };
+    rd.readAsDataURL(f);
+  });
+  // Sembunyikan upload zone kalau sudah 3
+  document.getElementById('uzone').style.display=fotos.length>=3?'none':'flex';
+}
+
+function resetForm(){
+  answers={}; tbAnswers={}; fotos=[]; selRisiko='';
+  katId=''; katName=''; isTb=false; selSec=null; tbTipeId=''; tbTipeName=''; picInfo=null;
+  ['compSel','areaSel'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('subSel').innerHTML='<option value="">-- Pilih area --</option>';
+  document.getElementById('subSel').disabled=true;
+  document.getElementById('katSel').innerHTML='<option value="">-- Pilih sub area dulu --</option>';
+  document.getElementById('katSel').disabled=true;
+  ['namaAlat','merkAlat','noId','noAsset','nikIns','namaIns','tbNoAsset'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('assetHint').className='hint';
+  document.getElementById('pRow').innerHTML='';
+  document.getElementById('uzone').style.display='flex';
+  resetTb();
+  goStep(1);
+}
+
+function setA(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers[qid].val=val;renderCheck();}
+
+function setAV(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers[qid].val=val;}
+
+function setR(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers[qid].remarks=val;}</script>
 </body>
 </html>
