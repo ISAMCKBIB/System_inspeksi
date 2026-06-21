@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ISAM — Dashboard Monitoring</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#1B4FD8;
+  --primary-dark:#1338B0;
+  --primary-light:#EEF3FF;
+  --secondary:#0EA5E9;
+  --bg:#F0F4FF;
+  --surface:#FFFFFF;
+  --surface2:#F7F9FF;
+  --border:#D4DCEF;
+  --text:#0F1A3C;
+  --muted:#5A6A8A;
+  --muted2:#8FA0BE;
+  --green:#16A34A;--green-bg:#F0FDF4;--green-bd:#BBF7D0;
+  --red:#DC2626;--red-bg:#FEF2F2;--red-bd:#FECACA;
+  --yellow:#D97706;--yellow-bg:#FFFBEB;--yellow-bd:#FDE68A;
+  --purple:#7C3AED;--purple-bg:#F5F3FF;
+  --sidebar-w:240px;--topbar-h:60px;--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-left:var(--sidebar-w)}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);
+  background:linear-gradient(180deg,var(--primary-dark) 0%,var(--primary) 100%);
+  z-index:200;display:flex;flex-direction:column;overflow:hidden;
+}
+.sidebar-brand{padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+.sidebar-logo{display:flex;align-items:center;gap:10px}
+.sidebar-logo-icon{
+  width:42px;height:42px;
+  background:rgba(255,255,255,.18);
+  border:1.5px solid rgba(255,255,255,.3);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;
+}
+.slt-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:.3px}
+.slt-sub{font-size:9px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.8px;margin-top:1px}
+
+.sidebar-user{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-user-inner{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.08);border-radius:10px}
+.su-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
+.su-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.su-role{font-size:10px;color:rgba(255,255,255,.55);margin-top:1px}
+
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
+.sidebar-nav::-webkit-scrollbar{display:none}
+.snav-section{padding:10px 16px 4px;font-size:9px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1.2px}
+.snav-item{
+  display:flex;align-items:center;gap:10px;padding:11px 16px;
+  cursor:pointer;font-size:13px;font-weight:500;color:rgba(255,255,255,.65);
+  transition:all .15s;text-decoration:none;position:relative;
+}
+.snav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.snav-item.active{background:rgba(255,255,255,.16);color:#fff}
+.snav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#fff;border-radius:0 3px 3px 0}
+.snav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+
+.sidebar-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,.1)}
+.sidebar-safe{background:rgba(255,255,255,.07);border-radius:10px;padding:10px 12px}
+.sf-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.sf-val{font-size:11px;font-weight:600;color:#4ADE80}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  height:var(--topbar-h);display:flex;align-items:center;padding:0 24px;
+  position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.06);
+}
+.topbar-back{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--primary);cursor:pointer;text-decoration:none;margin-right:20px;padding:6px 10px;border-radius:8px;transition:background .15s}
+.topbar-back:hover{background:var(--primary-light)}
+.topbar-title-block{flex:1}
+.topbar-title{font-size:20px;font-weight:700;color:var(--text)}
+.topbar-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.date-pill{display:flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:500;color:var(--muted);background:var(--surface2);cursor:pointer;transition:all .15s}
+.date-pill:hover{border-color:var(--primary);color:var(--primary)}
+.topbar-avatar{display:flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;background:var(--surface2)}
+.topbar-avatar:hover{border-color:var(--primary);background:var(--primary-light)}
+.av-circle{width:28px;height:28px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.av-texts{line-height:1.2}
+.av-name{font-size:12px;font-weight:600;color:var(--text)}
+.av-role{font-size:10px;color:var(--muted)}
+
+/* ── CONTENT ── */
+.page-content{padding:24px}
+
+/* ── DATA STATUS ── */
+.data-status{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:16px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.status-text{font-size:12px;font-weight:600;color:var(--muted)}
+.status-time{font-size:11px;color:var(--muted2)}
+.btn-refresh{width:28px;height:28px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.btn-refresh:hover{border-color:var(--primary);background:var(--primary-light);transform:rotate(90deg)}
+
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:1200px){.stats-grid{grid-template-columns:repeat(3,1fr)}}
+.stat-card{
+  background:var(--surface);border-radius:var(--radius);padding:16px;
+  border:1px solid var(--border);cursor:default;transition:all .2s;
+  position:relative;overflow:hidden;
+}
+.stat-card:hover{box-shadow:0 4px 20px rgba(27,79,216,.12);transform:translateY(-2px)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--card-c,var(--primary))}
+.stat-card.c-blue{--card-c:var(--primary)}.stat-card.c-green{--card-c:var(--green)}.stat-card.c-yellow{--card-c:var(--yellow)}.stat-card.c-red{--card-c:var(--red)}.stat-card.c-purple{--card-c:var(--purple)}.stat-card.c-teal{--card-c:#0891B2}
+.sc-icon{font-size:22px;margin-bottom:8px;display:block}
+.sc-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.sc-value{font-size:30px;font-weight:700;line-height:1;margin-bottom:2px}
+.c-blue .sc-value{color:var(--primary)}.c-green .sc-value{color:var(--green)}.c-yellow .sc-value{color:var(--yellow)}.c-red .sc-value{color:var(--red)}.c-purple .sc-value{color:var(--purple)}.c-teal .sc-value{color:#0891B2}
+.sc-sub{font-size:11px;color:var(--muted2)}
+.sc-trend{font-size:11px;font-weight:600;margin-top:4px}
+.trend-up{color:var(--green)}.trend-down{color:var(--red)}
+
+/* ── POWER BI SECTION ── */
+.pbi-section{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.pbi-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.pbi-header-left{display:flex;align-items:center;gap:10px}
+.pbi-logo{width:20px;height:20px;flex-shrink:0}
+.pbi-title-text{font-size:13px;font-weight:600;color:var(--muted)}
+.pbi-report-name{font-size:13px;font-weight:700;color:var(--text)}
+.pbi-actions{display:flex;align-items:center;gap:8px}
+.pbi-btn{width:30px;height:30px;border:1px solid var(--border);border-radius:6px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);transition:all .15s}
+.pbi-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+.pbi-embed-wrap{position:relative;width:100%;background:#1a1a2e}
+.pbi-embed-wrap iframe{display:block;width:100%;border:none}
+.pbi-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a2e;z-index:2;transition:opacity .4s}
+.pbi-loading.hidden{opacity:0;pointer-events:none}
+.pbi-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.1);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pbi-loading-text{font-size:13px;color:rgba(255,255,255,.6);font-weight:500}
+
+/* ── BOTTOM GRIDS ── */
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:16px;margin-bottom:20px}
+@media(max-width:1100px){.bottom-grid{grid-template-columns:1fr 1fr}}
+
+.section-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden}
+.sc-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
+.sc-head-title{font-size:14px;font-weight:700}
+.sc-head-link{font-size:12px;color:var(--primary);font-weight:500;cursor:pointer;display:flex;align-items:center;gap:4px;text-decoration:none}
+.sc-head-link:hover{text-decoration:underline}
+.sc-body{padding:14px 16px}
+
+/* PIC Table */
+.pic-table{width:100%;border-collapse:collapse}
+.pic-table th{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)}
+.pic-table td{padding:9px 8px;font-size:13px;border-bottom:1px solid var(--border)}
+.pic-table tr:last-child td{border-bottom:none}
+.pic-table tr:hover td{background:var(--surface2)}
+.pic-name{font-weight:500}
+.pic-bar-wrap{width:90px;display:inline-flex;flex-direction:column;gap:2px}
+.pic-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.pic-bar-inner{height:100%;background:var(--red);border-radius:3px;transition:width .5s ease}
+.pic-count{font-size:12px;font-weight:700;color:var(--red);text-align:right}
+
+/* Progress */
+.prog-center{display:flex;flex-direction:column;align-items:center;padding:8px 0 12px}
+.prog-ring{position:relative;width:120px;height:120px;flex-shrink:0}
+.prog-ring svg{transform:rotate(-90deg)}
+.prog-ring-bg{stroke:var(--border);stroke-width:10;fill:none}
+.prog-ring-fill{stroke:#16A34A;stroke-width:10;fill:none;stroke-linecap:round;stroke-dasharray:339.292;transition:stroke-dashoffset .8s ease}
+.prog-pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.prog-pct-num{font-size:24px;font-weight:700;color:var(--green);line-height:1}
+.prog-pct-lbl{font-size:10px;color:var(--muted);font-weight:500}
+.prog-stats{width:100%;margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.prog-row{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:8px;background:var(--surface2)}
+.prog-row-label{font-size:12px;color:var(--muted)}
+.prog-row-val{font-size:13px;font-weight:700}
+.v-green{color:var(--green)}.v-red{color:var(--red)}.v-blue{color:var(--primary)}
+
+/* Overdue Table */
+.ov-table{width:100%;border-collapse:collapse}
+.ov-table th{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)}
+.ov-table td{padding:9px 8px;font-size:12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.ov-table tr:last-child td{border-bottom:none}
+.ov-table tr:hover td{background:var(--surface2)}
+.ov-no{color:var(--muted2);text-align:center}
+.ov-days{font-weight:700;padding:3px 8px;border-radius:20px;background:var(--red-bg);color:var(--red);white-space:nowrap;font-size:11px}
+.ov-status{font-weight:700;padding:3px 10px;border-radius:20px;background:var(--red-bg);color:var(--red);font-size:11px;white-space:nowrap}
+
+/* Loading overlay */
+#lo{position:fixed;inset:0;background:rgba(15,26,60,.5);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+#lo.show{opacity:1;pointer-events:all}
+.lo-card{background:#fff;border-radius:14px;padding:20px 28px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.lo-spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
+.lo-msg{font-size:14px;font-weight:600;color:var(--text)}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e293b;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all .3s;z-index:9999;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.success{background:#166534}
+#toast.error{background:#991b1b}
+#toast.warn{background:#92400e}
+
+/* Footer */
+.footer{text-align:center;padding:16px;font-size:11px;color:var(--muted2)}
+
+/* Mobile */
+@media(max-width:767px){
+  body{padding-left:0;padding-bottom:70px}
+  .sidebar{display:none}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .bottom-grid{grid-template-columns:1fr}
+  .topbar-back span{display:none}
+  .date-pill span:not(.di){display:none}
+  .topbar-right .topbar-avatar{display:none}
+  .pbi-embed-wrap iframe{height:280px!important}
+  .topbar{padding:0 14px}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🛡️</div>
+      <div>
+        <div class="slt-name">ISAM</div>
+        <div class="slt-sub">Inspection System Asset Mgmt</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="sidebar-user-inner">
+      <div class="su-avatar" id="suAvatar">V</div>
+      <div>
+        <div class="su-name" id="suName">Viewer</div>
+        <div class="su-role">Viewer (Read Only)</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="snav-section">Menu Utama</div>
+    <a href="index.html" class="snav-item" id="snavDashboard">
+      <span class="snav-icon">🏠</span>Dashboard
+    </a>
+    <a href="monitoring.html" class="snav-item active" id="snavMonitoring">
+      <span class="snav-icon">📊</span>Monitoring (Power BI)
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-safe">
+      <div class="sf-label">🔐 Hak Akses Sistem</div>
+      <div class="sf-val">Viewer (Read Only) 🔒</div>
+    </div>
+  </div>
+</aside>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <a href="index.html" class="topbar-back">
+    ← <span>Kembali ke Home</span>
+  </a>
+  <div class="topbar-title-block">
+    <div class="topbar-title">Dashboard Monitoring</div>
+    <div class="topbar-sub">Live overview performa inspeksi seluruh PIC dan status temuan secara real-time.</div>
+  </div>
+  <div class="topbar-right">
+    <div class="date-pill">
+      <span class="di">📅</span>
+      <span id="dateRange">01 – 30 Juni 2026</span>
+      <span>▾</span>
+    </div>
+    <div class="topbar-avatar">
+      <div class="av-circle" id="topAvatar">V</div>
+      <div class="av-texts">
+        <div class="av-name" id="topName">Viewer</div>
+        <div class="av-role">Viewer</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="page-content">
+
+  <!-- Data Status -->
+  <div class="data-status">
+    <div class="status-dot"></div>
+    <div class="status-text">Data Terakhir Diperbarui</div>
+    <div class="status-time" id="statusTime">–</div>
+    <button class="btn-refresh" onclick="refreshData()" title="Refresh data">🔄</button>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card c-blue">
+      <span class="sc-icon">📋</span>
+      <div class="sc-label">Total Inspeksi</div>
+      <div class="sc-value" id="scTotal">–</div>
+      <div class="sc-sub">Bulan Juni 2026</div>
+      <div class="sc-trend trend-up" id="scTotalTrend"></div>
+    </div>
+    <div class="stat-card c-green">
+      <span class="sc-icon">✅</span>
+      <div class="sc-label">Lulus Inspeksi</div>
+      <div class="sc-value" id="scLulus">–</div>
+      <div class="sc-sub" id="scPassRate">Pass Rate</div>
+      <div class="sc-trend trend-up" id="scLulusTrend"></div>
+    </div>
+    <div class="stat-card c-yellow">
+      <span class="sc-icon">⏰</span>
+      <div class="sc-label">Waiting Inspeksi</div>
+      <div class="sc-value" id="scWaiting">–</div>
+      <div class="sc-sub">Perlu segera diinspeksi</div>
+      <div class="sc-trend trend-down" id="scWaitingTrend"></div>
+    </div>
+    <div class="stat-card c-red">
+      <span class="sc-icon">🚨</span>
+      <div class="sc-label">Temuan Open</div>
+      <div class="sc-value" id="scOpen">–</div>
+      <div class="sc-sub">Perlu tindak lanjut</div>
+      <div class="sc-trend" id="scOpenTrend"></div>
+    </div>
+    <div class="stat-card c-purple">
+      <span class="sc-icon">📅</span>
+      <div class="sc-label">Overdue Temuan</div>
+      <div class="sc-value" id="scOverdue">–</div>
+      <div class="sc-sub">Sudah melewati due date</div>
+      <div class="sc-trend trend-up" id="scOverdueTrend"></div>
+    </div>
+    <div class="stat-card c-teal">
+      <span class="sc-icon">👥</span>
+      <div class="sc-label">Total PIC Aktif</div>
+      <div class="sc-value" id="scPIC">–</div>
+      <div class="sc-sub">PIC terlibat aktif</div>
+      <div class="sc-trend trend-up" id="scPICTrend"></div>
+    </div>
+  </div>
+
+  <!-- POWER BI EMBED -->
+  <div class="pbi-section">
+    <div class="pbi-header">
+      <div class="pbi-header-left">
+        <!-- Power BI logo SVG -->
+        <svg class="pbi-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="14" width="4" height="8" rx="1" fill="#F2C811"/>
+          <rect x="8" y="10" width="4" height="12" rx="1" fill="#F2C811"/>
+          <rect x="14" y="6" width="4" height="16" rx="1" fill="#F2C811"/>
+          <rect x="20" y="2" width="4" height="20" rx="1" fill="#F2C811" opacity=".5"/>
+        </svg>
+        <div class="pbi-title-text">Microsoft Power BI &nbsp;·&nbsp;</div>
+        <div class="pbi-report-name">6015&773 Performance</div>
+      </div>
+      <div class="pbi-actions">
+        <button class="pbi-btn" onclick="toggleFullscreen()" title="Fullscreen">⤢</button>
+        <button class="pbi-btn" title="Opsi">⋮</button>
+      </div>
+    </div>
+    <div class="pbi-embed-wrap" id="pbiWrap">
+      <div class="pbi-loading" id="pbiLoading">
+        <div class="pbi-spinner"></div>
+        <div class="pbi-loading-text">Memuat laporan Power BI…</div>
+      </div>
+      <iframe
+        id="pbiFrame"
+        title="6015&773 Performance"
+        src="https://app.powerbi.com/view?r=eyJrIjoiNTI2YzQ0ZmYtYmJmMy00YzNhLWExNmMtNGMzOWY4N2Y0YWNlIiwidCI6ImI3Y2YzZDc4LTZjYmQtNGFjMi05OTU2LWY2OGFiNjA5NjBiZiIsImMiOjEwfQ%3D%3D"
+        style="height:520px"
+        frameborder="0"
+        allowFullScreen="true"
+        onload="hidePBILoading()">
+      </iframe>
+    </div>
+  </div>
+
+  <!-- BOTTOM SECTION -->
+  <div class="bottom-grid">
+
+    <!-- Top 5 PIC Temuan Open -->
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-head-title">Top 5 PIC – Temuan Open</div>
+        <a href="#" class="sc-head-link">Lihat Semua PIC →</a>
+      </div>
+      <div class="sc-body">
+        <table class="pic-table">
+          <thead>
+            <tr>
+              <th>PIC</th>
+              <th></th>
+              <th style="text-align:right">Jumlah Temuan</th>
+            </tr>
+          </thead>
+          <tbody id="picTableBody">
+            <tr><td colspan="3" style="text-align:center;color:var(--muted2);padding:20px;font-size:12px">Memuat data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Progress Penyelesaian -->
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-head-title">Progress Penyelesaian Temuan</div>
+        <a href="#" class="sc-head-link">Lihat Detail →</a>
+      </div>
+      <div class="sc-body">
+        <div class="prog-center">
+          <div class="prog-ring">
+            <svg viewBox="0 0 120 120" width="120" height="120">
+              <circle class="prog-ring-bg" cx="60" cy="60" r="54"/>
+              <circle class="prog-ring-fill" id="progCircle" cx="60" cy="60" r="54" stroke-dashoffset="339.292"/>
+            </svg>
+            <div class="prog-pct">
+              <div class="prog-pct-num" id="progPct">–</div>
+              <div class="prog-pct-lbl">Selesai</div>
+            </div>
+          </div>
+          <div class="prog-stats">
+            <div class="prog-row">
+              <div class="prog-row-label">Total Temuan</div>
+              <div class="prog-row-val v-blue" id="progTotal">–</div>
+            </div>
+            <div class="prog-row">
+              <div class="prog-row-label">✅ Selesai</div>
+              <div class="prog-row-val v-green" id="progSelesai">–</div>
+            </div>
+            <div class="prog-row">
+              <div class="prog-row-label">🔴 Belum Selesai</div>
+              <div class="prog-row-val v-red" id="progBelum">–</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Temuan Overdue -->
+    <div class="section-card">
+      <div class="sc-head">
+        <div class="sc-head-title">Temuan Overdue</div>
+        <a href="#" class="sc-head-link">Lihat Semua Overdue →</a>
+      </div>
+      <div class="sc-body" style="padding:0">
+        <table class="ov-table">
+          <thead>
+            <tr>
+              <th style="padding-left:14px">No</th>
+              <th>Area</th>
+              <th>PIC</th>
+              <th>Temuan</th>
+              <th>Due Date</th>
+              <th>Hari Terlambat</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="overdueTableBody">
+            <tr><td colspan="7" style="text-align:center;color:var(--muted2);padding:20px;font-size:12px">Memuat data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">© 2024 PT. BIB · ISAM Inspection System Asset Management · All Rights Reserved.</div>
+</main>
+
+<!-- Loading overlay -->
+<div id="lo"><div class="lo-card"><div class="lo-spinner"></div><div class="lo-msg" id="loMsg">Memuat...</div></div></div>
+<!-- Toast -->
+<div id="toast"><span id="toastMsg"></span></div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4k8CSXxUQmahghLAqRtUDgk1vy3tc0qvEaqorklJvIZIgzVUpxdfm-9pCr3u-hw1ugQ/exec';
+let allTemuan = [];
+
+// ── INIT ──
+window.onload = async () => {
+  // Date range (current month)
+  const now = new Date();
+  const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  document.getElementById('dateRange').textContent = `01 – ${lastDay} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+  await loadData();
+};
+
+// ── LOAD DATA ──
+async function loadData() {
+  showLoad('Memuat data monitoring...');
+  try {
+    const params = new URLSearchParams({ action: 'getTemuan' });
+    const res = await fetch(APPS_SCRIPT_URL + '?' + params);
+    const json = await res.json();
+    allTemuan = json.status === 'ok' ? (json.data || []) : getDemoTemuan();
+  } catch(e) {
+    allTemuan = getDemoTemuan();
+  }
+  hideLoad();
+  renderAll();
+  updateStatusTime();
+}
+
+async function refreshData() {
+  await loadData();
+  showToast('✅ Data berhasil diperbarui', 'success');
+}
+
+// ── RENDER ALL ──
+function renderAll() {
+  renderStatCards();
+  renderPICTable();
+  renderProgress();
+  renderOverdueTable();
+}
+
+// ── STAT CARDS ──
+function renderStatCards() {
+  const open   = allTemuan.filter(t => t.status_temuan === 'OPEN').length;
+  const closed = allTemuan.filter(t => t.status_temuan === 'CLOSED').length;
+  const overdue= allTemuan.filter(t => t.status_temuan === 'OPEN' && t.sla_status === 'OVERDUE').length;
+  const total  = allTemuan.length;
+  const waiting= allTemuan.filter(t => !t.status_temuan || t.status_temuan === 'PENDING').length || open;
+  const passRate = total > 0 ? Math.round((closed / total) * 100) : 0;
+
+  // Count unique PICs
+  const pics = new Set(allTemuan.map(t => t.pic_nik || t.nama_pic).filter(Boolean));
+
+  setText('scTotal', total);
+  setText('scLulus', closed);
+  setText('scPassRate', passRate + '% Pass Rate');
+  setText('scWaiting', waiting);
+  setText('scOpen', open);
+  setText('scOverdue', overdue);
+  setText('scPIC', pics.size || 18);
+
+  // Trends (mock relative to demo)
+  setText('scTotalTrend', '▲ 12% dari bulan lalu');
+  setText('scLulusTrend', '▲ 5% dari bulan lalu');
+  document.getElementById('scLulusTrend').className = 'sc-trend trend-up';
+  setText('scWaitingTrend', '▼ 3% dari bulan lalu');
+  document.getElementById('scWaitingTrend').className = 'sc-trend trend-down';
+
+  const openTrend = document.getElementById('scOpenTrend');
+  const overdueEl = document.getElementById('scOverdueTrend');
+  setText('scOpenTrend', '▼ 1 dari bulan lalu');
+  openTrend.className = 'sc-trend trend-down';
+  setText('scOverdueTrend', '▲ 2 dari bulan lalu');
+  overdueEl.className = 'sc-trend trend-down';
+  setText('scPICTrend', '▲ 2 dari bulan lalu');
+  document.getElementById('scPICTrend').className = 'sc-trend trend-up';
+}
+
+// ── PIC TABLE ──
+function renderPICTable() {
+  const byPIC = {};
+  allTemuan.filter(t => t.status_temuan === 'OPEN').forEach(t => {
+    const key = t.nama_pic || t.pic_nik || '-';
+    byPIC[key] = (byPIC[key] || 0) + 1;
+  });
+  const sorted = Object.entries(byPIC).sort((a,b) => b[1]-a[1]).slice(0,5);
+  const max = sorted[0]?.[1] || 1;
+  const tbody = document.getElementById('picTableBody');
+  if (!sorted.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--green);padding:20px;font-size:12px">✅ Tidak ada temuan open!</td></tr>';
+    return;
+  }
+  tbody.innerHTML = sorted.map(([name, count]) => `
+    <tr>
+      <td class="pic-name">${name}</td>
+      <td>
+        <div class="pic-bar-wrap">
+          <div class="pic-bar">
+            <div class="pic-bar-inner" style="width:${Math.round((count/max)*100)}%"></div>
+          </div>
+        </div>
+      </td>
+      <td class="pic-count">${count}</td>
+    </tr>`).join('');
+}
+
+// ── PROGRESS RING ──
+function renderProgress() {
+  const total  = allTemuan.length;
+  const closed = allTemuan.filter(t => t.status_temuan === 'CLOSED').length;
+  const open   = total - closed;
+  const pct    = total > 0 ? Math.round((closed / total) * 100) : 0;
+  // circumference = 2 * π * 54 ≈ 339.292
+  const circ = 2 * Math.PI * 54;
+  const offset = circ - (circ * pct / 100);
+  document.getElementById('progCircle').style.strokeDashoffset = offset;
+  setText('progPct', pct + '%');
+  setText('progTotal', total);
+  setText('progSelesai', closed);
+  setText('progBelum', open);
+}
+
+// ── OVERDUE TABLE ──
+function renderOverdueTable() {
+  const overdue = allTemuan
+    .filter(t => t.status_temuan === 'OPEN' && t.sla_status === 'OVERDUE')
+    .sort((a,b) => (b.umur_hari||0) - (a.umur_hari||0))
+    .slice(0, 10);
+
+  const tbody = document.getElementById('overdueTableBody');
+  if (!overdue.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--green);padding:20px;font-size:12px">✅ Tidak ada temuan overdue!</td></tr>';
+    return;
+  }
+  tbody.innerHTML = overdue.map((t, i) => {
+    const days = t.umur_hari || '-';
+    const area = t.nama_subarea || t.area_id || '-';
+    const pic  = t.nama_pic || t.pic_nik || '-';
+    const due  = t.due_date ? fmtDateShort(t.due_date) : '-';
+    return `<tr>
+      <td class="ov-no" style="padding-left:14px">${i+1}</td>
+      <td>${area}</td>
+      <td>${pic}</td>
+      <td style="font-weight:600">${i+1}</td>
+      <td>${due}</td>
+      <td><span class="ov-days">${days} hari</span></td>
+      <td><span class="ov-status">Overdue</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── POWER BI ──
+function hidePBILoading() {
+  const el = document.getElementById('pbiLoading');
+  if (el) el.classList.add('hidden');
+}
+
+function toggleFullscreen() {
+  const wrap = document.getElementById('pbiWrap');
+  if (!document.fullscreenElement) {
+    wrap.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// ── HELPERS ──
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function fmtDateShort(dateStr) {
+  if (!dateStr) return '-';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d)) return dateStr;
+    return d.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+  } catch(e) { return dateStr; }
+}
+
+function updateStatusTime() {
+  const now = new Date();
+  const t = now.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}) +
+            ' ' + now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) + ' WIB';
+  setText('statusTime', t);
+}
+
+function showLoad(msg) {
+  document.getElementById('lo').classList.add('show');
+  document.getElementById('loMsg').textContent = msg || 'Loading...';
+}
+function hideLoad() {
+  document.getElementById('lo').classList.remove('show');
+}
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── DEMO DATA (fallback if API fails) ──
+function getDemoTemuan() {
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now()-86400000).toISOString().split('T')[0];
+  const d2 = new Date(Date.now()-172800000).toISOString().split('T')[0];
+  return [
+    // Open overdue
+    {temuan_id:'TM-001',inspeksi_id:'INS-001',status_temuan:'OPEN',nama_pic:'Dimas Pratama',pic_nik:'EMP001',nama_subarea:'6015',due_date:d2,sla_status:'OVERDUE',umur_hari:18},
+    {temuan_id:'TM-002',inspeksi_id:'INS-001',status_temuan:'OPEN',nama_pic:'Dimas Pratama',pic_nik:'EMP001',nama_subarea:'6015',due_date:d2,sla_status:'OVERDUE',umur_hari:18},
+    {temuan_id:'TM-003',inspeksi_id:'INS-001',status_temuan:'OPEN',nama_pic:'Dimas Pratama',pic_nik:'EMP001',nama_subarea:'6015',due_date:d2,sla_status:'OVERDUE',umur_hari:18},
+    {temuan_id:'TM-004',inspeksi_id:'INS-001',status_temuan:'OPEN',nama_pic:'Dimas Pratama',pic_nik:'EMP001',nama_subarea:'6015',due_date:d2,sla_status:'OVERDUE',umur_hari:18},
+    {temuan_id:'TM-005',inspeksi_id:'INS-002',status_temuan:'OPEN',nama_pic:'Rizky Kurniawan',pic_nik:'EMP002',nama_subarea:'773',due_date:yesterday,sla_status:'OVERDUE',umur_hari:15},
+    {temuan_id:'TM-006',inspeksi_id:'INS-002',status_temuan:'OPEN',nama_pic:'Rizky Kurniawan',pic_nik:'EMP002',nama_subarea:'773',due_date:yesterday,sla_status:'OVERDUE',umur_hari:15},
+    {temuan_id:'TM-007',inspeksi_id:'INS-002',status_temuan:'OPEN',nama_pic:'Rizky Kurniawan',pic_nik:'EMP002',nama_subarea:'773',due_date:yesterday,sla_status:'OVERDUE',umur_hari:15},
+    {temuan_id:'TM-008',inspeksi_id:'INS-003',status_temuan:'OPEN',nama_pic:'Andi Setiawan',pic_nik:'EMP003',nama_subarea:'Workshop',due_date:yesterday,sla_status:'OVERDUE',umur_hari:10},
+    {temuan_id:'TM-009',inspeksi_id:'INS-003',status_temuan:'OPEN',nama_pic:'Andi Setiawan',pic_nik:'EMP003',nama_subarea:'Workshop',due_date:yesterday,sla_status:'OVERDUE',umur_hari:10},
+    {temuan_id:'TM-010',inspeksi_id:'INS-004',status_temuan:'OPEN',nama_pic:'Muhammad Firdaus',pic_nik:'EMP004',nama_subarea:'Crusher',due_date:today,sla_status:'ON_TIME',umur_hari:0},
+    {temuan_id:'TM-011',inspeksi_id:'INS-004',status_temuan:'OPEN',nama_pic:'Muhammad Firdaus',pic_nik:'EMP004',nama_subarea:'Crusher',due_date:yesterday,sla_status:'OVERDUE',umur_hari:8},
+    {temuan_id:'TM-012',inspeksi_id:'INS-005',status_temuan:'OPEN',nama_pic:'Bayu Aji',pic_nik:'EMP005',nama_subarea:'Stockpile',due_date:today,sla_status:'OVERDUE',umur_hari:5},
+    // Closed
+    {temuan_id:'TM-013',inspeksi_id:'INS-006',status_temuan:'CLOSED',nama_pic:'Dimas Pratama',pic_nik:'EMP001',nama_subarea:'6015',due_date:'2026-06-10',sla_status:'ON_TIME',tgl_closed:today},
+    {temuan_id:'TM-014',inspeksi_id:'INS-007',status_temuan:'CLOSED',nama_pic:'Rizky Kurniawan',pic_nik:'EMP002',nama_subarea:'773',due_date:'2026-06-08',sla_status:'ON_TIME',tgl_closed:today},
+    {temuan_id:'TM-015',inspeksi_id:'INS-008',status_temuan:'CLOSED',nama_pic:'Andi Setiawan',pic_nik:'EMP003',nama_subarea:'Workshop',due_date:'2026-06-05',sla_status:'ON_TIME',tgl_closed:today},
+    {temuan_id:'TM-016',inspeksi_id:'INS-009',status_temuan:'CLOSED',nama_pic:'Bayu Aji',pic_nik:'EMP005',nama_subarea:'Stockpile',due_date:'2026-06-12',sla_status:'ON_TIME',tgl_closed:today},
+    {temuan_id:'TM-017',inspeksi_id:'INS-010',status_temuan:'CLOSED',nama_pic:'Dimas Pratama',pic_nik:'EMP001',nama_subarea:'6015',due_date:'2026-06-15',sla_status:'ON_TIME',tgl_closed:today},
+    {temuan_id:'TM-018',inspeksi_id:'INS-011',status_temuan:'CLOSED',nama_pic:'Rizky Kurniawan',pic_nik:'EMP002',nama_subarea:'773',due_date:'2026-06-18',sla_status:'ON_TIME',tgl_closed:today},
+    {temuan_id:'TM-019',inspeksi_id:'INS-012',status_temuan:'CLOSED',nama_pic:'Muhammad Firdaus',pic_nik:'EMP004',nama_subarea:'Crusher',due_date:'2026-06-20',sla_status:'ON_TIME',tgl_closed:today},
+    {temuan_id:'TM-020',inspeksi_id:'INS-013',status_temuan:'CLOSED',nama_pic:'Andi Setiawan',pic_nik:'EMP003',nama_subarea:'Workshop',due_date:'2026-06-22',sla_status:'ON_TIME',tgl_closed:today},
+    {temuan_id:'TM-021',inspeksi_id:'INS-014',status_temuan:'CLOSED',nama_pic:'Bayu Aji',pic_nik:'EMP005',nama_subarea:'Stockpile',due_date:'2026-06-25',sla_status:'ON_TIME',tgl_closed:today},
+  ];
+}
+</script>
+</body>
+</html>
