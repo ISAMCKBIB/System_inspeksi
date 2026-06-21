@@ -338,7 +338,9 @@ body{padding-bottom:var(--nav-h)}
   <div class="drawer-body">
     <div class="info-grid2" id="drawerInfo"></div>
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px">Daftar Temuan</div>
-    <div id="drawerTemuanList" style="margin-bottom:16px"></div>
+    <div id="drawerTemuanList" style="margin-bottom:12px"></div>
+    <!-- Foto Before dari Inspektor -->
+    <div id="drawerFotoBefore" style="display:none;margin-bottom:16px"></div>
     <div class="dfield">
       <label>📷 Foto After — Bukti Perbaikan *</label>
       <div class="foto-zone" id="fotoZone">
@@ -1110,14 +1112,47 @@ function openDrawer(insId) {
   document.getElementById('drawerInfo').innerHTML=`
     <div class="ig-cell"><div class="ig-label">Alat</div><div class="ig-val">${f.nama_alat||'-'}</div></div>
     <div class="ig-cell"><div class="ig-label">Area</div><div class="ig-val">${f.nama_subarea||'-'}</div></div>
-    <div class="ig-cell"><div class="ig-label">Tanggal</div><div class="ig-val">${f.tanggal_temuan||'-'}</div></div>
-    <div class="ig-cell"><div class="ig-label" style="color:${f.sla_status==='OVERDUE'?'var(--red)':'var(--muted)'}">Due Date</div><div class="ig-val" style="color:${f.sla_status==='OVERDUE'?'var(--red)':'inherit'}">${f.due_date||'-'}</div></div>`;
+    <div class="ig-cell"><div class="ig-label">Tanggal</div><div class="ig-val">${fmtDate(f.tanggal_temuan)}</div></div>
+    <div class="ig-cell"><div class="ig-label" style="color:${f.sla_status==='OVERDUE'?'var(--red)':'var(--muted)'}">Due Date</div><div class="ig-val" style="color:${f.sla_status==='OVERDUE'?'var(--red)':'inherit'}">${fmtDate(f.due_date)}</div></div>`;
   document.getElementById('drawerTemuanList').innerHTML=temuan.map((t,i)=>`
     <div class="temuan-item">
       <div class="temuan-no">Temuan ${i+1}</div>
       <div class="temuan-q">${t.pertanyaan||'-'}</div>
       ${t.remarks_inspector?`<div class="temuan-rmk">📝 ${t.remarks_inspector}</div>`:''}
     </div>`).join('');
+
+  // Tampilkan foto temuan (before) kalau ada
+  const fotoTemuan = temuan[0]?.foto_temuan;
+  const fotoEl = document.getElementById('drawerFotoBefore');
+  if (fotoEl) {
+    if (fotoTemuan) {
+      const urls = fotoTemuan.split(',').map(u=>u.trim()).filter(Boolean);
+      fotoEl.style.display = 'block';
+      fotoEl.innerHTML = `
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+          letter-spacing:.3px;margin-bottom:8px">📸 Foto Before (dari Inspektor)</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${urls.map(url=>`
+            <a href="${url}" target="_blank" style="display:block;width:80px;height:80px;flex-shrink:0">
+              <img src="${url}" 
+                style="width:80px;height:80px;object-fit:cover;border-radius:10px;
+                border:2px solid var(--border);cursor:pointer"
+                onerror="this.parentElement.innerHTML='<div style=\'width:80px;height:80px;background:var(--surface2);border-radius:10px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px\'>📷</div>'"
+              >
+            </a>`).join('')}
+        </div>`;
+    } else {
+      fotoEl.style.display = 'block';
+      fotoEl.innerHTML = `
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+          letter-spacing:.3px;margin-bottom:6px">📸 Foto Before (dari Inspektor)</div>
+        <div style="background:var(--surface2);border-radius:10px;padding:14px;
+          text-align:center;border:1.5px dashed var(--border)">
+          <div style="font-size:20px;margin-bottom:4px">📷</div>
+          <div style="font-size:12px;color:var(--muted)">Tidak ada foto before</div>
+        </div>`;
+    }
+  }
   document.getElementById('tindakanInput').value='';
   document.getElementById('fotoRow').innerHTML='';
   document.getElementById('fotoZone').style.display='flex';
@@ -1189,6 +1224,15 @@ async function compressFoto(file,q=0.7,maxPx=1280){
 }
 
 // ── HELPERS ──
+function fmtDate(dateStr) {
+  if (!dateStr) return '-';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d)) return dateStr;
+    return d.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+  } catch(e) { return dateStr; }
+}
+
 function logout(){if(confirm('Yakin ingin keluar?')){localStorage.removeItem('msm_session');window.location.href='login.html';}}
 function showLoad(msg){document.getElementById('lo').classList.add('show');document.getElementById('loMsg').textContent=msg||'Loading...'}
 function hideLoad(){document.getElementById('lo').classList.remove('show')}
