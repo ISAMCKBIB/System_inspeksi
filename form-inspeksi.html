@@ -1429,11 +1429,14 @@ function toast(msg, type='info'){
 
 // ── STEP 3: REVIEW ──
 function toStep3(){
-  // Validasi jawaban checklist
   if(!isTb){
-    const unanswered=pertanyaan.filter((_,i)=>!answers[i]);
-    if(unanswered.length>0){
-      toast(`⚠️ ${unanswered.length} pertanyaan belum dijawab`,'warn');
+    // Validasi pakai question_id (sama dengan key di answers)
+    const unanswered = pertanyaan.filter(p => {
+      const a = answers[p.question_id];
+      return !a || !a.val;
+    });
+    if(unanswered.length > 0){
+      toast(`⚠️ ${unanswered.length} pertanyaan belum dijawab`, 'warn');
       return;
     }
   }
