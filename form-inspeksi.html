@@ -1371,6 +1371,314 @@ async function fetchAssetFromURL(noId) {
     console.error('fetchAssetFromURL:', e);
   }
 }
+
+// ══════════════════════════════════════════════
+// CORE FUNCTIONS (RECOVERED)
+// ══════════════════════════════════════════════
+
+// ── STEP NAVIGATION ──
+function goStep(n){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById('page'+n);
+  if(pg){pg.classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.toggle('done', i<n-1);
+    s.classList.toggle('active', i===n-1);
+  });
+}
+
+// ── TOAST NOTIFICATION ──
+function toast(msg, type='info'){
+  let t=document.getElementById('toastEl');
+  if(!t){
+    t=document.createElement('div');
+    t.id='toastEl';
+    Object.assign(t.style,{
+      position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%) translateY(20px)',
+      padding:'10px 20px',borderRadius:'10px',fontSize:'13px',fontWeight:'600',
+      zIndex:'9999',opacity:'0',transition:'all .3s',whiteSpace:'nowrap',
+      boxShadow:'0 4px 16px rgba(0,0,0,.2)',fontFamily:'Inter,sans-serif'
+    });
+    document.body.appendChild(t);
+  }
+  const colors={info:'#1B4FD8',warn:'#D97706',error:'#DC2626',success:'#16A34A'};
+  t.style.background=colors[type]||colors.info;
+  t.style.color='#fff';
+  t.textContent=msg;
+  t.style.opacity='1';
+  t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{
+    t.style.opacity='0';
+    t.style.transform='translateX(-50%) translateY(20px)';
+  },3000);
+}
+
+// ── STEP 3: REVIEW ──
+function toStep3(){
+  // Validasi jawaban checklist
+  if(!isTb){
+    const unanswered=pertanyaan.filter((_,i)=>!answers[i]);
+    if(unanswered.length>0){
+      toast(`⚠️ ${unanswered.length} pertanyaan belum dijawab`,'warn');
+      return;
+    }
+  }
+  buildReview();
+  goStep(3);
+}
+
+// ── STEP 4: SELESAI ──
+function toStep4(){
+  goStep(4);
+}
+
+// ── BUILD REVIEW ──
+function buildReview(){
+  const rv=document.getElementById('reviewContent');
+  if(!rv)return;
+  const namaIns=document.getElementById('namaIns')?.value||'-';
+  const nikIns=document.getElementById('nikIns')?.value||'-';
+  const tgl=document.getElementById('tgl')?.value||'-';
+  const areaNama=document.getElementById('areaSel')?.selectedOptions[0]?.text||'-';
+  const subNama=document.getElementById('subSel')?.selectedOptions[0]?.text||'-';
+  const katNama=document.getElementById('katSel')?.selectedOptions[0]?.text||'-';
+  const namaAlat=document.getElementById('namaAlat')?.value||'-';
+  const noId=document.getElementById('noId')?.value||'-';
+  const merkAlat=document.getElementById('merkAlat')?.value||'-';
+  const noAsset=document.getElementById('noAsset')?.value||'-';
+
+  // Hitung status
+  let ngCount=0, okCount=0;
+  pertanyaan.forEach((_,i)=>{ if(answers[i]==='NG')ngCount++; else if(answers[i])okCount++; });
+  const status=ngCount>0?'TIDAK LAYAK':'LAYAK';
+  const statusColor=ngCount>0?'#DC2626':'#16A34A';
+
+  rv.innerHTML=`
+    <div style="background:#F8FAFC;border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:#1B4FD8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">👤 Data Inspektur</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+        <div><div style="color:#6B7494;font-size:11px">Nama</div><div style="font-weight:600">${namaIns}</div></div>
+        <div><div style="color:#6B7494;font-size:11px">NIK</div><div style="font-weight:600">${nikIns}</div></div>
+        <div><div style="color:#6B7494;font-size:11px">Tanggal</div><div style="font-weight:600">${tgl}</div></div>
+        <div><div style="color:#6B7494;font-size:11px">Area</div><div style="font-weight:600">${subNama}</div></div>
+      </div>
+    </div>
+    <div style="background:#F8FAFC;border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:#1B4FD8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🔧 Peralatan</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+        <div><div style="color:#6B7494;font-size:11px">Nama Alat</div><div style="font-weight:600">${namaAlat}</div></div>
+        <div><div style="color:#6B7494;font-size:11px">Merk</div><div style="font-weight:600">${merkAlat}</div></div>
+        <div><div style="color:#6B7494;font-size:11px">No ID</div><div style="font-weight:600">${noId}</div></div>
+        <div><div style="color:#6B7494;font-size:11px">No Asset</div><div style="font-weight:600">${noAsset}</div></div>
+      </div>
+    </div>
+    <div style="background:${ngCount>0?'#FEF2F2':'#F0FDF4'};border:2px solid ${statusColor};border-radius:12px;padding:14px;margin-bottom:12px;text-align:center">
+      <div style="font-size:18px;font-weight:800;color:${statusColor}">${status}</div>
+      <div style="font-size:12px;color:${statusColor};opacity:.8;margin-top:2px">
+        ✅ OK: ${okCount} | ❌ NG: ${ngCount}
+      </div>
+    </div>
+    ${ngCount>0?`
+    <div style="background:#FFF7ED;border-radius:12px;padding:14px">
+      <div style="font-size:11px;font-weight:700;color:#D97706;margin-bottom:8px">⚠️ Temuan (${ngCount} item)</div>
+      ${pertanyaan.filter((_,i)=>answers[i]==='NG').map((p,i)=>`
+        <div style="font-size:12px;padding:6px 0;border-bottom:1px solid #FDE68A;color:#92400E">
+          ${i+1}. ${p.pertanyaan}
+        </div>`).join('')}
+    </div>`:''}`;
+}
+
+// ── RENDER CHECKLIST ──
+function renderCheck(){
+  const tbody=document.getElementById('checkBody');
+  if(!tbody)return;
+  if(!pertanyaan.length){
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada pertanyaan</td></tr>';
+    return;
+  }
+  tbody.innerHTML=pertanyaan.map((item,i)=>{
+    const isNg=answers[i]==='NG';
+    const isOk=answers[i]==='OK';
+    return `<tr id="row${i}" style="background:${isNg?'#FEF2F2':isOk?'#F0FDF4':''}">
+      <td style="padding:10px 8px;font-size:13px;font-weight:${isNg?600:400}">${item.pertanyaan}</td>
+      <td style="text-align:center;padding:8px">
+        <button onclick="setAns(${i},'OK')" style="padding:6px 14px;border-radius:8px;border:2px solid ${isOk?'#16A34A':'#D4DCEF'};background:${isOk?'#16A34A':'#fff'};color:${isOk?'#fff':'#6B7494'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">✅ OK</button>
+      </td>
+      <td style="text-align:center;padding:8px">
+        <button onclick="setAns(${i},'NG')" style="padding:6px 14px;border-radius:8px;border:2px solid ${isNg?'#DC2626':'#D4DCEF'};background:${isNg?'#DC2626':'#fff'};color:${isNg?'#fff':'#6B7494'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">❌ NG</button>
+      </td>
+      <td style="padding:8px">
+        ${isNg?`<input type="text" placeholder="Keterangan temuan..." 
+          style="width:100%;border:1.5px solid #FECACA;border-radius:8px;padding:6px 10px;font-size:12px;font-family:inherit"
+          onchange="setRem(${i},this.value)" value="${item._rem||''}">`:''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function setAns(i, val){
+  answers[i]=val;
+  renderCheck();
+  // Update stat row
+  updateStatRow();
+}
+
+function setRem(i, val){
+  if(pertanyaan[i]) pertanyaan[i]._rem=val;
+}
+
+function updateStatRow(){
+  const el=document.getElementById('statRow');
+  if(!el)return;
+  const total=pertanyaan.length;
+  const ok=Object.values(answers).filter(v=>v==='OK').length;
+  const ng=Object.values(answers).filter(v=>v==='NG').length;
+  const pct=total>0?Math.round((ok/total)*100):0;
+  el.innerHTML=`
+    <div class="scard"><div class="sc-val">${total}</div><div class="sc-lbl">Total</div></div>
+    <div class="scard"><div class="sc-val" style="color:#16A34A">${ok}</div><div class="sc-lbl">OK</div></div>
+    <div class="scard"><div class="sc-val" style="color:#DC2626">${ng}</div><div class="sc-lbl">NG</div></div>
+    <div class="scard"><div class="sc-val" style="color:#1B4FD8">${pct}%</div><div class="sc-lbl">Score</div></div>`;
+}
+
+// ── RENDER TOOLBOX ──
+function renderTb(){
+  const tbody=document.getElementById('tbBody');
+  if(!tbody)return;
+  if(!tbContent.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada item</td></tr>';
+    return;
+  }
+  tbody.innerHTML=tbContent.map((item,i)=>{
+    const qty=tbAnswers[i]?.qty||0;
+    const cond=tbAnswers[i]?.cond||'';
+    return `<tr>
+      <td style="padding:8px;font-size:13px">${item.nama_item||item.item||'-'}</td>
+      <td style="padding:8px;text-align:center;font-size:13px">${item.qty_standar||'-'}</td>
+      <td style="padding:8px">
+        <input type="number" min="0" value="${qty}" 
+          style="width:60px;border:1.5px solid #D4DCEF;border-radius:6px;padding:4px 8px;font-size:13px;text-align:center"
+          onchange="setTb(${i},'qty',this.value)">
+      </td>
+      <td style="padding:8px">
+        <select style="border:1.5px solid #D4DCEF;border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit"
+          onchange="setTb(${i},'cond',this.value)">
+          <option value="">-</option>
+          <option value="BAIK" ${cond==='BAIK'?'selected':''}>Baik</option>
+          <option value="RUSAK" ${cond==='RUSAK'?'selected':''}>Rusak</option>
+          <option value="HILANG" ${cond==='HILANG'?'selected':''}>Hilang</option>
+        </select>
+      </td>
+      <td style="padding:8px;text-align:center">
+        <span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${cond==='BAIK'?'#F0FDF4':cond?'#FEF2F2':'#F8FAFC'};color:${cond==='BAIK'?'#16A34A':cond?'#DC2626':'#6B7494'};font-weight:600">
+          ${cond||'-'}
+        </span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function setTb(i,field,val){
+  if(!tbAnswers[i])tbAnswers[i]={};
+  tbAnswers[i][field]=val;
+}
+
+// ── SUBMIT ──
+async function doSubmit(){
+  const btn=document.getElementById('btnSubmit');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Mengirim...';}
+
+  try{
+    // Kumpulkan data form
+    const namaIns=document.getElementById('namaIns')?.value||'';
+    const nikIns=document.getElementById('nikIns')?.value||'';
+    const tgl=document.getElementById('tgl')?.value||'';
+    const compId=document.getElementById('compSel')?.value||'';
+    const areaId=document.getElementById('areaSel')?.value||'';
+    const subareaId=document.getElementById('subSel')?.value||'';
+    const katId_val=document.getElementById('katSel')?.value||'';
+    const namaAlat=document.getElementById('namaAlat')?.value||'';
+    const noId=document.getElementById('noId')?.value||'';
+    const noAsset=document.getElementById('noAsset')?.value||'';
+    const merkAlat=document.getElementById('merkAlat')?.value||'';
+
+    // Kumpulkan temuan
+    const temuan=[];
+    if(!isTb){
+      pertanyaan.forEach((p,i)=>{
+        if(answers[i]==='NG'){
+          temuan.push({
+            question_id:p.question_id||('Q-'+i),
+            pertanyaan:p.pertanyaan,
+            jawaban:'NG',
+            remarks:p._rem||''
+          });
+        }
+      });
+    }
+
+    // Hitung status kelayakan
+    const hasNG=temuan.length>0;
+    const statusKelayakan=hasNG?'TIDAK LAYAK':'LAYAK';
+
+    // Ambil foto
+    const fotoFiles=document.getElementById('fotoInput')?.files||[];
+    const fotoB64=[];
+    for(const file of fotoFiles){
+      const b64=await new Promise(res=>{
+        const fr=new FileReader();
+        fr.onload=()=>res(fr.result);
+        fr.readAsDataURL(file);
+      });
+      fotoB64.push(b64);
+    }
+
+    const payload={
+      action:'saveInspeksi',
+      nama_inspektor:namaIns,
+      nik_inspektor:nikIns,
+      tanggal_inspeksi:tgl,
+      company_id:compId,
+      area_id:areaId,
+      subarea_id:subareaId,
+      kategori_id:katId_val,
+      nama_alat:namaAlat,
+      no_id:noId,
+      no_asset:noAsset,
+      merk:merkAlat,
+      status_kelayakan:statusKelayakan,
+      temuan_list:temuan,
+      is_toolbox:isTb,
+      foto_list:fotoB64,
+      catatan:document.getElementById('catatan')?.value||''
+    };
+
+    const r=await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
+    const j=await r.json();
+
+    if(j.status==='ok'||j.success){
+      toStep4();
+      // Tampilkan result
+      const el=document.getElementById('submitResult');
+      if(el){
+        el.innerHTML=`
+          <div style="text-align:center;padding:20px">
+            <div style="font-size:48px;margin-bottom:12px">${hasNG?'⚠️':'✅'}</div>
+            <div style="font-size:20px;font-weight:700;color:${hasNG?'#D97706':'#16A34A'}">${statusKelayakan}</div>
+            <div style="font-size:14px;color:#6B7494;margin-top:8px">ID: ${j.inspeksi_id||'-'}</div>
+            <div style="font-size:13px;color:#6B7494;margin-top:4px">Terima kasih, data berhasil disimpan!</div>
+            ${hasNG?`<div style="font-size:12px;color:#D97706;margin-top:8px">⚠️ ${temuan.length} temuan telah dicatat. PIC akan ditugaskan.</div>`:''}
+          </div>`;
+      }
+    } else {
+      throw new Error(j.message||'Submit gagal');
+    }
+  }catch(e){
+    toast('❌ Gagal submit: '+e.message,'error');
+    if(btn){btn.disabled=false;btn.textContent='✅ Submit Inspeksi';}
+  }
+}
 </script>
 </body>
 </html>
