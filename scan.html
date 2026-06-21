@@ -1,15 +1,8 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta http-equiv="Content-Security-Policy"
-content="
-default-src 'self';
-script-src 'self' https://cdn.jsdelivr.net;
-style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-font-src https://fonts.gstatic.com;
-img-src 'self' data: https:;
-">
 <meta charset="UTF-8">
+<meta name="color-scheme" content="light only">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Scan Asset — ISAM CK BIB</title>
 <style>
@@ -39,6 +32,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:
 
 /* Result */
 .result-card{
+  color-scheme:light;
   position:fixed;bottom:0;left:0;right:0;
   background:#fff;border-radius:20px 20px 0 0;
   padding:20px;color:#0F1A3C;
@@ -147,6 +141,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:
 </div>
 
 <!-- Load jsQR untuk scan QR -->
+<!-- SUCCESS SCREEN -->
+<div class="success-screen" id="successScreen" style="display:none">
+  <div class="success-check-wrap">
+    <div class="success-check-ring"></div>
+    <div class="success-check-ring2"></div>
+    <div class="success-check-icon" id="successIcon">✅</div>
+  </div>
+  <div class="success-label" id="successLabel">Asset Ditemukan</div>
+  <div class="success-nama" id="successNama">—</div>
+  <div class="success-noid" id="successNoId">—</div>
+  <div class="success-info-grid" id="successInfoGrid"></div>
+  <div class="success-bar">
+    <div class="success-bar-label">
+      <span>Membuka form inspeksi...</span>
+      <span id="successCountdown">1.5s</span>
+    </div>
+    <div class="success-bar-track">
+      <div class="success-bar-fill" id="successBarFill"></div>
+    </div>
+  </div>
+  <div class="success-hint">Ketuk untuk langsung buka form</div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXYIMZh1r63PBehuExXDXJ8NqAHrJ5AwhivLGh5XcFYD61TTNCo_YWS5j2HLIczJur0Q/exec';
@@ -271,35 +288,67 @@ async function lookupAndShow(noId) {
   }
 }
 
-// ── TAMPILKAN RESULT CARD ──
+// ── TAMPILKAN ANIMASI SUCCESS → REDIRECT ──
 function showResult(status, asset) {
-  const card = document.getElementById('resultCard');
-  const icon = document.getElementById('resultIcon');
-  const title = document.getElementById('resultTitle');
-  const sub = document.getElementById('resultSub');
-  const info = document.getElementById('resultInfo');
+  // Flash layar hijau dulu
+  const flash = document.createElement('div');
+  flash.className = 'flash-overlay';
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 600);
+
+  // Vibrate
+  if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+
+  // Tampilkan success screen
+  const screen = document.getElementById('successScreen');
+  screen.style.display = 'flex';
+  screen.onclick = () => goToForm(); // tap to skip
 
   if (status === 'found' && asset) {
-    icon.textContent = '✅';
-    title.textContent = asset.nama_alat || 'Asset ditemukan!';
-    sub.textContent = 'No ID: ' + foundAssetId + ' · Data akan diisi otomatis';
-    info.innerHTML = `
-      <div class="result-row"><span class="result-label">Nama Alat</span><span class="result-val">${asset.nama_alat||'-'}</span></div>
-      <div class="result-row"><span class="result-label">Merk</span><span class="result-val">${asset.merk||'-'}</span></div>
-      <div class="result-row"><span class="result-label">No Asset</span><span class="result-val">${asset.no_asset||'-'}</span></div>
-      <div class="result-row"><span class="result-label">Terakhir</span><span class="result-val">${asset.tgl_inspeksi_terakhir||'Belum pernah'}</span></div>
-      <div class="result-row"><span class="result-label">Status</span><span class="result-val" style="color:${asset.status_aset_terakhir==='LAYAK'?'#16A34A':'#DC2626'}">${asset.status_aset_terakhir||'-'}</span></div>`;
-    document.getElementById('statusBar').textContent = '✅ Asset ditemukan — ' + asset.nama_alat;
+    document.getElementById('successIcon').textContent = '✅';
+    document.getElementById('successLabel').textContent = 'Asset Ditemukan!';
+    document.getElementById('successNama').textContent = asset.nama_alat || foundAssetId;
+    document.getElementById('successNoId').textContent = 'No ID: ' + foundAssetId;
+    document.getElementById('successInfoGrid').innerHTML = `
+      <div class="success-info-cell">
+        <div class="success-info-label">Merk</div>
+        <div class="success-info-val">${asset.merk||'-'}</div>
+      </div>
+      <div class="success-info-cell">
+        <div class="success-info-label">No Asset</div>
+        <div class="success-info-val">${asset.no_asset||'-'}</div>
+      </div>
+      <div class="success-info-cell">
+        <div class="success-info-label">Area</div>
+        <div class="success-info-val">${asset.nama_subarea||'-'}</div>
+      </div>
+      <div class="success-info-cell">
+        <div class="success-info-label">Status</div>
+        <div class="success-info-val" style="color:${asset.status_aset_terakhir==='LAYAK'?'#4ADE80':'#FCA5A5'}">${asset.status_aset_terakhir||'-'}</div>
+      </div>`;
   } else {
-    icon.textContent = '🆕';
-    title.textContent = 'Asset Baru';
-    sub.textContent = 'No ID: ' + foundAssetId + ' · Isi data di form';
-    info.innerHTML = `
-      <div class="result-row"><span class="result-label">No ID</span><span class="result-val">${foundAssetId}</span></div>
-      <div class="result-row" style="color:#D97706"><span class="result-label">Status</span><span class="result-val">Belum terdaftar — akan otomatis terdaftar setelah submit</span></div>`;
-    document.getElementById('statusBar').textContent = '🆕 Asset baru — isi data di form';
+    document.getElementById('successIcon').textContent = '🆕';
+    document.getElementById('successLabel').textContent = 'Asset Baru';
+    document.getElementById('successNama').textContent = 'No ID: ' + foundAssetId;
+    document.getElementById('successNoId').textContent = 'Belum terdaftar di database';
+    document.getElementById('successInfoGrid').innerHTML = `
+      <div class="success-info-cell" style="grid-column:1/-1">
+        <div class="success-info-label">Info</div>
+        <div class="success-info-val">Isi data di form — asset otomatis terdaftar setelah submit</div>
+      </div>`;
   }
-  card.classList.add('show');
+
+  // Countdown 1.5 detik lalu redirect
+  let remaining = 1.5;
+  const countEl = document.getElementById('successCountdown');
+  const timer = setInterval(() => {
+    remaining -= 0.1;
+    if (countEl) countEl.textContent = remaining.toFixed(1) + 's';
+    if (remaining <= 0) {
+      clearInterval(timer);
+      goToForm();
+    }
+  }, 100);
 }
 
 // ── GO TO FORM ──
