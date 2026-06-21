@@ -3,413 +3,550 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login — Mining Ship Inspeksi</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>ISAM — Inspection System Asset Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #0c1117;
-  --surface: #161b22;
-  --surface2: #1c2128;
-  --border: #30363d;
-  --accent: #f0a500;
-  --accent2: #e05c00;
-  --text: #e6edf3;
-  --muted: #8b949e;
-  --green: #3fb950;
-  --red: #f85149;
-  --blue: #58a6ff;
+:root{
+  --blue:#1B4FD8;--blue-dark:#1338B0;--blue-light:#EEF3FF;
+  --green:#16A34A;--purple:#7C3AED;
+  --text:#0F172A;--muted:#64748B;--border:#E2E8F0;
+  --surface:#fff;--bg:#F8FAFC;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:'Inter',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:1rem;
-}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{text-decoration:none;color:inherit}
 
-/* BG PATTERN */
-body::before{
-  content:'';
-  position:fixed;inset:0;
-  background:
-    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(240,165,0,0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(88,166,255,0.04) 0%, transparent 60%);
-  pointer-events:none;
+/* ── NAVBAR ── */
+.navbar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(255,255,255,.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;height:60px;
+  display:flex;align-items:center;justify-content:space-between;
 }
+.nav-brand{display:flex;align-items:center;gap:10px}
+.nav-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--blue),var(--blue-dark));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.nav-brand-text .brand-name{font-size:15px;font-weight:800;color:var(--text);line-height:1}
+.nav-brand-text .brand-sub{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+.nav-tagline{font-size:12px;color:var(--muted);display:none}
+.nav-version{font-size:11px;color:var(--blue);font-weight:600;background:var(--blue-light);padding:2px 8px;border-radius:20px}
+@media(min-width:640px){.nav-tagline{display:flex;align-items:center;gap:6px}}
 
-.login-wrap{
-  width:100%;
-  max-width:400px;
-  position:relative;
+/* ── HERO ── */
+.hero{
+  min-height:100vh;padding-top:60px;
+  display:grid;grid-template-columns:1fr;
+  position:relative;overflow:hidden;
 }
+@media(min-width:900px){.hero{grid-template-columns:1fr 440px}}
 
-/* HEADER */
-.brand{
-  text-align:center;
-  margin-bottom:2rem;
+/* Hero left */
+.hero-left{
+  position:relative;min-height:400px;
+  background:linear-gradient(160deg,#0F1A3C 0%,#1B4FD8 60%,#0EA5E9 100%);
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:40px 32px;overflow:hidden;
 }
-.brand-icon{
-  width:52px;height:52px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border-radius:14px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:24px;
-  margin:0 auto 12px;
-  box-shadow:0 8px 24px rgba(240,165,0,0.25);
+.hero-bg-img{
+  position:absolute;inset:0;
+  background:url('https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=1200&q=80') center/cover;
+  opacity:.25;mix-blend-mode:luminosity;
 }
-.brand h1{
-  font-size:20px;font-weight:600;
-  color:var(--text);letter-spacing:-.3px;
+.hero-logos{
+  position:absolute;top:24px;left:24px;
+  display:flex;align-items:center;gap:12px;
 }
-.brand p{
-  font-size:12px;color:var(--muted);
-  font-family:'JetBrains Mono',monospace;
-  margin-top:4px;letter-spacing:.5px;
+.hero-logo-ck{
+  background:#fff;border-radius:8px;padding:6px 10px;
+  font-size:13px;font-weight:800;color:var(--blue-dark);
+  display:flex;align-items:center;gap:4px;
 }
+.hero-logo-bib{
+  background:rgba(255,255,255,.15);border-radius:8px;padding:6px 10px;
+  font-size:12px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,.3);
+}
+.hero-content{position:relative;z-index:1}
+.hero-isam{font-size:56px;font-weight:800;color:#fff;line-height:.9;letter-spacing:-2px;margin-bottom:6px}
+.hero-title{font-size:20px;font-weight:700;color:#60A5FA;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px}
+.hero-desc{font-size:14px;color:rgba(255,255,255,.75);line-height:1.7;max-width:400px;margin-bottom:24px}
+.hero-features{display:flex;flex-direction:column;gap:10px}
+.hero-feat{display:flex;align-items:flex-start;gap:10px}
+.hero-feat-icon{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:1px}
+.hero-feat-title{font-size:13px;font-weight:600;color:#fff;margin-bottom:1px}
+.hero-feat-desc{font-size:11px;color:rgba(255,255,255,.6);line-height:1.4}
+@media(max-width:899px){.hero-isam{font-size:40px}.hero-left{padding:28px 20px;min-height:380px}}
 
-/* CARD */
-.card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:2rem;
-  box-shadow:0 16px 48px rgba(0,0,0,0.4);
+/* Hero right - Login form */
+.hero-right{
+  background:#fff;display:flex;align-items:center;justify-content:center;
+  padding:80px 32px 40px;
+  box-shadow:-8px 0 40px rgba(0,0,0,.08);
+  position:relative;z-index:10;
 }
-.card-title{
-  font-size:16px;font-weight:600;
-  margin-bottom:4px;
-}
-.card-sub{
-  font-size:12px;color:var(--muted);
-  margin-bottom:1.5rem;
-}
+.login-box{width:100%;max-width:380px}
+.login-title{font-size:26px;font-weight:800;margin-bottom:6px;color:var(--text)}
+.login-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:28px}
+.login-sub span{color:var(--blue);font-weight:500}
 
-/* FORM */
-.field{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem}
-.field label{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.3px}
+/* Form */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.input-wrap{position:relative}
+.input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--muted)}
 .field input{
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:10px 14px;
-  color:var(--text);
-  font-family:'Inter',sans-serif;
-  font-size:14px;
-  outline:none;
-  transition:border-color .2s;
+  width:100%;border:1.5px solid var(--border);border-radius:10px;
+  padding:12px 14px 12px 40px;font-size:14px;color:var(--text);
+  font-family:'Inter',sans-serif;outline:none;transition:all .2s;background:#fff;
 }
-.field input:focus{border-color:var(--accent)}
-.field input::placeholder{color:var(--muted)}
+.field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(27,79,216,.1)}
+.field input::placeholder{color:#CBD5E1}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:4px}
+
+.login-opts{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.checkbox-wrap{display:flex;align-items:center;gap:6px;cursor:pointer}
+.checkbox-wrap input[type=checkbox]{width:15px;height:15px;accent-color:var(--blue);cursor:pointer}
+.checkbox-wrap span{font-size:13px;color:var(--muted)}
+.forgot-link{font-size:13px;color:var(--blue);font-weight:500}
+.forgot-link:hover{text-decoration:underline}
 
 .btn-login{
-  width:100%;
-  padding:12px;
-  background:var(--accent);
-  color:#000;
-  border:none;
-  border-radius:8px;
-  font-family:'Inter',sans-serif;
-  font-size:14px;font-weight:600;
-  cursor:pointer;
-  transition:all .2s;
-  margin-top:.5rem;
-  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:14px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--blue),var(--blue-dark));
+  color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+  font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .2s;box-shadow:0 4px 16px rgba(27,79,216,.3);
 }
-.btn-login:hover{background:#e09500;transform:translateY(-1px)}
-.btn-login:disabled{background:var(--muted);cursor:not-allowed;transform:none}
+.btn-login:hover{opacity:.9;transform:translateY(-1px)}
+.btn-login:active{transform:translateY(0)}
+.btn-login:disabled{background:#94A3B8;cursor:not-allowed;box-shadow:none;transform:none}
 
-/* DIVIDER */
-.divider{
-  display:flex;align-items:center;gap:10px;
-  margin:1.5rem 0;
-  font-size:11px;color:var(--muted);
-}
-.divider::before,.divider::after{
-  content:'';flex:1;height:1px;background:var(--border);
-}
+.divider{display:flex;align-items:center;gap:12px;margin:16px 0}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.divider span{font-size:12px;color:var(--muted)}
 
-/* FORM LINK */
-.form-link{
-  display:block;
-  text-align:center;
-  padding:11px;
-  border:1px solid var(--border);
-  border-radius:8px;
-  font-size:13px;color:var(--muted);
-  text-decoration:none;
+.btn-form{
+  width:100%;padding:13px;border-radius:10px;
+  border:1.5px solid var(--border);background:#fff;
+  color:var(--text);font-size:14px;font-weight:500;cursor:pointer;
+  font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;
   transition:all .2s;
 }
-.form-link:hover{border-color:var(--accent);color:var(--accent)}
-.form-link span{font-size:16px;margin-right:4px}
+.btn-form:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
 
-/* ERROR / SUCCESS */
+/* Alert */
 .alert{
-  padding:10px 14px;
-  border-radius:8px;
-  font-size:12px;
-  margin-bottom:1rem;
-  display:none;
-  align-items:center;gap:8px;
+  padding:12px 14px;border-radius:10px;font-size:13px;font-weight:500;
+  margin-bottom:16px;display:none;align-items:center;gap:8px;
 }
-.alert.error{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red)}
-.alert.success{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--green)}
 .alert.show{display:flex}
+.alert-error{background:#FEF2F2;border:1px solid #FECACA;color:#DC2626}
+.alert-success{background:#F0FDF4;border:1px solid #BBF7D0;color:#16A34A}
+.alert-warn{background:#FFFBEB;border:1px solid #FDE68A;color:#D97706}
 
-/* LOADER */
-.spinner{
-  width:16px;height:16px;
-  border:2px solid rgba(0,0,0,.3);
-  border-top-color:#000;
-  border-radius:50%;
-  animation:spin .8s linear infinite;
-}
+/* Loading spinner */
+.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ROLE BADGES */
-.role-info{
-  display:flex;gap:6px;flex-wrap:wrap;
-  margin-top:1.5rem;padding-top:1.5rem;
-  border-top:1px solid var(--border);
-}
-.role-badge{
-  flex:1;min-width:80px;
-  padding:8px 10px;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:8px;
-  text-align:center;
-  font-size:11px;
-}
-.role-badge .r-icon{font-size:18px;display:block;margin-bottom:4px}
-.role-badge .r-name{font-weight:600;color:var(--text)}
-.role-badge .r-desc{color:var(--muted);font-size:10px;margin-top:2px}
+/* ── QUICK ACCESS ── */
+.section{padding:60px 24px}
+.section-center{text-align:center;max-width:600px;margin:0 auto 40px}
+.section-title{font-size:26px;font-weight:800;margin-bottom:8px}
+.section-sub{font-size:14px;color:var(--muted);line-height:1.6}
 
-/* FOOTER */
-.footer{
-  text-align:center;
-  margin-top:1.5rem;
-  font-size:11px;color:var(--muted);
-  font-family:'JetBrains Mono',monospace;
+.quick-grid{display:grid;grid-template-columns:1fr;gap:16px;max-width:960px;margin:0 auto}
+@media(min-width:640px){.quick-grid{grid-template-columns:repeat(3,1fr)}}
+
+.quick-card{
+  background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:24px;
+  transition:all .2s;cursor:pointer;
 }
+.quick-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.1);transform:translateY(-2px)}
+.quick-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px}
+.quick-icon.blue{background:#EEF3FF}
+.quick-icon.green{background:#F0FDF4}
+.quick-icon.purple{background:#F5F3FF}
+.quick-card-title{font-size:15px;font-weight:700;margin-bottom:2px}
+.quick-card-role{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.quick-card-role.blue{color:var(--blue)}
+.quick-card-role.green{color:var(--green)}
+.quick-card-role.purple{color:var(--purple)}
+.quick-card-desc{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px}
+.quick-btn{
+  width:100%;padding:10px;border-radius:8px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:6px;border:none;
+}
+.quick-btn.blue{background:var(--blue-light);color:var(--blue)}
+.quick-btn.blue:hover{background:var(--blue);color:#fff}
+.quick-btn.green{background:#F0FDF4;color:var(--green)}
+.quick-btn.green:hover{background:var(--green);color:#fff}
+.quick-btn.purple{background:#F5F3FF;color:var(--purple)}
+.quick-btn.purple:hover{background:var(--purple);color:#fff}
+
+/* ── ROLE SECTION ── */
+.roles-section{background:linear-gradient(135deg,#0F172A,#1E293B);padding:60px 24px}
+.roles-grid{display:grid;grid-template-columns:1fr;gap:16px;max-width:960px;margin:0 auto}
+@media(min-width:640px){.roles-grid{grid-template-columns:repeat(3,1fr)}}
+.role-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px}
+.role-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
+.role-name{font-size:16px;font-weight:700;color:#fff;margin-bottom:2px}
+.role-label{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.role-item{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;color:rgba(255,255,255,.75)}
+.role-check{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.role-note{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:12px 16px;max-width:960px;margin:24px auto 0;
+  display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,.6);
+}
+
+/* ── FOOTER ── */
+.footer{background:#0F172A;padding:40px 24px 24px;color:rgba(255,255,255,.6)}
+.footer-grid{display:grid;grid-template-columns:1fr;gap:28px;max-width:960px;margin:0 auto 28px}
+@media(min-width:640px){.footer-grid{grid-template-columns:2fr 1fr 1fr 1fr}}
+.footer-brand-name{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.footer-brand-desc{font-size:12px;line-height:1.7;margin-bottom:8px}
+.footer-version{font-size:11px;color:rgba(255,255,255,.4)}
+.footer-col-title{font-size:12px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.footer-link{display:block;font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px;cursor:pointer;transition:color .15s}
+.footer-link:hover{color:#fff}
+.footer-contact-item{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:20px;text-align:center;font-size:12px;color:rgba(255,255,255,.3);max-width:960px;margin:0 auto}
+
+/* ── LOADING OVERLAY ── */
+.lo{position:fixed;inset:0;background:rgba(255,255,255,.95);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:999}
+.lo.show{display:flex}
+.lo-spin{width:40px;height:40px;border:3px solid #E2E8F0;border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+.lo-msg{font-size:14px;color:var(--muted);font-weight:500}
 </style>
 </head>
 <body>
 
-<div class="login-wrap">
-  <div class="brand">
-    <div class="brand-icon">⛏️</div>
-    <h1>Mining Ship Inspeksi</h1>
-    <p>SISTEM MONITORING K3 · KGB & GRB</p>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Masuk ke Dashboard</div>
-    <div class="card-sub">Untuk PIC dan Admin saja — Inspector tidak perlu login</div>
-
-    <div class="alert error" id="alertError">
-      <span>⚠️</span><span id="errorMsg">Email tidak terdaftar</span>
-    </div>
-    <div class="alert success" id="alertSuccess">
-      <span>✅</span><span id="successMsg">Login berhasil, mengalihkan...</span>
-    </div>
-
-    <div class="field">
-      <label>EMAIL</label>
-      <input type="email" id="emailInput" placeholder="email@perusahaan.com"
-        onkeydown="if(event.key==='Tab') document.getElementById('pwInput').focus()">
-    </div>
-    <div class="field" style="margin-top:12px">
-      <label>PASSWORD</label>
-      <div style="position:relative">
-        <input type="password" id="pwInput" placeholder="Masukkan password"
-          onkeydown="if(event.key==='Enter') doLogin()"
-          style="padding-right:44px">
-        <button onclick="togglePw()" type="button"
-          style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
-          background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0"
-          id="eyeBtn">👁</button>
-      </div>
-    </div>
-
-    <button class="btn-login" id="btnLogin" onclick="doLogin()">
-      <span id="btnText">Masuk</span>
-    </button>
-
-    <div class="divider">atau</div>
-
-    <a href="form-inspeksi.html" class="form-link">
-      <span>📋</span> Buka Form Inspeksi (tidak perlu login)
-    </a>
-
-    <div class="role-info">
-      <div class="role-badge">
-        <span class="r-icon">🔧</span>
-        <div class="r-name">PIC</div>
-        <div class="r-desc">Lihat & close temuan areamu</div>
-      </div>
-      <div class="role-badge">
-        <span class="r-icon">⚙️</span>
-        <div class="r-name">Admin</div>
-        <div class="r-desc">Kelola semua data & master</div>
-      </div>
-      <div class="role-badge">
-        <span class="r-icon">👁️</span>
-        <div class="r-name">Viewer</div>
-        <div class="r-desc">Lihat laporan & dashboard</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer">v2.0 · 2026 · Mining Ship Monitoring System</div>
+<!-- LOADING -->
+<div class="lo" id="lo">
+  <div class="lo-spin"></div>
+  <div class="lo-msg" id="loMsg">Masuk ke sistem...</div>
 </div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="nav-logo">🔧</div>
+    <div class="nav-brand-text">
+      <div class="brand-name">ISAM</div>
+      <div class="brand-sub">Inspection System Asset Management</div>
+    </div>
+  </div>
+  <div class="nav-tagline">
+    <span>🛡️</span>
+    <span>Aman • Terstruktur • Terintegrasi</span>
+  </div>
+  <div class="nav-version">v1.0 • BIB Mining Project</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <!-- Left: branding -->
+  <div class="hero-left">
+    <div class="hero-bg-img"></div>
+    <div class="hero-logos">
+      <div class="hero-logo-ck">⚙️ CK</div>
+      <div class="hero-logo-bib">PT. BIB</div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-isam">ISAM</div>
+      <div class="hero-title">Inspection System<br>Asset Management</div>
+      <div class="hero-desc">Platform digital untuk pengelolaan inspeksi aset, monitoring temuan, tindak lanjut, dan pelaporan secara terintegrasi.</div>
+      <div class="hero-features">
+        <div class="hero-feat">
+          <div class="hero-feat-icon">✅</div>
+          <div>
+            <div class="hero-feat-title">Inspeksi Terstruktur</div>
+            <div class="hero-feat-desc">Standarisasi proses inspeksi aset dan pencatatan temuan.</div>
+          </div>
+        </div>
+        <div class="hero-feat">
+          <div class="hero-feat-icon">📊</div>
+          <div>
+            <div class="hero-feat-title">Monitoring Real-Time</div>
+            <div class="hero-feat-desc">Pantau status temuan dan progres tindak lanjut secara real-time.</div>
+          </div>
+        </div>
+        <div class="hero-feat">
+          <div class="hero-feat-icon">🔗</div>
+          <div>
+            <div class="hero-feat-title">Data Akurat & Terintegrasi</div>
+            <div class="hero-feat-desc">Semua data tersimpan rapi, terpusat, dan mudah dianalisis.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Login form -->
+  <div class="hero-right">
+    <div class="login-box">
+      <div class="login-title">Masuk ke ISAM</div>
+      <div class="login-sub">Untuk <span>PIC, Admin, dan Viewer</span>.<br>Inspector dapat mengakses Form Inspeksi tanpa login.</div>
+
+      <div class="alert alert-error" id="alertBox">
+        <span>❌</span><span id="alertMsg">Email atau password salah</span>
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <div class="input-wrap">
+          <span class="input-icon">📧</span>
+          <input type="email" id="emailInput" placeholder="email@perusahaan.com" autocomplete="email"
+            onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="passInput" placeholder="Masukkan password..." id="passInput"
+            onkeydown="if(event.key==='Enter')doLogin()">
+          <button class="eye-btn" type="button" onclick="togglePass()" id="eyeBtn">👁️</button>
+        </div>
+      </div>
+
+      <div class="login-opts">
+        <label class="checkbox-wrap">
+          <input type="checkbox" id="rememberMe">
+          <span>Ingat saya</span>
+        </label>
+        <a class="forgot-link" href="#">Lupa password?</a>
+      </div>
+
+      <button class="btn-login" id="btnLogin" onclick="doLogin()">
+        <span>→</span> Masuk
+      </button>
+
+      <div class="divider"><span>atau</span></div>
+
+      <button class="btn-form" onclick="window.location.href='form-inspeksi.html'">
+        📋 Buka Form Inspeksi (tidak perlu login)
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- QUICK ACCESS -->
+<section class="section" style="background:#F8FAFC">
+  <div class="section-center">
+    <div class="section-title">Akses Cepat</div>
+    <div class="section-sub">Akses fitur penting tanpa perlu login ke sistem</div>
+  </div>
+  <div class="quick-grid">
+    <div class="quick-card" onclick="window.location.href='form-inspeksi.html'">
+      <div class="quick-icon blue">📋</div>
+      <div class="quick-card-role blue">Untuk Inspector</div>
+      <div class="quick-card-title">Form Inspeksi</div>
+      <div class="quick-card-desc">Buka form untuk melakukan inspeksi aset dan input temuan tanpa perlu login.</div>
+      <button class="quick-btn blue">Buka Form Inspeksi →</button>
+    </div>
+    <div class="quick-card" onclick="window.location.href='qr-generator.html'">
+      <div class="quick-icon green">📊</div>
+      <div class="quick-card-role green">QR Generator</div>
+      <div class="quick-card-title">QR Code Asset</div>
+      <div class="quick-card-desc">Generate dan print QR Code untuk semua asset. Scan untuk inspeksi lebih cepat.</div>
+      <button class="quick-btn green">Buka QR Generator ↗</button>
+    </div>
+    <div class="quick-card">
+      <div class="quick-icon purple">📖</div>
+      <div class="quick-card-role purple">SOP & Dokumentasi</div>
+      <div class="quick-card-title">Panduan Sistem</div>
+      <div class="quick-card-desc">Pelajari cara penggunaan ISAM melalui panduan dan dokumentasi sistem secara lengkap.</div>
+      <button class="quick-btn purple">Lihat Panduan →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ROLE ACCESS -->
+<section class="roles-section">
+  <div class="section-center" style="color:#fff">
+    <div class="section-title" style="color:#fff">Hak Akses Sistem</div>
+    <div class="section-sub" style="color:rgba(255,255,255,.6)">Setiap peran memiliki akses dan tanggung jawab yang berbeda</div>
+  </div>
+  <div class="roles-grid">
+    <div class="role-card">
+      <div class="role-icon" style="background:rgba(27,79,216,.3)">🔧</div>
+      <div class="role-name">PIC</div>
+      <div class="role-label">Person In Charge</div>
+      <div class="role-item"><div class="role-check">✓</div>Lihat & close temuan area</div>
+      <div class="role-item"><div class="role-check">✓</div>Tindak lanjut temuan</div>
+      <div class="role-item"><div class="role-check">✓</div>Update status tindakan</div>
+      <div class="role-item"><div class="role-check">✓</div>Monitoring area</div>
+    </div>
+    <div class="role-card">
+      <div class="role-icon" style="background:rgba(16,163,74,.2)">⚙️</div>
+      <div class="role-name">Admin</div>
+      <div class="role-label">Administrator</div>
+      <div class="role-item"><div class="role-check">✓</div>Kelola semua data & master</div>
+      <div class="role-item"><div class="role-check">✓</div>Kelola user dan role</div>
+      <div class="role-item"><div class="role-check">✓</div>Pengaturan sistem</div>
+      <div class="role-item"><div class="role-check">✓</div>Backup & restore data</div>
+    </div>
+    <div class="role-card">
+      <div class="role-icon" style="background:rgba(124,58,237,.2)">👁️</div>
+      <div class="role-name">Viewer</div>
+      <div class="role-label">Safety Captain</div>
+      <div class="role-item"><div class="role-check">✓</div>Lihat laporan & dashboard</div>
+      <div class="role-item"><div class="role-check">✓</div>Monitoring data</div>
+      <div class="role-item"><div class="role-check">✓</div>Unduh laporan</div>
+      <div class="role-item"><div class="role-check">✓</div>Tidak dapat ubah data</div>
+    </div>
+  </div>
+  <div class="role-note">
+    <span>ℹ️</span>
+    Semua pengguna (PIC, Admin, Viewer) harus login untuk mengakses dashboard sesuai hak akses masing-masing.
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand-name">🔧 ISAM</div>
+      <div class="footer-brand-desc">Sistem digital untuk pengelolaan inspeksi aset, monitoring temuan, tindak lanjut, dan pelaporan secara terintegrasi.</div>
+      <div class="footer-version">v1.0 • BIB Mining Project</div>
+    </div>
+    <div>
+      <div class="footer-col-title">Tautan Cepat</div>
+      <a class="footer-link" onclick="window.location.href='form-inspeksi.html'">Form Inspeksi</a>
+      <a class="footer-link" onclick="window.location.href='qr-generator.html'">QR Generator</a>
+      <a class="footer-link" onclick="window.location.href='dashboard.html'">Dashboard</a>
+      <a class="footer-link">Kebijakan Privasi</a>
+    </div>
+    <div>
+      <div class="footer-col-title">Bantuan</div>
+      <a class="footer-link">Helpdesk</a>
+      <a class="footer-link">Kontak Kami</a>
+      <a class="footer-link">FAQ</a>
+    </div>
+    <div>
+      <div class="footer-col-title">Kontak</div>
+      <div class="footer-contact-item">📞 +62 812-3456-7890</div>
+      <div class="footer-contact-item">📧 helpdesk@bib.co.id</div>
+      <div class="footer-contact-item">📍 BIB Site Office, Kalimantan Timur</div>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2024 PT. BIB • All rights reserved.</div>
+</footer>
 
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4k8CSXxUQmahghLAqRtUDgk1vy3tc0qvEaqorklJvIZIgzVUpxdfm-9pCr3u-hw1ugQ/exec';
 
-async function doLogin() {
-  const email = document.getElementById('emailInput').value.trim();
-  if (!email) { showAlert('error', 'Masukkan email kamu dulu'); return; }
+// ── INIT ──
+window.onload = function() {
+  const urlParams = new URLSearchParams(window.location.search);
 
-  const btn = document.getElementById('btnLogin');
-  const btnText = document.getElementById('btnText');
-  btn.disabled = true;
-  btnText.innerHTML = '<div class="spinner"></div> Memverifikasi...';
-  hideAlerts();
+  // Clear semua kalau dari logout
+  if (urlParams.get('logout') === '1') {
+    localStorage.clear();
+    sessionStorage.clear();
+    return;
+  }
 
-  const pw = document.getElementById('pwInput').value.trim();
-  if (!pw) { showAlert('error', 'Masukkan password dulu'); return; }
+  // Expired session
+  if (urlParams.get('expired') === '1') {
+    showAlert('warn', '⏰ Session habis — silakan login ulang');
+    return;
+  }
 
-  try {
-    // Call Apps Script untuk verifikasi email + password dari MASTER_EMPLOYEE
-    const res = await fetch(APPS_SCRIPT_URL + '?action=getMasterData&type=employee_login&email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(pw));
-    const json = await res.json();
-
-    if (json.status === 'ok' && json.data && json.data.employee) {
-      const emp = json.data.employee;
-
-      // Validasi role
-      if (!['PIC', 'ADMIN', 'VIEWER'].includes(emp.role)) {
-        showAlert('error', `Role "${emp.role}" tidak bisa akses dashboard. Gunakan form inspeksi.`);
-        btn.disabled = false;
-        btnText.textContent = 'Masuk';
+  // Cek existing session
+  const raw = localStorage.getItem('msm_session');
+  if (raw) {
+    try {
+      const s = JSON.parse(raw);
+      const age = (new Date() - new Date(s.login_at)) / 3600000;
+      if (age < 8 && s.nik && s.role) {
+        window.location.replace('dashboard.html?t=' + Date.now());
         return;
       }
+    } catch(e) {}
+    localStorage.removeItem('msm_session');
+  }
+};
 
-      // Simpan session
+// ── LOGIN ──
+async function doLogin() {
+  const email = document.getElementById('emailInput').value.trim().toLowerCase();
+  const pass  = document.getElementById('passInput').value.trim();
+
+  if (!email || !pass) { showAlert('error', 'Email dan password wajib diisi'); return; }
+
+  const btn = document.getElementById('btnLogin');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> Memverifikasi...';
+  hideAlert();
+  showLoad('Memverifikasi akun...');
+
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'login', email, password: pass })
+    });
+    const json = await res.json();
+
+    if (json.success && json.user) {
+      const emp = json.user;
+      // Clear session lama
+      localStorage.clear();
+      sessionStorage.clear();
+      // Set session baru
       const session = {
-        nik: emp.nik,
-        nama: emp.nama,
-        email: emp.email,
-        role: emp.role,
-        company_id: emp.company_id,
-        area_id: emp.area_id,
-        subarea_id: emp.subarea_id,
-        login_at: new Date().toISOString()
+        nik        : emp.nik,
+        nama       : emp.nama,
+        email      : emp.email,
+        jabatan    : emp.jabatan || '',
+        role       : emp.role,
+        company_id : emp.company_id,
+        area_id    : emp.area_id,
+        subarea_id : emp.subarea_id,
+        login_at   : new Date().toISOString()
       };
       localStorage.setItem('msm_session', JSON.stringify(session));
-
-      showAlert('success', `Selamat datang, ${emp.nama}! Mengalihkan ke dashboard...`);
-
-      // Update last_login di Sheets
-      await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'updateEmployee',
-          nik: emp.nik,
-          last_login: new Date().toISOString()
-        })
-      });
-
-      // Cek apakah ada redirect target dari URL param
-      const urlParams = new URLSearchParams(window.location.search);
-      const targetInspeksi = urlParams.get('inspeksi') || sessionStorage.getItem('redirect_inspeksi');
-      
+      // Remember me
+      if (document.getElementById('rememberMe').checked) {
+        localStorage.setItem('msm_remember', email);
+      }
+      hideLoad();
+      showLoad('Selamat datang, ' + emp.nama + '! Membuka dashboard...');
       setTimeout(() => {
-        if (targetInspeksi) {
-          window.location.href = 'dashboard.html?inspeksi=' + targetInspeksi;
-        } else {
-          window.location.href = 'dashboard.html';
-        }
-      }, 1200);
-
+        window.location.replace('dashboard.html?t=' + Date.now());
+      }, 800);
     } else {
-      showAlert('error', json.data?.message || 'Email tidak terdaftar atau password salah.');
+      hideLoad();
+      showAlert('error', json.message || 'Email atau password salah');
+      btn.disabled = false;
+      btn.innerHTML = '<span>→</span> Masuk';
     }
-  } catch (err) {
-    // DEMO MODE
-    console.log('Demo mode — Apps Script belum terkoneksi');
-    demoLogin(email);
+  } catch(e) {
+    hideLoad();
+    showAlert('error', 'Koneksi gagal. Coba lagi.');
+    btn.disabled = false;
+    btn.innerHTML = '<span>→</span> Masuk';
   }
-
-  btn.disabled = false;
-  btnText.textContent = 'Masuk';
 }
 
-// Demo login tanpa Apps Script
-function demoLogin(email) {
-  const pw = document.getElementById('pwInput').value.trim();
-  const demoUsers = {
-    'pic@demo.com':   { nik:'EMP003', nama:'Zainal', role:'PIC', company_id:'KGB001', area_id:'AR001', subarea_id:'SA001', password:'123456' },
-    'admin@demo.com': { nik:'EMP001', nama:'Abdul Azis', role:'ADMIN', company_id:'KGB001', area_id:'AR001', subarea_id:'', password:'admin123' },
-    'view@demo.com':  { nik:'EMP010', nama:'HSE Manager', role:'VIEWER', company_id:'KGB001', area_id:'', subarea_id:'', password:'123456' },
-  };
-
-  const emp = demoUsers[email.toLowerCase()];
-  if (emp) {
-    if (pw !== emp.password) {
-      showAlert('error', '[DEMO] Password salah. Coba: pic@demo.com/123456 atau admin@demo.com/admin123');
-      return;
-    }
-    localStorage.setItem('msm_session', JSON.stringify({ ...emp, email, login_at: new Date().toISOString() }));
-    showAlert('success', `[DEMO] Selamat datang, ${emp.nama}! Role: ${emp.role}`);
-    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
-  } else {
-    showAlert('error', 'Email tidak ditemukan. Coba: pic@demo.com / admin@demo.com');
-  }
+function togglePass() {
+  const el = document.getElementById('passInput');
+  const btn = document.getElementById('eyeBtn');
+  if (el.type === 'password') { el.type = 'text'; btn.textContent = '🙈'; }
+  else { el.type = 'password'; btn.textContent = '👁️'; }
 }
 
 function showAlert(type, msg) {
-  hideAlerts();
-  const el = document.getElementById(type === 'error' ? 'alertError' : 'alertSuccess');
-  const msgEl = document.getElementById(type === 'error' ? 'errorMsg' : 'successMsg');
+  const el = document.getElementById('alertBox');
+  const msgEl = document.getElementById('alertMsg');
+  el.className = 'alert show alert-' + type;
   msgEl.textContent = msg;
-  el.classList.add('show');
 }
-function hideAlerts() {
-  document.getElementById('alertError').classList.remove('show');
-  document.getElementById('alertSuccess').classList.remove('show');
-}
-
-function togglePw() {
-  const input = document.getElementById('pwInput');
-  const btn = document.getElementById('eyeBtn');
-  if (input.type === 'password') {
-    input.type = 'text';
-    btn.textContent = '🙈';
-  } else {
-    input.type = 'password';
-    btn.textContent = '👁';
-  }
-}
-
-// Check jika sudah login
-window.onload = () => {
-  const session = localStorage.getItem('msm_session');
-  if (session) {
-    const s = JSON.parse(session);
-    const loginAge = (new Date() - new Date(s.login_at)) / 1000 / 60 / 60;
-    if (loginAge < 8) { // session 8 jam
-      window.location.href = 'dashboard.html';
-    } else {
-      localStorage.removeItem('msm_session');
-    }
-  }
-  document.getElementById('emailInput').focus();
-};
+function hideAlert() { document.getElementById('alertBox').classList.remove('show'); }
+function showLoad(msg) { document.getElementById('lo').classList.add('show'); document.getElementById('loMsg').textContent = msg||'Loading...'; }
+function hideLoad() { document.getElementById('lo').classList.remove('show'); }
 </script>
 </body>
 </html>
