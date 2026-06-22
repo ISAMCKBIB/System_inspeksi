@@ -1814,14 +1814,12 @@ function renderTb(){
       </td>
       <td style="text-align:center;font-weight:700;font-size:13px">${item.qty_standar}</td>
       <td><input type="number" inputmode="numeric" min="0" placeholder="0" value="${a.aktual !== null && a.aktual !== undefined ? a.aktual : ''}"
-          oninput="setTb('${item.content_id}','aktual',this.value,'${item.qty_standar}')"
-          onblur="renderTb()"
+          onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}');renderTb()"
           style="width:52px;text-align:center;font-size:16px;border:1.5px solid var(--border);border-radius:6px;padding:6px 4px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif"></td>
       <td style="font-size:11px;color:var(--muted)">${item.unit}</td>
-      <td><select oninput="setTb('${item.content_id}','aktual',this.value,'${item.qty_standar}')"
-          onblur="renderTb()"
+      <td><select onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}');renderTb()"
           style="font-size:13px;padding:6px 6px;border:1.5px solid var(--border);border-radius:6px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif">
-          <option value="BAIK"${(a.kondisi||'BAIK')==='BAIK'?' selected':''}>BAIK</option>
+        <option value="BAIK"${(a.kondisi||'BAIK')==='BAIK'?' selected':''}>BAIK</option>
           <option value="RUSAK"${a.kondisi==='RUSAK'?' selected':''}>RUSAK</option>
           <option value="HILANG"${a.kondisi==='HILANG'?' selected':''}>HILANG</option>
       </select></td>`;
