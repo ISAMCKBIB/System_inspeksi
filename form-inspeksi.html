@@ -1790,34 +1790,24 @@ function renderTb(){
   tbody.innerHTML='';
   tbContent.forEach((item,i)=>{
     const a=tbAnswers[item.content_id]||{aktual:'',kondisi:'BAIK',remarks:''};
-    // isNg hanya kalau kondisi RUSAK/HILANG, atau aktual sudah diisi user dan kurang dari standar
-    const aktualDiisi = a.aktual !== '' && a.aktual !== '0' && a.aktual !== null;
-    const isNg=a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(aktualDiisi&&parseInt(a.aktual)<parseInt(item.qty_standar));
+    const isNg=a.kondisi==='RUSAK'||a.kondisi==='HILANG'||(a.aktual!==''&&parseInt(a.aktual)<parseInt(item.qty_standar));
     const tr=document.createElement('tr');
-    tr.setAttribute('data-cid', item.content_id);
     if(isNg) tr.classList.add('tb-ng');
     tr.innerHTML=`
       <td style="color:var(--muted2);font-size:10px;font-weight:700">${i+1}</td>
-      <td style="font-size:13px;line-height:1.4;font-weight:${isNg?600:400}">
-        <span>${item.deskripsi}</span>
-        ${isNg?`<div style="margin-top:6px">
-          <input type="text" placeholder="Catatan kondisi..." value="${a.remarks||''}"
-            onchange="setTb('${item.content_id}','remarks',this.value,'${item.qty_standar}')"
-            style="width:100%;font-size:13px;border:1.5px solid var(--red-bd);border-radius:6px;
-            padding:5px 8px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;outline:none">
-        </div>`:''}
-      </td>
-      <td style="text-align:center;font-weight:700;font-size:13px">${item.qty_standar}</td>
+      <td style="font-size:12px;line-height:1.4;font-weight:${isNg?600:400}">${item.deskripsi}</td>
+      <td style="font-size:10px;color:var(--muted)">${item.part_number||'—'}</td>
+      <td style="text-align:center;font-weight:700">${item.qty_standar}</td>
       <td><input type="number" inputmode="numeric" min="0" placeholder="0" value="${a.aktual}"
-          onchange="setTb('${item.content_id}','aktual',this.value,'${item.qty_standar}')"
-          style="width:52px;text-align:center;font-size:16px;border:1.5px solid var(--border);border-radius:6px;padding:6px 4px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif"></td>
-      <td style="font-size:11px;color:var(--muted)">${item.unit}</td>
-      <td><select onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}')"
-          style="font-size:13px;padding:6px 6px;border:1.5px solid var(--border);border-radius:6px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif">
+          onchange="setTb('${item.content_id}','aktual',this.value,'${item.qty_standar}')"></td>
+      <td style="font-size:11px">${item.unit}</td>
+      <td><select onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}')">
         <option${a.kondisi==='BAIK'?' selected':''}>BAIK</option>
         <option${a.kondisi==='RUSAK'?' selected':''}>RUSAK</option>
         <option${a.kondisi==='HILANG'?' selected':''}>HILANG</option>
-      </select></td>`;
+      </select></td>
+      <td><input type="text" placeholder="catatan..." value="${a.remarks||''}"
+          onchange="setTb('${item.content_id}','remarks',this.value,'${item.qty_standar}')"></td>`;
     tbody.appendChild(tr);
   });
   const ng=tbContent.filter(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG');}).length;
@@ -1825,9 +1815,12 @@ function renderTb(){
   document.getElementById('fillNote').textContent=ng>0?`${ng} temuan toolbox`:'';
 }
 
-function setTb(i,field,val){
-  if(!tbAnswers[i])tbAnswers[i]={};
-  tbAnswers[i][field]=val;
+function setA(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers[qid].val=val;renderCheck();}
+function setAV(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers[qid].val=val;}
+function setR(qid,val){if(!answers[qid])answers[qid]={val:'',remarks:''};answers[qid].remarks=val;}
+function setTb(cid,f,v,std){
+  if(!tbAnswers[cid])tbAnswers[cid]={aktual:'',kondisi:'BAIK',remarks:''};
+  tbAnswers[cid][f]=v; renderTb();
 }
 
 // ── SUBMIT ──
