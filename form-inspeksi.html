@@ -1808,7 +1808,7 @@ function renderTb(){
           <div style="font-size:10px;font-weight:700;color:${a.remarks?.trim()?'var(--green)':'var(--red)'};margin-bottom:3px">✏️ Keterangan wajib * ${a.remarks?.trim()?'✓':''}</div>
           <textarea rows="2" placeholder="Jelaskan kondisi / tindakan yang diambil..."
             oninput="setTb('${item.content_id}','remarks',this.value,'${item.qty_standar}')"
-            onblur= renderTb()"
+            onblur="renderTb()"
             style="width:100%;border:none;background:transparent;font-size:12px;font-family:inherit;resize:none;outline:none;color:var(--text)">${a.remarks||''}</textarea>
         </div>`:''}
       </td>
@@ -1818,8 +1818,7 @@ function renderTb(){
           onblur="renderTb()"
           style="width:52px;text-align:center;font-size:16px;border:1.5px solid var(--border);border-radius:6px;padding:6px 4px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif"></td>
       <td style="font-size:11px;color:var(--muted)">${item.unit}</td>
-      <td><select oninput="setTb('${item.content_id}','aktual',this.value,'${item.qty_standar}')"
-          onblur="renderTb()"
+         <td><select oninput="setTb('${item.content_id}','aktual',this.value,'${item.qty_standar}')"  
           style="font-size:13px;padding:6px 6px;border:1.5px solid var(--border);border-radius:6px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif">
           <option value="BAIK"${(a.kondisi||'BAIK')==='BAIK'?' selected':''}>BAIK</option>
           <option value="RUSAK"${a.kondisi==='RUSAK'?' selected':''}>RUSAK</option>
