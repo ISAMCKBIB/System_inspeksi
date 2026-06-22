@@ -1778,10 +1778,10 @@ function updateStatRow(){
 }
 
 // ── RENDER TOOLBOX ──
+// ── RENDER TOOLBOX ──
 function renderTb(){
   const tbody=document.getElementById('tbBody');
   document.getElementById('tbTitle').textContent=tbTipeName+(selSec?' — '+selSec:'');
-  document.getElementById('tbCount').textContent='Memuat dari database...';
   document.getElementById('tbCount').textContent=tbContent.length+' item';
   if(!tbContent.length){
     tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada item</td></tr>';
@@ -1789,51 +1789,74 @@ function renderTb(){
   }
   tbody.innerHTML='';
   tbContent.forEach((item,i)=>{
-    const a=tbAnswers[item.content_id]||{aktual:'',kondisi:'BAIK',remarks:''};
-    // isNg hanya kalau kondisi RUSAK/HILANG, atau aktual sudah diisi user dan kurang dari standar
-    const aktualDiisi = a.aktual !== '' && a.aktual !== null;
-    const aktualNum = parseInt(a.aktual);
+    const cid = item.content_id;
+    const a = tbAnswers[cid] || {aktual:null, kondisi:'BAIK', remarks:''};
+    const aktualNum = Number(a.aktual);
     const stdNum = parseInt(item.qty_standar);
-    // NG kalau: RUSAK/HILANG, atau aktual kurang dari standar (termasuk 0)
+    const aktualDiisi = a.aktual !== null && a.aktual !== '';
     const isNg = a.kondisi==='RUSAK' || a.kondisi==='HILANG' ||
                  (aktualDiisi && !isNaN(aktualNum) && aktualNum < stdNum);
-    const tr=document.createElement('tr');
-    tr.setAttribute('data-cid', item.content_id);
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-cid', cid);
     if(isNg) tr.classList.add('tb-ng');
+
+    const rmkHtml = isNg ? `
+      <div style="margin-top:6px;border:1.5px solid ${a.remarks?.trim()?'var(--green-bd)':'var(--red-bd)'};border-radius:8px;padding:6px 8px;background:${a.remarks?.trim()?'var(--green-bg)':'var(--red-bg)'}">
+        <div style="font-size:10px;font-weight:700;color:${a.remarks?.trim()?'var(--green)':'var(--red)'};margin-bottom:3px">✏️ Keterangan wajib * ${a.remarks?.trim()?'✓':''}</div>
+        <textarea rows="2" placeholder="Jelaskan kondisi / tindakan yang diambil..."
+          style="width:100%;border:none;background:transparent;font-size:12px;font-family:inherit;resize:none;outline:none;color:var(--text)"
+          data-cid="${cid}" data-field="remarks">${a.remarks||''}</textarea>
+      </div>` : '';
+
     tr.innerHTML=`
       <td style="color:var(--muted2);font-size:10px;font-weight:700">${i+1}</td>
       <td style="font-size:13px;line-height:1.4;font-weight:${isNg?600:400}">
-        <span>${item.deskripsi}</span>
-        ${isNg?`<div style="margin-top:6px;border:1.5px solid ${a.remarks?.trim()?'var(--green-bd)':'var(--red-bd)'};border-radius:8px;padding:6px 8px;background:${a.remarks?.trim()?'var(--green-bg)':'var(--red-bg)'}">
-          <div style="font-size:10px;font-weight:700;color:${a.remarks?.trim()?'var(--green)':'var(--red)'};margin-bottom:3px">✏️ Keterangan wajib * ${a.remarks?.trim()?'✓':''}</div>
-          <textarea rows="2" placeholder="Jelaskan kondisi / tindakan yang diambil..."
-            oninput="setTb('${item.content_id}','remarks',this.value,'${item.qty_standar}')"
-            onblur= renderTb()"
-            style="width:100%;border:none;background:transparent;font-size:12px;font-family:inherit;resize:none;outline:none;color:var(--text)">${a.remarks||''}</textarea>
-        </div>`:''}
+        <span>${item.deskripsi}</span>${rmkHtml}
       </td>
       <td style="text-align:center;font-weight:700;font-size:13px">${item.qty_standar}</td>
-      <td><input type="number" inputmode="numeric" min="0" placeholder="0" value="${a.aktual !== null && a.aktual !== undefined ? a.aktual : ''}"
-          onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}');renderTb()"
-          style="width:52px;text-align:center;font-size:16px;border:1.5px solid var(--border);border-radius:6px;padding:6px 4px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif"></td>
+      <td><input type="number" inputmode="numeric" min="0" placeholder="0"
+          value="${aktualDiisi ? a.aktual : ''}"
+          data-cid="${cid}" data-field="aktual" data-std="${item.qty_standar}"
+          style="width:52px;text-align:center;font-size:16px;border:1.5px solid var(--border);border-radius:6px;padding:6px 4px;background:#fff"></td>
       <td style="font-size:11px;color:var(--muted)">${item.unit}</td>
-      <td><select onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}');renderTb()"
-          style="font-size:13px;padding:6px 6px;border:1.5px solid var(--border);border-radius:6px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif">
-        <option value="BAIK"${(a.kondisi||'BAIK')==='BAIK'?' selected':''}>BAIK</option>
-          <option value="RUSAK"${a.kondisi==='RUSAK'?' selected':''}>RUSAK</option>
-          <option value="HILANG"${a.kondisi==='HILANG'?' selected':''}>HILANG</option>
+      <td><select data-cid="${cid}" data-field="kondisi" data-std="${item.qty_standar}"
+          style="font-size:13px;padding:6px;border:1.5px solid var(--border);border-radius:6px;background:#fff">
+        <option value="BAIK" ${a.kondisi==='BAIK'||!a.kondisi?'selected':''}>BAIK</option>
+        <option value="RUSAK" ${a.kondisi==='RUSAK'?'selected':''}>RUSAK</option>
+        <option value="HILANG" ${a.kondisi==='HILANG'?'selected':''}>HILANG</option>
       </select></td>`;
     tbody.appendChild(tr);
   });
+
+  // Event delegation — tidak pakai inline onchange/oninput
+  tbody.querySelectorAll('input[data-field="aktual"]').forEach(el=>{
+    el.oninput = function(){
+      setTb(this.dataset.cid,'aktual',this.value,this.dataset.std);
+    };
+    el.onblur = function(){ renderTb(); };
+  });
+  tbody.querySelectorAll('select[data-field="kondisi"]').forEach(el=>{
+    el.onchange = function(){
+      setTb(this.dataset.cid,'kondisi',this.value,this.dataset.std);
+      renderTb();
+    };
+  });
+  tbody.querySelectorAll('textarea[data-field="remarks"]').forEach(el=>{
+    el.oninput = function(){
+      setTb(this.dataset.cid,'remarks',this.value,'');
+    };
+    el.onblur = function(){ renderTb(); };
+  });
+
   const ng=tbContent.filter(i=>{const a=tbAnswers[i.content_id];return a&&(a.kondisi==='RUSAK'||a.kondisi==='HILANG');}).length;
   document.getElementById('progNote').textContent=ng>0?`${ng} temuan`:'Isi qty & kondisi';
   document.getElementById('fillNote').textContent=ng>0?`${ng} temuan toolbox`:'';
 }
 
 function setTb(cid, field, val, std){
-  if(!tbAnswers[cid]) tbAnswers[cid]={aktual:null,kondisi:'BAIK',remarks:''};
-  if(field === 'aktual'){
-    tbAnswers[cid][field] = val === '' ? null : Number(val);
+  if(!tbAnswers[cid]) tbAnswers[cid]={aktual:null, kondisi:'BAIK', remarks:''};
+  if(field==='aktual'){
+    tbAnswers[cid][field] = val==='' ? null : Number(val);
   } else {
     tbAnswers[cid][field] = val;
   }
