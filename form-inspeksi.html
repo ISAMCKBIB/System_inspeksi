@@ -603,24 +603,71 @@ table.tbtbl input[type=text]{
         </div>
       </div>
       <div id="tbSelWrap" style="display:none">
-        <div class="g2">
-          <div class="field">
-            <label>Tipe Toolbox <span class="req">*</span></label>
-            <select id="tbTipe" onchange="onTbTipe()">
-              <option value="">-- Pilih tipe --</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>No ID Toolbox</label>
-            <div style="position:relative">
-              <input type="text" id="tbNoAsset" placeholder="No ID Toolbox (EQ-001)" autocomplete="off"
-                oninput="checkTbAsset(this.value)" style="padding-right:36px">
-              <span id="tbAssetStatus" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:14px"></span>
-            </div>
-            <div id="tbAssetHint" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
-          </div>
-        </div>
+  <!-- Input No Toolbox — ini yang utama -->
+  <div class="field" style="margin-bottom:10px">
+    <label>No Toolbox <span class="req">*</span></label>
+    <div style="position:relative">
+      <input type="text" id="tbNoAsset" placeholder="Ketik atau scan QR (TB-001)"
+        autocomplete="off" oninput="onTbNoAsset(this.value)"
+        style="padding-right:80px;text-transform:uppercase">
+      <button onclick="triggerTbScan()" style="
+        position:absolute;right:6px;top:50%;transform:translateY(-50%);
+        background:#0ea5e9;color:#fff;border:none;border-radius:6px;
+        padding:5px 10px;font-size:12px;cursor:pointer">
+        📷 Scan
+      </button>
+    </div>
+  </div>
+
+  <!-- Status hasil lookup -->
+  <div id="tbLookupStatus"></div>
+
+  <!-- Info auto-fill (muncul kalau ketemu) -->
+  <div id="tbAutoFill" style="display:none;
+    background:var(--green-bg);border:1.5px solid var(--green-bd);
+    border-radius:10px;padding:12px;margin-bottom:10px">
+    <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:8px">
+      ✅ Toolbox ditemukan — data terisi otomatis
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <div style="background:#fff;border-radius:6px;padding:8px">
+        <div style="font-size:10px;color:var(--muted);font-weight:600">TIPE SET</div>
+        <div style="font-size:13px;font-weight:700" id="tbAutoTipe">—</div>
       </div>
+      <div style="background:#fff;border-radius:6px;padding:8px">
+        <div style="font-size:10px;color:var(--muted);font-weight:600">NO TOOLBOX</div>
+        <div style="font-size:13px;font-weight:700" id="tbAutoNo">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form manual (muncul kalau belum terdaftar) -->
+  <div id="tbManualForm" style="display:none;
+    background:#fffde7;border:1.5px dashed #fcd34d;
+    border-radius:10px;padding:12px;margin-bottom:10px">
+    <div style="font-size:12px;font-weight:700;color:var(--yellow);margin-bottom:10px">
+      ✏️ Belum terdaftar — isi manual
+    </div>
+    <div class="field">
+      <label>Tipe Toolbox <span class="req">*</span></label>
+      <select id="tbTipe" onchange="onTbTipe()">
+        <option value="">-- Pilih tipe --</option>
+        <option value="TBT001">Set A — No Brand</option>
+        <option value="TBT002">Set B — Elora</option>
+        <option value="TBT003">Set C — Blue Point</option>
+        <option value="TBT004">Set D — Strafco</option>
+      </select>
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>Nama / Keterangan</label>
+      <input type="text" id="tbNamaManual" placeholder="Opsional (misal: Toolbox Merah)">
+    </div>
+    <div style="background:var(--purple-bg);border-radius:8px;padding:8px 10px;
+      font-size:11px;color:var(--purple);margin-top:10px">
+      🔵 Asset TB baru akan otomatis terdaftar di MASTER_ASSET saat submit
+    </div>
+  </div>
+</div>
     </div>
 
     <div id="picBox" class="pic-box"></div>
@@ -942,7 +989,92 @@ async function loadTbTipe(subId,sec){
     filtered.forEach(a=>{ sel.innerHTML+=`<option value="${a.tipe_id}" data-aid="${a.asset_id||''}">${a.nama_toolbox}</option>`; });
   }
 }
+// ── TOOLBOX LOOKUP ───────────────────────────────────
+let tbDebounceTimer = null;
+let tbIsRegistered = false;
 
+function onTbNoAsset(v) {
+  v = v.toUpperCase().trim();
+  document.getElementById('tbAutoFill').style.display = 'none';
+  document.getElementById('tbManualForm').style.display = 'none';
+  document.getElementById('tbLookupStatus').innerHTML = '';
+  tbTipeId = ''; tbTipeName = ''; tbIsRegistered = false;
+
+  if (v.length < 2) return;
+
+  // Tampilkan loading
+  document.getElementById('tbLookupStatus').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;
+      background:var(--blue-bg);border:1.5px solid var(--blue-bd);
+      border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:13px;color:var(--blue)">
+      <div style="width:14px;height:14px;border:2px solid var(--blue-bd);
+        border-top-color:var(--blue);border-radius:50%;
+        animation:spin .7s linear infinite"></div>
+      Mencari data toolbox...
+    </div>`;
+
+  clearTimeout(tbDebounceTimer);
+  tbDebounceTimer = setTimeout(() => fetchTbAsset(v), 600);
+}
+
+async function fetchTbAsset(noToolbox) {
+  try {
+    const r = await fetch(
+      APPS_SCRIPT_URL + '?action=getMasterData&type=asset_check&no_toolbox=' + encodeURIComponent(noToolbox)
+    );
+    const j = await r.json();
+
+    document.getElementById('tbLookupStatus').innerHTML = '';
+
+    if (j.data?.found && j.data.asset?.is_toolbox) {
+      // ── KETEMU ──
+      const a = j.data.asset;
+      tbIsRegistered = true;
+      tbTipeId = a.tipe_toolbox_id || '';
+      window._tbAssetId = a.asset_id || '';
+      // Nama tipe dari tipe_id
+      const tipeNames = {
+        TBT001: 'Set A — No Brand',
+        TBT002: 'Set B — Elora',
+        TBT003: 'Set C — Blue Point',
+        TBT004: 'Set D — Strafco'
+      };
+      tbTipeName = tipeNames[tbTipeId] || tbTipeId;
+
+      // Auto-fill area/subarea/kategori
+      if (a.area_id || a.subarea_id || a.kategori_id) {
+        await autoFillDropdowns(a);
+      }
+
+      // Tampilkan info auto-fill
+      document.getElementById('tbAutoNo').textContent = a.no_toolbox;
+      document.getElementById('tbAutoTipe').textContent = tbTipeName;
+      document.getElementById('tbAutoFill').style.display = 'block';
+      document.getElementById('tbManualForm').style.display = 'none';
+
+    } else {
+      // ── BELUM TERDAFTAR ──
+      tbIsRegistered = false;
+      tbTipeId = ''; tbTipeName = '';
+      document.getElementById('tbAutoFill').style.display = 'none';
+      document.getElementById('tbManualForm').style.display = 'block';
+    }
+
+  } catch(e) {
+    document.getElementById('tbLookupStatus').innerHTML = `
+      <div style="background:var(--red-bg);border:1.5px solid var(--red-bd);
+        border-radius:8px;padding:10px 12px;margin-bottom:10px;
+        font-size:13px;color:var(--red)">
+        ⚠️ Gagal koneksi — isi manual
+      </div>`;
+    document.getElementById('tbManualForm').style.display = 'block';
+  }
+}
+
+function triggerTbScan() {
+  // Redirect ke scan.html dengan callback ke tbNoAsset
+  window.location.href = 'scan.html?callback=toolbox';
+}
 function onTbTipe(){
   const s=document.getElementById('tbTipe');
   tbTipeId=s.value;
@@ -1212,7 +1344,13 @@ function resetTb(){
   document.getElementById('tbSelWrap').style.display='none';
   document.getElementById('picBox').className='pic-box';
   document.getElementById('secChips').innerHTML='';
-  document.getElementById('tbTipe').innerHTML='<option value="">-- Pilih tipe --</option>';
+  const tbTipeEl = document.getElementById('tbTipe');
+  if(tbTipeEl) tbTipeEl.value = '';
+  document.getElementById('tbAutoFill').style.display = 'none';
+  document.getElementById('tbManualForm').style.display = 'none';
+  document.getElementById('tbLookupStatus').innerHTML = '';
+  tbIsRegistered = false;
+  window._tbAssetId = '';
   selSec=null; tbTipeId=''; tbTipeName=''; katId=''; isTb=false;
 }
 
@@ -1222,7 +1360,17 @@ async function toStep2(){
     if(!document.getElementById(id).value){toast('⚠️ '+lbl+' wajib diisi','warn');return;}
   }
   if(!isTb&&!document.getElementById('namaAlat').value){toast('⚠️ Nama alat wajib diisi','warn');return;}
-  if(isTb&&!tbTipeId){toast('⚠️ Pilih tipe toolbox dulu','warn');return;}
+  if(isTb){
+  const noTb = document.getElementById('tbNoAsset')?.value?.trim();
+  if(!noTb){toast('⚠️ No Toolbox wajib diisi','warn');return;}
+  // Kalau belum terdaftar, tipe harus dipilih manual
+  if(!tbIsRegistered && !tbTipeId){toast('⚠️ Pilih tipe toolbox dulu','warn');return;}
+  // Set nama alat dari input manual kalau belum terdaftar
+  if(!tbIsRegistered){
+    const namaManual = document.getElementById('tbNamaManual')?.value?.trim();
+    if(!window._tbNamaAlat) window._tbNamaAlat = namaManual || ('Toolbox ' + tbTipeName);
+  }
+}
   goStep(2);
   // Pastikan konten langsung muncul
   if(isTb){
@@ -1712,31 +1860,45 @@ async function doSubmit(){
   const sub=document.getElementById('subSel');
   const area=document.getElementById('areaSel');
   const compSel=document.getElementById('compSel');
+  const tbNoVal = isTb ? (document.getElementById('tbNoAsset')?.value?.trim().toUpperCase() || '') : '';
+  const tbNamaManual = document.getElementById('tbNamaManual')?.value?.trim() || '';
 
-  const meta={
-    tanggal_inspeksi:document.getElementById('tgl').value,
-    company_id:compSel.value,
-    nama_perusahaan:compSel.options[compSel.selectedIndex]?.text||'',
-    area_id:area.value,
-    nama_area:area.options[area.selectedIndex]?.text||'',
-    subarea_id:sub.value,
-    nama_subarea:sub.options[sub.selectedIndex]?.text||'',
-    kategori_id:katId,
-    nama_kategori:katName,
-    nama_alat:isTb?tbTipeName:document.getElementById('namaAlat').value,
-    merk:isTb?'':(document.getElementById('merkAlat')?.value||''),
-    no_id:isTb?document.getElementById('tbNoAsset').value:document.getElementById('noId').value,
-    no_asset:isTb?'':document.getElementById('noAsset').value,
-    nik_inspektor:document.getElementById('nikIns').value,
-    nama_inspektor:document.getElementById('namaIns').value,
-    risiko:selRisiko||'LOW',
-    is_toolbox:isTb,
-    toolbox_aset_id:isTb?(document.getElementById('tbTipe').options[document.getElementById('tbTipe').selectedIndex]?.dataset.aid||''):'',
-    section:selSec||'',
-    inspection_source:'HTML',
-    ada_temuan:hasT?'Y':'N',
-    interval_hari:getIntervalHari(),
-  };
+const meta = {
+  tanggal_inspeksi : document.getElementById('tgl').value,
+  company_id       : compSel.value,
+  nama_perusahaan  : compSel.options[compSel.selectedIndex]?.text || '',
+  area_id          : area.value,
+  nama_area        : area.options[area.selectedIndex]?.text || '',
+  subarea_id       : sub.value,
+  nama_subarea     : sub.options[sub.selectedIndex]?.text || '',
+  kategori_id      : katId,
+  nama_kategori    : katName,
+
+  // Nama alat — toolbox pakai nama manual kalau belum terdaftar
+  nama_alat        : isTb
+    ? (tbIsRegistered ? tbTipeName : (tbNamaManual || 'Toolbox ' + tbTipeName))
+    : document.getElementById('namaAlat').value,
+
+  merk             : isTb ? '' : (document.getElementById('merkAlat')?.value || ''),
+
+  // no_id hanya untuk alat biasa, toolbox pakai no_toolbox
+  no_id            : isTb ? '' : document.getElementById('noId').value,
+  no_asset         : isTb ? '' : document.getElementById('noAsset').value,
+
+  nik_inspektor    : document.getElementById('nikIns').value,
+  nama_inspektor   : document.getElementById('namaIns').value,
+  risiko           : selRisiko || 'LOW',
+  is_toolbox       : isTb,
+  toolbox_aset_id  : isTb ? (window._tbAssetId || '') : '',  // akan diisi dari asset_id hasil lookup kalau terdaftar
+  section          : selSec || '',
+  inspection_source: 'HTML',
+  ada_temuan       : hasT ? 'Y' : 'N',
+  interval_hari    : getIntervalHari(),
+
+  // Toolbox specific
+  no_toolbox       : tbNoVal,
+  tipe_toolbox_id  : isTb ? tbTipeId : '',
+};
 
   const detail=isTb?[]:pertanyaan.map(p=>({
     question_id:p.question_id,pertanyaan:p.pertanyaan,
