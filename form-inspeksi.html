@@ -1813,15 +1813,15 @@ function renderTb(){
         </div>`:''}
       </td>
       <td style="text-align:center;font-weight:700;font-size:13px">${item.qty_standar}</td>
-      <td><input type="number" inputmode="numeric" min="0" placeholder="0" value="${a.aktual}"
+      <td><input type="number" inputmode="numeric" min="0" placeholder="0" value="${a.aktual !== null && a.aktual !== undefined ? a.aktual : ''}"
           onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}');renderTb()"
           style="width:52px;text-align:center;font-size:16px;border:1.5px solid var(--border);border-radius:6px;padding:6px 4px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif"></td>
       <td style="font-size:11px;color:var(--muted)">${item.unit}</td>
       <td><select onchange="setTb('${item.content_id}','kondisi',this.value,'${item.qty_standar}');renderTb()"
           style="font-size:13px;padding:6px 6px;border:1.5px solid var(--border);border-radius:6px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif">
-        <option${a.kondisi==='BAIK'?' selected':''}>BAIK</option>
-        <option${a.kondisi==='RUSAK'?' selected':''}>RUSAK</option>
-        <option${a.kondisi==='HILANG'?' selected':''}>HILANG</option>
+          <option value="BAIK"${(a.kondisi||'BAIK')==='BAIK'?' selected':''}>BAIK</option>
+          <option value="RUSAK"${a.kondisi==='RUSAK'?' selected':''}>RUSAK</option>
+          <option value="HILANG"${a.kondisi==='HILANG'?' selected':''}>HILANG</option>
       </select></td>`;
     tbody.appendChild(tr);
   });
@@ -1831,8 +1831,12 @@ function renderTb(){
 }
 
 function setTb(cid, field, val, std){
-  if(!tbAnswers[cid]) tbAnswers[cid]={aktual:'',kondisi:'BAIK',remarks:''};
-  tbAnswers[cid][field] = val;
+  if(!tbAnswers[cid]) tbAnswers[cid]={aktual:null,kondisi:'BAIK',remarks:''};
+  if(field === 'aktual'){
+    tbAnswers[cid][field] = val === '' ? null : Number(val);
+  } else {
+    tbAnswers[cid][field] = val;
+  }
 }
 
 // ── SUBMIT ──
