@@ -809,9 +809,7 @@ body{padding-bottom:var(--nav-h)}
       <div class="chip" onclick="setAssetFilter('perlu_inspeksi',this)">⏰ Perlu Inspeksi <span id="chipCountPerluInspeksi"></span></div>
     </div>
     <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Jenis Alat</div>
-    <div class="chips" id="assetNamaChips" style="margin-bottom:10px">
-      <div class="chip active" onclick="setAssetNamaFilter('',this)">Semua Jenis</div>
-    </div>
+    <div class="chips" id="assetNamaChips" style="display:none"></div>
     <div class="sec-hdr" style="margin-bottom:8px">
       <div style="font-size:12px;color:var(--muted)">Menampilkan <span id="assetFilterCount" style="font-weight:700;color:var(--primary)">0</span> asset</div>
     </div>
@@ -2152,7 +2150,8 @@ function renderAssetStats(d) {
   document.getElementById('assetTidakLayak').textContent = d.tidak_layak||0;
   document.getElementById('assetOverdue').textContent = overdue;
   renderKategoriBreakdown(); // ← tambah ini
-}function renderKategoriBreakdown() {
+}
+function renderKategoriBreakdown() {
   const el = document.getElementById('assetKategoriBreakdown');
   if (!el || !assetsRaw.length) return;
 
@@ -2195,7 +2194,7 @@ function renderAssetStats(d) {
       const color = pct>=90?'var(--green)':pct>=70?'var(--yellow)':'var(--red)';
       const bg = pct>=90?'var(--green-bg)':pct>=70?'var(--yellow-bg)':'var(--red-bg)';
       const filterKey = nama.split(' ')[0].toLowerCase();
-      return `<div onclick="setAssetNamaFilter('${filterKey}',null);renderAssetNamaChips()"
+      return `<div onclick="setAssetNamaFilter('${filterKey}',null);highlightKategoriCard(this)"
         style="flex-shrink:0;background:var(--surface);border:1.5px solid var(--border);
         border-radius:12px;padding:12px 14px;cursor:pointer;min-width:90px;
         text-align:center;transition:all .2s;user-select:none"
@@ -2212,6 +2211,16 @@ function renderAssetStats(d) {
         </div>
       </div>`;
     }).join('');
+}
+function highlightKategoriCard(el) {
+  document.querySelectorAll('#assetKategoriBreakdown > div').forEach(d => {
+    d.style.borderColor = 'var(--border)';
+    d.style.background = 'var(--surface)';
+  });
+  if (el) {
+    el.style.borderColor = 'var(--primary)';
+    el.style.background = 'var(--primary-light)';
+  }
 }
 
 let assetNamaFilter = '';
@@ -2286,6 +2295,12 @@ function setAssetFilter(status, chipEl) {
   assetStatusFilter = status;
   document.querySelectorAll('#viewAdminAsset .chips .chip').forEach(c => c.classList.remove('active'));
   if (chipEl) chipEl.classList.add('active');
+  // Reset highlight kategori card
+  document.querySelectorAll('#assetKategoriBreakdown > div').forEach(d => {
+    d.style.borderColor = 'var(--border)';
+    d.style.background = 'var(--surface)';
+  });
+  assetNamaFilter = ''; // ← reset filter jenis juga
   applyAssetFilter();
 }
 
