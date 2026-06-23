@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ISAM CK BIB — Dashboard</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1B4FD8">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -419,6 +423,7 @@ body{padding-bottom:var(--nav-h)}
     </div>
   </div>
   <div class="topbar-actions">
+    <button class="topbar-btn" id="pwaInstallBtn" onclick="triggerPwaInstall()" title="Install App" style="display:none">📲</button>
     <button class="topbar-btn" onclick="triggerView('notif')" title="Notifikasi">
       🔔<div class="notif-dot" id="notifDot" style="display:none"></div>
     </button>
@@ -2390,6 +2395,34 @@ function getDemoActLog() {
   ];
 }
 
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW register failed:', e));
+  });
+}
+
+let pwaDeferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  pwaDeferredPrompt = e;
+  const btn = document.getElementById('pwaInstallBtn');
+  if (btn) btn.style.display = 'flex';
+});
+function triggerPwaInstall() {
+  if (!pwaDeferredPrompt) return;
+  pwaDeferredPrompt.prompt();
+  pwaDeferredPrompt.userChoice.then(() => {
+    pwaDeferredPrompt = null;
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.style.display = 'none';
+  });
+}
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('pwaInstallBtn');
+  if (btn) btn.style.display = 'none';
+});
 </script>
 </body>
 </html>
