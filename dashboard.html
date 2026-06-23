@@ -1595,11 +1595,14 @@ function formatTgl(val, withTime) {
     var dd   = String(wita.getUTCDate()).padStart(2, '0');
     var mm   = String(wita.getUTCMonth() + 1).padStart(2, '0');
     var yyyy = wita.getUTCFullYear();
-    if (!withTime) return dd + '-' + mm + '-' + yyyy;
-    var hh   = String(wita.getUTCHours()).padStart(2, '0');
-    var min  = String(wita.getUTCMinutes()).padStart(2, '0');
-    var ss   = String(wita.getUTCSeconds()).padStart(2, '0');
-    return dd + '-' + mm + '-' + yyyy + ' ' + hh + ':' + min + ':' + ss;
+    var dateStr = dd + '-' + mm + '-' + yyyy;
+    if (!withTime) return dateStr;
+    var hh   = wita.getUTCHours();
+    var min  = wita.getUTCMinutes();
+    var ss   = wita.getUTCSeconds();
+    // Kalau jam kosong (00:00:00) artinya data jam memang tidak diisi, tampil tanggal saja
+    if (hh === 0 && min === 0 && ss === 0) return dateStr;
+    return dateStr + ' ' + String(hh).padStart(2,'0') + ':' + String(min).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
   } catch(e) { return val; }
 }
 
