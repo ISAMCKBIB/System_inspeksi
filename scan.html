@@ -5,6 +5,10 @@
 <meta name="color-scheme" content="light only">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Scan Asset — ISAM CK BIB</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1B4FD8">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:#0F1A3C;color:#fff;min-height:100vh;display:flex;flex-direction:column}
@@ -397,6 +401,13 @@ function goBack() {
 // ── START ──
 initCamera();
 window.addEventListener('beforeunload', stopCamera);
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW register failed:', e));
+  });
+}
 </script>
 </body>
 </html>
