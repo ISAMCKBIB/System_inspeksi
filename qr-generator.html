@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QR Generator — ISAM CK BIB</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1B4FD8">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{
@@ -49,7 +53,7 @@ select:focus,input[type=text]:focus{border-color:var(--primary)}
 .content{padding:24px}
 .asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
 
-/* ASSET CARD (screen) */ 
+/* ASSET CARD (screen) */
 .asset-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .2s;cursor:pointer;position:relative}
 .asset-card:hover{box-shadow:0 4px 16px rgba(27,79,216,.12);border-color:var(--primary)}
 .asset-card.selected{border-color:var(--primary);box-shadow:0 0 0 3px rgba(27,79,216,.15)}
@@ -465,6 +469,13 @@ async function debugLoad() {
 
 function showLoad(){document.getElementById('lo').classList.add('show')}
 function hideLoad(){document.getElementById('lo').classList.remove('show')}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW register failed:', e));
+  });
+}
 </script>
 </body>
 </html>
