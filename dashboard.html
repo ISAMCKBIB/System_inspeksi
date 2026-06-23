@@ -1996,6 +1996,45 @@
     <main class="page-content">
       <!-- HOME / TEMUAN PIC -->
       <div class="view active" id="viewHome">
+        <!-- Greeting — hanya muncul kalau role PIC -->
+        <div
+          id="picGreetCard"
+          style="
+            display: none;
+            background: linear-gradient(
+              135deg,
+              var(--primary),
+              var(--primary-dark)
+            );
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            margin-bottom: 14px;
+            color: #fff;
+          "
+        >
+          <div style="font-size: 13px; opacity: 0.8" id="picGreet">
+            Selamat datang,
+          </div>
+          <div
+            style="font-size: 18px; font-weight: 700; margin: 2px 0"
+            id="picGreetName"
+          >
+            -
+          </div>
+          <div style="font-size: 11px; opacity: 0.7" id="picGreetDate"></div>
+        </div>
+
+        <!-- Jadwal terdekat PIC — hanya muncul kalau role PIC -->
+        <div id="picJadwalCard" style="display: none; margin-bottom: 14px">
+          <div class="sec-hdr" style="margin-bottom: 8px">
+            <div class="sec-title">📅 Jadwal Terdekat</div>
+            <div class="sec-link" onclick="triggerView('jadwal')">
+              Lihat Semua
+            </div>
+          </div>
+          <div id="picJadwalContent"></div>
+        </div>
+
         <div
           style="font-size: 12px; color: var(--muted); margin-bottom: 14px"
           id="dateBar"
@@ -2051,6 +2090,30 @@
           <div class="skel" style="height: 100px; margin-bottom: 10px"></div>
           <div class="skel" style="height: 100px"></div>
         </div>
+      </div>
+      <!-- TEMUAN PIC — view terpisah -->
+      <div class="view" id="viewTemuan">
+        <div class="chips">
+          <div class="chip active" onclick="filterTemuan('open', this)">
+            Semua Open
+          </div>
+          <div class="chip" onclick="filterTemuan('overdue', this)">
+            🚨 Overdue
+          </div>
+          <div class="chip" onclick="filterTemuan('critical', this)">
+            🔥 Critical
+          </div>
+          <div class="chip" onclick="filterTemuan('high', this)">🔴 High</div>
+          <div class="chip" onclick="filterTemuan('medium', this)">
+            🟡 Medium
+          </div>
+          <div class="chip" onclick="filterTemuan('low', this)">🟢 Low</div>
+        </div>
+        <div class="sec-hdr">
+          <div class="sec-title">Temuan Perlu Ditindaklanjuti</div>
+          <div class="sec-count" id="temuanCount2">0</div>
+        </div>
+        <div id="temuanList2"></div>
       </div>
 
       <!-- JADWAL -->
@@ -2873,7 +2936,7 @@
             id: "temuan",
             icon: "⚠️",
             label: "Temuan",
-            view: "home",
+            view: "temuan",
             badge: "navBadge",
           },
           { id: "jadwal", icon: "📅", label: "Jadwal", view: "jadwal" },
@@ -3029,6 +3092,7 @@
         // ... rest of function
         const viewMap = {
           home: "viewHome",
+          temuan: "viewTemuan",
           jadwal: "viewJadwal",
           monitoring: "viewMonitoring",
           master: "viewMaster",
@@ -3315,6 +3379,107 @@
         if (ov > 0) document.getElementById("notifDot").style.display = "block";
         // Render notifikasi otomatis dari data temuan & jadwal
         loadNotif();
+        renderPICHome();
+      }
+      function renderPICHome() {
+        const role = (SESSION.role || "").toUpperCase();
+        if (role !== "PIC") return;
+
+        // Tampilkan greeting card
+        const greetCard = document.getElementById("picGreetCard");
+        if (greetCard) greetCard.style.display = "block";
+
+        const greet =
+          new Date().getHours() < 12
+            ? "Selamat pagi,"
+            : new Date().getHours() < 17
+              ? "Selamat siang,"
+              : "Selamat sore,";
+        document.getElementById("picGreet").textContent = greet;
+        document.getElementById("picGreetName").textContent =
+          SESSION.nama || "-";
+        document.getElementById("picGreetDate").textContent =
+          new Date().toLocaleDateString("id-ID", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+
+        // Tampilkan jadwal terdekat
+        const jadwalCard = document.getElementById("picJadwalCard");
+        if (jadwalCard) jadwalCard.style.display = "block";
+
+        renderPICJadwal();
+      }
+
+      function renderPICJadwal() {
+        const el = document.getElementById("picJadwalContent");
+        if (!el) return;
+
+        // Ambil jadwal terdekat (max 2)
+        const upcoming = allJadwal
+          .filter((j) => j.status_jadwal !== "OVERDUE" || true) // tampil semua
+          .sort(
+            (a, b) =>
+              new Date(a.tgl_inspeksi_due) - new Date(b.tgl_inspeksi_due),
+          )
+          .slice(0, 2);
+
+        if (!upcoming.length) {
+          el.innerHTML = `<div style="background:var(--green-bg);border:1px solid var(--green-bd);
+      border-radius:10px;padding:12px 14px;font-size:13px;color:var(--green);font-weight:600">
+      ✅ Tidak ada jadwal mendatang
+    </div>`;
+          return;
+        }
+
+        const months = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "Mei",
+          "Jun",
+          "Jul",
+          "Agt",
+          "Sep",
+          "Okt",
+          "Nov",
+          "Des",
+        ];
+        el.innerHTML = upcoming
+          .map((j) => {
+            const d = j.tgl_inspeksi_due ? new Date(j.tgl_inspeksi_due) : null;
+            const sMap = {
+              OVERDUE: "overdue",
+              UPCOMING: "upcoming",
+              ON_TIME: "ontime",
+            };
+            const sLabel = {
+              OVERDUE: "🚨 Overdue",
+              UPCOMING: "⏰ Segera",
+              ON_TIME: "✅ On Time",
+            };
+            const sColor = {
+              OVERDUE: "var(--red)",
+              UPCOMING: "var(--yellow)",
+              ON_TIME: "var(--green)",
+            };
+            return `<div class="jadwal-card" style="margin-bottom:8px;cursor:pointer" onclick="triggerView('jadwal')">
+      <div class="jadwal-date">
+        <div class="jadwal-day">${d ? d.getDate() : "-"}</div>
+        <div class="jadwal-mon">${d ? months[d.getMonth()] : "-"}</div>
+      </div>
+      <div class="jadwal-info">
+        <div class="jadwal-title">${j.nama_subarea || "-"} — ${j.nama_kategori || "-"}</div>
+        <div class="jadwal-sub" style="color:${sColor[j.status_jadwal] || "var(--muted)"};font-weight:600">
+          ${sLabel[j.status_jadwal] || "On Time"}
+        </div>
+      </div>
+    </div>`;
+          })
+          .join("");
       }
 
       // ── NOTIFIKASI SYSTEM ──
@@ -3675,6 +3840,11 @@
     </div>`;
           })
           .join("");
+        // render ke viewTemuan juga
+        const el2 = document.getElementById("temuanList2");
+        const cnt2 = document.getElementById("temuanCount2");
+        if (el2) el2.innerHTML = el.innerHTML;
+        if (cnt2) cnt2.textContent = data.length;
       }
 
       // ── ADMIN MONITORING ──
@@ -3853,13 +4023,20 @@
 
       async function loadJadwal() {
         try {
-          const res = await fetch(APPS_SCRIPT_URL + "?action=getJadwal");
+          const role = (SESSION.role || "").toUpperCase();
+          const params = new URLSearchParams({ action: "getJadwal" });
+
+          // PIC hanya lihat jadwal miliknya
+          if (role === "PIC") params.append("pic_nik", SESSION.nik);
+
+          const res = await fetch(APPS_SCRIPT_URL + "?" + params);
           const json = await res.json();
           allJadwal = json.status === "ok" ? json.data : getDemoJadwal();
         } catch (e) {
           allJadwal = getDemoJadwal();
         }
         renderJadwal(allJadwal);
+        renderPICJadwal();
       }
 
       function filterJadwal(mode, el) {
