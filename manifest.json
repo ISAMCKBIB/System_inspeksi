@@ -1,0 +1,25 @@
+{
+  "name": "ISAM - Inspection System Asset Management",
+  "short_name": "ISAM",
+  "description": "Sistem Inspeksi K3 & Asset Management - ISAM CK BIB",
+  "start_url": "index.html",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1B4FD8",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
