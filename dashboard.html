@@ -1639,6 +1639,7 @@ const NAV_ADMIN_SIDEBAR = [
 // ════════════════════════════════════════════════════════════
 let kpiData = null;
 let masterSheetActive = 'MASTER_EMPLOYEE';
+let masterDropdowns = { perusahaan:[], area:[], subarea:[], kategori:[] };
 let employeeCache = {};
 let masterKeyCol = 'employee_id';
 let masterDataRaw = [];
@@ -1687,7 +1688,17 @@ async function loadAdminData() {
       je.data.forEach(e => { employeeCache[e.nik] = e.nama; });
     }
   } catch(e) { console.warn('employee cache gagal:', e); }
-
+  // Load dropdown options untuk form master
+  try {
+    const rd = await fetch(APPS_SCRIPT_URL + '?action=getMasterData&type=all');
+    const jd = await rd.json();
+    if(jd.status==='ok') {
+     masterDropdowns.perusahaan = jd.data.perusahaan || [];
+     masterDropdowns.area       = jd.data.area || [];
+      masterDropdowns.subarea    = jd.data.subarea || [];
+     masterDropdowns.kategori   = jd.data.kategori || [];
+    }
+  } catch(e) { console.warn('masterDropdowns gagal:', e); }
   try {
     // Load temuan
     const r1 = await fetch(APPS_SCRIPT_URL + '?action=getTemuan');
@@ -2131,19 +2142,18 @@ const MASTER_FIELDS = {
     {key:'status',label:'Status',type:'select',options:['Y','N']},
   ],
   MASTER_ASSET: [
-  {key:'asset_id',        label:'Asset ID',           type:'text',   readonly:true},
-  {key:'nama_alat',       label:'Nama Alat *',        type:'text',   required:true},
-  {key:'merk',            label:'Merk',               type:'text'},
-  {key:'no_id',           label:'No ID',              type:'text'},
-  {key:'no_toolbox',      label:'No Toolbox',         type:'text'},
-  {key:'tipe_toolbox_id', label:'Tipe Toolbox ID',    type:'text'},
-  {key:'company_id',      label:'Company ID',         type:'text'},
-  {key:'area_id',         label:'Area ID',            type:'text'},
-  {key:'subarea_id',      label:'Sub Area ID *',      type:'text',   required:true},
-  {key:'kategori_id',     label:'Kategori ID *',      type:'text',   required:true},
-  {key:'tanggal_register',label:'Tanggal Register',   type:'text'},
-  {key:'status_aset_terakhir', label:'Status',        type:'select', options:['LAYAK','TIDAK LAYAK']},
-  {key:'aktif',           label:'Aktif',              type:'select', options:['Y','N']},
+  {key:'asset_id',        label:'Asset ID',        type:'text',   readonly:true},
+  {key:'nama_alat',       label:'Nama Alat *',     type:'text',   required:true},
+  {key:'merk',            label:'Merk',            type:'text'},
+  {key:'no_id',           label:'No ID',           type:'text'},
+  {key:'no_toolbox',      label:'No Toolbox',      type:'text'},
+  {key:'tipe_toolbox_id', label:'Tipe Toolbox',    type:'select', options:['','TBT001','TBT002','TBT003','TBT004']},
+  {key:'company_id',      label:'Perusahaan *',    type:'select_master', source:'perusahaan',  required:true},
+  {key:'area_id',         label:'Area *',          type:'select_master', source:'area',        required:true},
+  {key:'subarea_id',      label:'Sub Area *',      type:'select_master', source:'subarea',     required:true},
+  {key:'kategori_id',     label:'Kategori *',      type:'select_master', source:'kategori',    required:true},
+  {key:'status_aset_terakhir', label:'Status',     type:'select', options:['LAYAK','TIDAK LAYAK']},
+  {key:'aktif',           label:'Aktif',           type:'select', options:['Y','N']},
 ],
   MASTER_SLA: [
     {key:'risiko',label:'Risiko',type:'select',options:['CRITICAL','HIGH','MEDIUM','LOW'],readonly:true},
@@ -2240,6 +2250,7 @@ function renderModalFields(record) {
   document.getElementById('modalBody').innerHTML = fields.map(f=>{
     const val = record[f.key]||'';
     const ro = f.readonly && editingRecord;
+    
     if (f.type==='select') {
       return `<div class="dfield">
         <label>${f.label}${f.required?' <span style="color:var(--red)">*</span>':''}</label>
@@ -2248,12 +2259,45 @@ function renderModalFields(record) {
         </select>
       </div>`;
     }
+
+    // ← TAMBAH DI SINI, setelah if select
+    if (f.type === 'select_master') {
+      let opts = '<option value="">-- Pilih --</option>';
+      if (f.source === 'perusahaan') {
+        (masterDropdowns.perusahaan||[]).forEach(p => {
+          opts += `<option value="${p.company_id}" ${val===p.company_id?'selected':''}>${p.nama_perusahaan}</option>`;
+        });
+      }
+      if (f.source === 'area') {
+        (masterDropdowns.area||[]).forEach(a => {
+          opts += `<option value="${a.area_id}" ${val===a.area_id?'selected':''}>${a.nama_area}</option>`;
+        });
+      }
+      if (f.source === 'subarea') {
+        (masterDropdowns.subarea||[]).forEach(s => {
+          opts += `<option value="${s.subarea_id}" ${val===s.subarea_id?'selected':''}>${s.nama_subarea}</option>`;
+        });
+      }
+      if (f.source === 'kategori') {
+        (masterDropdowns.kategori||[]).forEach(k => {
+          opts += `<option value="${k.kategori_id}" ${val===k.kategori_id?'selected':''}>${k.nama_kategori}</option>`;
+        });
+      }
+      return `<div class="dfield">
+        <label>${f.label}${f.required?' <span style="color:var(--red)">*</span>':''}</label>
+        <select id="mf_${f.key}" ${ro?'disabled':''} style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:${ro?'var(--surface2)':'#fff'};font-family:'Inter',sans-serif;outline:none;color:var(--text)">
+          ${opts}
+        </select>
+      </div>`;
+    }
+
     if (f.type==='textarea') {
       return `<div class="dfield">
         <label>${f.label}${f.required?' <span style="color:var(--red)">*</span>':''}</label>
         <textarea id="mf_${f.key}" ${ro?'readonly':''} style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:${ro?'var(--surface2)':'#fff'};font-family:'Inter',sans-serif;outline:none;color:var(--text);resize:vertical;min-height:80px">${val}</textarea>
       </div>`;
     }
+
     return `<div class="dfield">
       <label>${f.label}${f.required?' <span style="color:var(--red)">*</span>':''}</label>
       <input id="mf_${f.key}" type="${f.type||'text'}" value="${val}" ${ro?'readonly':''} style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:${ro?'var(--surface2)':'#fff'};font-family:'Inter',sans-serif;outline:none;color:var(--text)">
