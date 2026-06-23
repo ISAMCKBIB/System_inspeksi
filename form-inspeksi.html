@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="color-scheme" content="light only">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Form Inspeksi K3 — Mining Ship</title>
+<title>Form Inspeksi K3 — </title>
 <!-- System font dipakai — tidak perlu download font eksternal --> 
 <style>
 :root{
@@ -429,8 +429,8 @@ table.tbtbl input[type=text]{
 <div class="hdr">
   <div class="hdr-icon">⛏️</div>
   <div>
-    <div class="hdr-title">Form Inspeksi K3</div>
-    <div class="hdr-sub">Mining Ship · KGB & GRB</div>
+    <div class="hdr-title">Form Inspeksi Asset Management CK BIB</div>
+    <div class="hdr-sub">KGB & GRB</div>
   </div>
   <a href="dashboard.html" class="hdr-link">Dashboard</a>
 </div>
@@ -453,7 +453,7 @@ table.tbtbl input[type=text]{
     <div style="background:linear-gradient(135deg,#1B4FD8,#1338B0);border-radius:16px 16px 0 0;padding:16px 20px;display:flex;align-items:center;gap:12px">
       <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">👤</div>
       <div>
-        <div style="font-size:15px;font-weight:700;color:#fff">Data Inspektur</div>
+        <div style="font-size:15px;font-weight:700;color:#fff">Data Inspektor</div>
         <div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:1px">Identitas petugas yang melakukan inspeksi</div>
       </div>
     </div>
@@ -461,7 +461,7 @@ table.tbtbl input[type=text]{
       <!-- Nama + NIK -->
       <div class="g2 mb10">
         <div class="field">
-          <label style="color:#1B4FD8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Nama Inspektur <span class="req">*</span></label>
+          <label style="color:#1B4FD8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Nama Inspektor <span class="req">*</span></label>
           <input type="text" id="namaIns" placeholder="Nama lengkap" autocomplete="name"
             style="border:1.5px solid #D4DCEF;border-radius:10px;padding:11px 14px;font-size:14px;transition:border-color .2s">
         </div>
@@ -1789,7 +1789,7 @@ function renderTb(){
   }
   tbody.innerHTML='';
   tbContent.forEach((item,i)=>{
-    const cid = item.content_id;
+    const cid = item.asset_id || item.content_id;
     const a = tbAnswers[cid] || {aktual:null, kondisi:'BAIK', remarks:''};
     const aktualNum = Number(a.aktual);
     const stdNum = parseInt(item.qty_standar);
