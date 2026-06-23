@@ -2193,13 +2193,13 @@ function renderKategoriBreakdown() {
       const pct = stat.total > 0 ? Math.round((stat.layak/stat.total)*100) : 0;
       const color = pct>=90?'var(--green)':pct>=70?'var(--yellow)':'var(--red)';
       const bg = pct>=90?'var(--green-bg)':pct>=70?'var(--yellow-bg)':'var(--red-bg)';
-      const filterKey = nama.split(' ')[0].toLowerCase();
+      const filterKey = nama.toLowerCase();
       return `<div onclick="setAssetNamaFilter('${filterKey}',null);highlightKategoriCard(this)"
         style="flex-shrink:0;background:var(--surface);border:1.5px solid var(--border);
         border-radius:12px;padding:12px 14px;cursor:pointer;min-width:90px;
         text-align:center;transition:all .2s;user-select:none"
         onmouseover="this.style.borderColor='var(--primary)';this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(27,79,216,.12)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.transform='';this.style.boxShadow=''">
+        onmouseout="if(!this.classList.contains('kat-active')){this.style.borderColor='var(--border)';this.style.transform='';this.style.boxShadow=''}">
         <div style="font-size:22px;margin-bottom:6px">${icon}</div>
         <div style="font-size:18px;font-weight:700;line-height:1">${stat.total}</div>
         <div style="font-size:10px;color:var(--muted);margin:3px 0 6px;
@@ -2216,10 +2216,12 @@ function highlightKategoriCard(el) {
   document.querySelectorAll('#assetKategoriBreakdown > div').forEach(d => {
     d.style.borderColor = 'var(--border)';
     d.style.background = 'var(--surface)';
+    d.classList.remove('kat-active');
   });
   if (el) {
     el.style.borderColor = 'var(--primary)';
     el.style.background = 'var(--primary-light)';
+    el.classList.add('kat-active');
   }
 }
 
@@ -2247,6 +2249,7 @@ function renderAssetNamaChips() {
         ${c.label} <span style="opacity:.65">(${c.count})</span>
       </div>`
     ).join('');
+    applyAssetFilter();
 }
 
 function setAssetNamaFilter(val, chipEl) {
@@ -2321,11 +2324,12 @@ function applyAssetFilter() {
 
   // Jenis alat chip filter (kata pertama nama_alat)
   if (assetNamaFilter) {
-    filtered = filtered.filter(a => {
-      const jenis = (a.nama_alat||'').trim().split(' ')[0].toLowerCase();
-      return jenis === assetNamaFilter;
-    });
-  }
+  filtered = filtered.filter(a => {
+    const kat = (a.nama_kategori||'').toLowerCase();
+    const jenis = (a.nama_alat||'').trim().split(' ')[0].toLowerCase();
+    return kat === assetNamaFilter || jenis === assetNamaFilter;
+  });
+}
 
   // Search filter
   if (q) {
