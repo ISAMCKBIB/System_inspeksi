@@ -695,7 +695,14 @@ body{padding-bottom:var(--nav-h)}
       <div class="stat-card c-red"><div class="stat-icon c-red">❌</div><div class="stat-value c-red" id="assetTidakLayak">—</div><div class="stat-label">Tidak Layak</div></div>
       <div class="stat-card c-yellow"><div class="stat-icon c-yellow">⏰</div><div class="stat-value c-yellow" id="assetOverdue">—</div><div class="stat-label">Perlu Inspeksi</div></div>
     </div>
-    <div class="sec-hdr" style="margin-bottom:10px"><div class="sec-title">Daftar Asset</div></div>
+    <div class="sec-hdr" style="margin-bottom:10px">
+      <div class="sec-title">Daftar Asset</div>
+        <a href="qr-generator.html" target="_blank" 
+          style="background:var(--primary);color:#fff;border:none;border-radius:8px;
+          padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;
+          text-decoration:none;display:inline-flex;align-items:center;gap:6px"> 📷 QR Generator
+        </a>
+    </div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
       <input type="text" id="searchAsset" placeholder="🔍 Cari asset..." oninput="searchAssets(this.value)"
         style="flex:1;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:14px;font-family:'Inter',sans-serif;background:var(--surface);outline:none;color:var(--text)">
@@ -716,6 +723,7 @@ body{padding-bottom:var(--nav-h)}
       <div class="chip" onclick="loadMasterSheet('MASTER_SUBAREA','subarea_id',this)">📍 Sub Area</div>
       <div class="chip" onclick="loadMasterSheet('MASTER_KATEGORI','kategori_id',this)">🗂️ Kategori</div>
       <div class="chip" onclick="loadMasterSheet('MASTER_PERTANYAAN','question_id',this)">❓ Pertanyaan</div>
+      <div class="chip" onclick="loadMasterSheet('MASTER_ASSET','asset_id',this)">🔧 Asset</div>
       <div class="chip" onclick="loadMasterSheet('MASTER_SLA','risiko',this)">⏱️ SLA</div>
     </div>
     <div class="sec-hdr" style="margin-bottom:10px">
@@ -1450,12 +1458,29 @@ function openDrawer(insId) {
     <div class="ig-cell"><div class="ig-label">Area</div><div class="ig-val">${f.nama_subarea||'-'}</div></div>
     <div class="ig-cell"><div class="ig-label">Tanggal</div><div class="ig-val">${f.tanggal_temuan||'-'}</div></div>
     <div class="ig-cell"><div class="ig-label" style="color:${f.sla_status==='OVERDUE'?'var(--red)':'var(--muted)'}">Due Date</div><div class="ig-val" style="color:${f.sla_status==='OVERDUE'?'var(--red)':'inherit'}">${formatTgl(f.due_date, true)}</div></div>`;
-  document.getElementById('drawerTemuanList').innerHTML=temuan.map((t,i)=>`
-    <div class="temuan-item">
-      <div class="temuan-no">Temuan ${i+1}</div>
-      <div class="temuan-q">${t.pertanyaan||'-'}</div>
-      ${t.remarks_inspector?`<div class="temuan-rmk">📝 ${t.remarks_inspector}</div>`:''}
-    </div>`).join('');
+  document.getElementById('drawerTemuanList').innerHTML=temuan.map((t,i)=>{
+  // Parse foto temuan (bisa string URL dipisah koma)
+  const fotoUrls = t.foto_temuan
+    ? t.foto_temuan.split(',').map(u=>u.trim()).filter(Boolean)
+    : [];
+  const fotoHtml = fotoUrls.length
+    ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        ${fotoUrls.map(url=>`
+          <a href="${url}" target="_blank" style="flex-shrink:0">
+            <img src="${url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:2px solid var(--red-bd);cursor:pointer" 
+              onerror="this.style.display='none'">
+          </a>`).join('')}
+       </div>`
+    : `<div style="font-size:11px;color:var(--muted2);margin-top:6px;font-style:italic">📷 Belum ada foto</div>`;
+
+  return `<div class="temuan-item">
+    <div class="temuan-no">Temuan ${i+1}</div>
+    <div class="temuan-q">${t.pertanyaan||'-'}</div>
+    ${t.remarks_inspector?`<div class="temuan-rmk">📝 ${t.remarks_inspector}</div>`:''}
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:8px">📷 Foto Before</div>
+    ${fotoHtml}
+  </div>`;
+}).join('');
   document.getElementById('tindakanInput').value='';
   document.getElementById('fotoRow').innerHTML='';
   document.getElementById('fotoZone').style.display='flex';
@@ -2049,8 +2074,7 @@ const MASTER_FIELDS = {
   MASTER_SUBAREA: [
     {key:'subarea_id',label:'Sub Area ID',type:'text',readonly:true},
     {key:'area_id',label:'Area ID *',type:'text',required:true},
-    {key:'nama_area',label:'Nama Area',type:'text'},
-    {key:'subarea_nama',label:'Nama Sub Area *',type:'text',required:true},
+    {key:'nama_subarea',label:'Nama Sub Area *',type:'text',required:true},
     {key:'pic1_nik',label:'PIC 1 NIK',type:'text'},
     {key:'pic2_nik',label:'PIC 2 NIK',type:'text'},
     {key:'status',label:'Status',type:'select',options:['Y','N']},
@@ -2068,6 +2092,18 @@ const MASTER_FIELDS = {
     {key:'urutan',label:'Urutan',type:'number'},
     {key:'status',label:'Status',type:'select',options:['Y','N']},
   ],
+  MASTER_ASSET: [
+  {key:'asset_id',      label:'Asset ID',       type:'text',   readonly:true},
+  {key:'nama_alat',     label:'Nama Alat *',    type:'text',   required:true},
+  {key:'no_id',         label:'No ID',          type:'text'},
+  {key:'no_toolbox',    label:'No Toolbox',     type:'text'},
+  {key:'tipe_toolbox_id', label:'Tipe Toolbox', type:'text'},
+  {key:'merk',          label:'Merk',           type:'text'},
+  {key:'kategori_id',   label:'Kategori ID',    type:'text'},
+  {key:'subarea_id',    label:'Sub Area ID',    type:'text'},
+  {key:'status_aset_terakhir', label:'Status',  type:'select', options:['LAYAK','TIDAK LAYAK']},
+  {key:'aktif',         label:'Aktif',          type:'select', options:['Y','N']},
+],
   MASTER_SLA: [
     {key:'risiko',label:'Risiko',type:'select',options:['CRITICAL','HIGH','MEDIUM','LOW'],readonly:true},
     {key:'sla_hari',label:'SLA (Hari) *',type:'number',required:true},
