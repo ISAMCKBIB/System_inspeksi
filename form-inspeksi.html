@@ -1604,6 +1604,15 @@ function toStep3(){
       return;
     }
   } else {
+    // Validasi: semua item wajib diisi aktual dan kondisi
+    const belumDiisi = tbContent.filter(item => {
+      const a = tbAnswers[item.asset_id || item.content_id];
+      return !a || a.aktual === null || a.aktual === undefined || a.aktual === '';
+    });
+    if(belumDiisi.length > 0){
+      toast(`⚠️ ${belumDiisi.length} item belum diisi qty aktualnya`, 'warn');
+      return;
+    }
     // Toolbox: cek remarks wajib untuk yang bermasalah
     const noRemarks = tbContent.filter(item => {
       const a = tbAnswers[item.content_id];
@@ -1740,9 +1749,10 @@ function renderCheck(){
         <div class="rmk-wrap" style="border:1.5px solid ${hasRmk?'var(--green-bd)':'var(--red-bd)'};border-radius:8px;padding:8px 10px;background:${hasRmk?'var(--green-bg)':'var(--red-bg)'};margin:4px 0">
           <div class="rmk-lbl" style="color:${hasRmk?'var(--green)':'var(--red)'};font-size:11px;font-weight:700;margin-bottom:4px">✏️ Remarks — Jelaskan kondisi * ${hasRmk?'✓':''}</div>
           <textarea class="rmk-inp" rows="2" 
-            style="width:100%;border:none;background:transparent;font-size:13px;font-family:inherit;resize:vertical;outline:none;color:var(--text)"
-            placeholder="Jelaskan kondisi yang ditemukan..." 
-            oninput="setR('${qid}',this.value);renderCheck()">${a.remarks||''}</textarea>
+              style="width:100%;border:none;background:transparent;font-size:13px;font-family:inherit;resize:vertical;outline:none;color:var(--text)"
+                placeholder="Jelaskan kondisi yang ditemukan..." 
+                oninput="setR('${qid}',this.value)"
+                onblur="renderCheck()">${a.remarks||''}</textarea>
         </div></td>`;
       tbody.appendChild(rr);
     }
