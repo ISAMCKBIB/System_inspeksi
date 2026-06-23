@@ -2158,7 +2158,7 @@ function renderKategoriBreakdown() {
   // Group by nama_kategori
   const byKat = {};
   assetsRaw.forEach(a => {
-    const k = (a.nama_kategori || 'Lainnya').trim();
+    const k = String(a.nama_kategori || 'Lainnya').trim();
     if (!byKat[k]) byKat[k] = { total:0, layak:0, tidak:0 };
     byKat[k].total++;
     if (a.status_aset_terakhir === 'LAYAK') byKat[k].layak++;
@@ -2234,7 +2234,7 @@ function renderAssetNamaChips() {
   // Gunakan kata pertama nama_alat sebagai jenis (bor, compressor, toolbox, dll)
   const countMap = {};
   assetsRaw.forEach(a => {
-    const jenisRaw = (a.nama_alat||'').trim().split(' ')[0];
+    const jenisRaw = String(a.nama_alat||'').trim().split(' ')[0];
     if (!jenisRaw) return;
     const key = jenisRaw.toLowerCase();
     if (!countMap[key]) countMap[key] = { label: jenisRaw, count: 0 };
@@ -2326,7 +2326,7 @@ function applyAssetFilter() {
   if (assetNamaFilter) {
   filtered = filtered.filter(a => {
     const kat = (a.nama_kategori||'').toLowerCase();
-    const jenis = (a.nama_alat||'').trim().split(' ')[0].toLowerCase();
+    const jenis = String(a.nama_alat||'').trim().split(' ')[0].toLowerCase();
     return kat === assetNamaFilter || jenis === assetNamaFilter;
   });
 }
