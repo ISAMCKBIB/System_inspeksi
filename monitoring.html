@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ISAM — Dashboard Monitoring</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1B4FD8">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -138,7 +142,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 @keyframes spin{to{transform:rotate(360deg)}}
 .pbi-loading-text{font-size:13px;color:rgba(255,255,255,.6);font-weight:500}
 
-/* ── BOTTOM GRIDS ── */ 
+/* ── BOTTOM GRIDS ── */
 .bottom-grid{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:16px;margin-bottom:20px}
 @media(max-width:1100px){.bottom-grid{grid-template-columns:1fr 1fr}}
 
@@ -709,6 +713,13 @@ function getDemoTemuan() {
     {temuan_id:'TM-020',inspeksi_id:'INS-013',status_temuan:'CLOSED',nama_pic:'Andi Setiawan',pic_nik:'EMP003',nama_subarea:'Workshop',due_date:'2026-06-22',sla_status:'ON_TIME',tgl_closed:today},
     {temuan_id:'TM-021',inspeksi_id:'INS-014',status_temuan:'CLOSED',nama_pic:'Bayu Aji',pic_nik:'EMP005',nama_subarea:'Stockpile',due_date:'2026-06-25',sla_status:'ON_TIME',tgl_closed:today},
   ];
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW register failed:', e));
+  });
 }
 </script>
 </body>
