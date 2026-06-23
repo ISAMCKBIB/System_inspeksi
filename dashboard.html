@@ -2973,7 +2973,6 @@
 
       // ── INIT ──
       window.onload = async () => {
-        alert('1.onload mulai');
         console.log(
           "localStorage msm_session:",
           localStorage.getItem("msm_session"),
@@ -2986,7 +2985,6 @@
         const raw =
           localStorage.getItem("msm_session") ||
           sessionStorage.getItem("msm_session");
-        alert('2. raw: ' + (raw ? 'ADA' : 'KOSONG')); // ← TAMBAH
         const urlParams = new URLSearchParams(window.location.search);
         const targetIns = urlParams.get("inspeksi");
         if (!raw) {
@@ -3000,7 +2998,6 @@
           window.location.href = "index.html";
           return;
         }
-         alert('3. SESSION.nik: ' + SESSION.nik + ' role: ' + SESSION.role); // ← TAMBAH
         // Validasi role — kalau session role tidak match, force logout
         const validRoles = ["PIC", "ADMIN", "VIEWER"];
         if (!validRoles.includes((SESSION.role || "").toUpperCase())) {
