@@ -2093,6 +2093,7 @@ function renderAssetList(assets) {
             <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.nama_alat||'-'}</div>
             ${isTb?`<span style="background:var(--yellow-bg);color:var(--yellow);font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0">🧰 TOOLBOX</span>`:''}
           </div>
+          <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:4px;letter-spacing:.2px">🪪 ${a.asset_id||'-'}</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px">
             <div style="font-size:11px;color:var(--muted)">📍 ${a.nama_subarea||'-'}</div>
             <div style="font-size:11px;color:var(--muted)">🗂️ ${a.nama_kategori||'-'}</div>
@@ -2229,6 +2230,7 @@ function exportAssetPDF() {
     const statusLabel = isLayak ? '✅ LAYAK' : '❌ TDK LAYAK';
     return `<tr style="background:${i%2===0?'#fff':'#F7F9FF'}">
       <td style="padding:8px 10px;border:1px solid #D4DCEF;text-align:center;font-size:12px;color:#5A6A8A">${i+1}</td>
+      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:11px;font-weight:700;color:#1B4FD8;white-space:nowrap">${a.asset_id||'-'}</td>
       <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px;font-weight:600">${a.nama_alat||'-'}</td>
       <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.no_id||a.no_toolbox||'-'}</td>
       <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.nama_subarea||'-'}</td>
@@ -2299,6 +2301,7 @@ function exportAssetPDF() {
     <thead>
       <tr style="background:#1B4FD8;color:#fff">
         <th style="padding:10px;border:1px solid #1338B0;width:36px">#</th>
+        <th style="padding:10px;border:1px solid #1338B0;text-align:left;white-space:nowrap">No Asset</th>
         <th style="padding:10px;border:1px solid #1338B0;text-align:left">Nama Alat</th>
         <th style="padding:10px;border:1px solid #1338B0;text-align:left">No ID</th>
         <th style="padding:10px;border:1px solid #1338B0;text-align:left">Area</th>
