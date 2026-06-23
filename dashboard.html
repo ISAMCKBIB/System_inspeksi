@@ -2099,8 +2099,8 @@ function renderAssetList(assets) {
             <div style="font-size:11px;color:var(--muted)">🗂️ ${a.nama_kategori||'-'}</div>
             <div style="font-size:11px;color:var(--muted)">🔢 No ID: ${a.no_id||a.no_toolbox||'-'}</div>
             <div style="font-size:11px;color:var(--muted)">🏷️ ${a.merk||'-'}</div>
-            <div style="font-size:11px;color:var(--muted)">📅 Daftar: ${a.tanggal_register||'-'}</div>
-            <div style="font-size:11px;color:${a.tgl_inspeksi_terakhir?'var(--muted)':'var(--red)'}">🔍 Inspeksi: ${a.tgl_inspeksi_terakhir||'Belum pernah'}</div>
+            <div style="font-size:11px;color:var(--muted)">📅 Daftar: ${formatTgl(a.tanggal_register)||'-'}</div>
+            <div style="font-size:11px;color:${a.tgl_inspeksi_terakhir?'var(--muted)':'var(--red)'}">🔍 Inspeksi: ${a.tgl_inspeksi_terakhir?formatTgl(a.tgl_inspeksi_terakhir,true):'Belum pernah'}</div>
           </div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
@@ -2236,7 +2236,7 @@ function exportAssetPDF() {
       <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.nama_subarea||'-'}</td>
       <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.nama_kategori||'-'}</td>
       <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.merk||'-'}</td>
-      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.tgl_inspeksi_terakhir||'Belum pernah'}</td>
+      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.tgl_inspeksi_terakhir?formatTgl(a.tgl_inspeksi_terakhir,true):'Belum pernah'}</td>
       <td style="padding:8px 10px;border:1px solid #D4DCEF;text-align:center">
         <span style="background:${statusBg};color:${statusColor};font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap">${statusLabel}</span>
       </td>
