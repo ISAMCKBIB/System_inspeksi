@@ -2,65 +2,472 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ISAM CK BIB — Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Generator — ISAM CK BIB</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{
-  /* ── Corporate Blue & White ── */
-  --primary:#1B4FD8;      /* biru utama */
-  --primary-dark:#1338B0;
-  --primary-light:#EEF3FF;
-  --secondary:#0EA5E9;    /* biru muda accent */
-  --bg:#F0F4FF;
-  --surface:#FFFFFF;
-  --surface2:#F7F9FF;
-  --border:#D4DCEF;
-  --text:#0F1A3C;
-  --muted:#5A6A8A;
-  --muted2:#8FA0BE;
-
-  /* Status */
-  --green:#16A34A;--green-bg:#F0FDF4;--green-bd:#BBF7D0;
-  --red:#DC2626;--red-bg:#FEF2F2;--red-bd:#FECACA;
-  --yellow:#D97706;--yellow-bg:#FFFBEB;--yellow-bd:#FDE68A;
-  --purple:#7C3AED;--purple-bg:#F5F3FF;
-
-  /* Layout */
-  --nav-h:64px;--sidebar-w:240px;--topbar-h:60px;--radius:12px;
+  --primary:#1B4FD8;--primary-dark:#1338B0;--primary-light:#EEF3FF;
+  --bg:#F0F4FF;--surface:#fff;--border:#D4DCEF;
+  --text:#0F1A3C;--muted:#5A6A8A;--green:#16A34A;--red:#DC2626;
+  --radius:12px;
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:var(--bg);color:var(--text)}
 
-/* ════════════════════════════
-   MOBILE LAYOUT (default)
-════════════════════════════ */
-body{padding-bottom:var(--nav-h)}
+/* TOPBAR */
+.topbar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:16px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(27,79,216,.3)}
+.topbar-title{font-size:18px;font-weight:700;color:#fff}
+.topbar-sub{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px}
+.topbar-actions{margin-left:auto;display:flex;gap:10px}
+.btn-outline{padding:8px 16px;border-radius:8px;border:1.5px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-outline:hover{background:rgba(255,255,255,.15)}
+.btn-white{padding:8px 16px;border-radius:8px;border:none;background:#fff;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
 
-/* ── TOPBAR mobile ── */
-.topbar{
-  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-  padding:14px 18px;display:flex;align-items:center;gap:12px;
-  position:sticky;top:0;z-index:100;
-  box-shadow:0 2px 12px rgba(27,79,216,.3);
+/* CONTROLS */
+.controls{padding:20px 24px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.ctrl-group{display:flex;align-items:center;gap:8px}
+.ctrl-label{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap}
+select,input[type=text]{border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);background:#fff;outline:none;font-family:inherit}
+select:focus,input[type=text]:focus{border-color:var(--primary)}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap input{width:100%;padding-left:32px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+
+.ctrl-actions{margin-left:auto;display:flex;gap:8px}
+.btn-primary{padding:9px 18px;border-radius:8px;border:none;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;display:flex;align-items:center;gap:6px}
+.btn-primary:hover{opacity:.88}
+.btn-secondary{padding:9px 18px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+.btn-secondary:hover{border-color:var(--primary);color:var(--primary)}
+
+/* STATS BAR */
+.stats-bar{padding:12px 24px;background:var(--primary-light);border-bottom:1px solid var(--border);display:flex;gap:24px;font-size:13px}
+.stat-item{display:flex;align-items:center;gap:6px}
+.stat-dot{width:8px;height:8px;border-radius:50%}
+
+/* GRID */
+.content{padding:24px}
+.asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+
+/* ASSET CARD (screen) */ 
+.asset-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .2s;cursor:pointer;position:relative}
+.asset-card:hover{box-shadow:0 4px 16px rgba(27,79,216,.12);border-color:var(--primary)}
+.asset-card.selected{border-color:var(--primary);box-shadow:0 0 0 3px rgba(27,79,216,.15)}
+.card-check{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s}
+.asset-card.selected .card-check{background:var(--primary);border-color:var(--primary);color:#fff}
+.card-qr{padding:16px;display:flex;justify-content:center;background:var(--bg)}
+.card-qr canvas,.card-qr img{border-radius:6px}
+.card-info{padding:12px}
+.card-noid{font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.card-nama{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-merk{font-size:11px;color:var(--muted);margin-bottom:4px}
+.card-area{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-status{display:inline-flex;margin-top:6px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.s-layak{background:var(--green-bg,#F0FDF4);color:var(--green)}
+.s-tidak{background:#FEF2F2;color:var(--red)}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+
+/* SELECT ALL BAR */
+.select-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--primary);color:#fff;
+  padding:14px 24px;display:none;
+  align-items:center;gap:16px;
+  box-shadow:0 -4px 20px rgba(27,79,216,.3);
+  z-index:100;
 }
-.topbar-brand{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
-.topbar-logo{width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.topbar-texts{min-width:0}
-.topbar-title{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.topbar-sub{font-size:10px;color:rgba(255,255,255,.7)}
-.topbar-actions{display:flex;align-items:center;gap:8px}
-.topbar-btn{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;position:relative;color:#fff}
-.topbar-btn:active{background:rgba(255,255,255,.25)}
-.notif-dot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid var(--primary)}
-.avatar-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);font-size:15px;font-weight:700;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.select-bar.show{display:flex}
+.select-bar-count{font-size:14px;font-weight:600}
+.btn-print-sel{padding:10px 20px;border-radius:8px;border:none;background:#fff;color:var(--primary);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:auto}
+.btn-desel{padding:10px 16px;border-radius:8px;border:1.5px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-size:13px;cursor:pointer;font-family:inherit}
 
-/* ── BOTTOM NAV mobile ── */
-.bnav{
-  position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
-  background:var(--surface);border-top:1px solid var(--border);
-  display:flex;align-items:stretch;z-index:100;
-  box-shadow:0 -2px 12px rgba(0,0,0,.08);
+/* LOADING */
+.lo{position:fixed;inset:0;background:rgba(255,255,255,.9);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:999}
+.lo.show{display:flex}
+.spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* PRINT STYLES */
+@media print {
+  .topbar,.controls,.stats-bar,.select-bar,.lo{display:none!important}
+  body{background:#fff;padding:0;margin:0}
+  .content{padding:10mm}
+  .asset-grid{
+    grid-template-columns:repeat(4,1fr);
+    gap:6mm;
+  }
+  .asset-card{
+    border:1px solid #000!important;
+    box-shadow:none!important;
+    page-break-inside:avoid;
+    break-inside:avoid;
+  }
+  .asset-card:not(.selected):not(.print-all){display:none}
+  .card-check{display:none}
+  .card-status{display:none}
+  @page{size:A4;margin:10mm}
+}
+</style>
+</head>
+<body>
+
+<div class="lo" id="lo"><div class="spin"></div><div style="font-size:14px;color:var(--muted)">Memuat asset...</div></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div>
+    <div class="topbar-title">📷 QR Code Generator</div>
+    <div class="topbar-sub">Generate & Print QR Code untuk semua asset</div>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn-outline" onclick="window.history.back()">← Kembali</button>
+    <button class="btn-white" onclick="printAll()">🖨️ Print Semua</button>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Cari nama alat, no ID..." oninput="filterAssets(this.value)" id="searchInput">
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">Area:</span>
+    <select id="filterArea" onchange="filterAssets()">
+      <option value="">Semua Area</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">Status:</span>
+    <select id="filterStatus" onchange="filterAssets()">
+      <option value="">Semua</option>
+      <option value="LAYAK">✅ Layak</option>
+      <option value="TIDAK LAYAK">❌ Tidak Layak</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">Ukuran QR:</span>
+    <select id="qrSize" onchange="regenAll()">
+      <option value="100">Kecil (100px)</option>
+      <option value="128" selected>Sedang (128px)</option>
+      <option value="160">Besar (160px)</option>
+    </select>
+  </div>
+  <div class="ctrl-actions">
+    <button class="btn-secondary" onclick="selectAll()">☑️ Pilih Semua</button>
+    <button class="btn-primary" onclick="printSelected()">🖨️ Print Terpilih</button>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-dot" style="background:#1B4FD8"></div><span id="statTotal">0 Asset</span></div>
+  <div class="stat-item"><div class="stat-dot" style="background:#16A34A"></div><span id="statLayak">0 Layak</span></div>
+  <div class="stat-item"><div class="stat-dot" style="background:#DC2626"></div><span id="statTidak">0 Tidak Layak</span></div>
+  <div class="stat-item" id="dataSource" style="font-size:11px;color:var(--muted)"></div>
+  <div class="stat-item" style="margin-left:auto">
+    <button onclick="location.reload()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--border);background:#fff;font-size:12px;cursor:pointer;color:var(--primary);font-family:inherit">🔄 Refresh</button>
+    <button onclick="debugLoad()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--border);background:#fff;font-size:12px;cursor:pointer;color:var(--muted);font-family:inherit">🔍 Debug</button>
+  </div>
+  <div class="stat-item" style="color:var(--primary);font-weight:600" id="statSelected"></div>
+</div>
+
+<!-- GRID -->
+<div class="content">
+  <div class="asset-grid" id="assetGrid">
+    <div class="empty"><div class="empty-icon">🔧</div><div>Memuat asset...</div></div>
+  </div>
+</div>
+
+<!-- SELECT BAR -->
+<div class="select-bar" id="selectBar">
+  <div class="select-bar-count" id="selectCount">0 asset dipilih</div>
+  <button class="btn-desel" onclick="deselectAll()">✕ Batal</button>
+  <button class="btn-print-sel" onclick="printSelected()">🖨️ Print Terpilih</button>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXYIMZh1r63PBehuExXDXJ8NqAHrJ5AwhivLGh5XcFYD61TTNCo_YWS5j2HLIczJur0Q/exec';
+const FORM_URL = 'https://isamckbib.github.io/System_inspeksi/form-inspeksi.html';
+
+let allAssets = [];
+let filteredAssets = [];
+let selectedIds = new Set();
+
+// ── INIT ──
+window.onload = async () => {
+  showLoad();
+  await loadAssets();
+  hideLoad();
+};
+
+async function loadAssets() {
+  const srcEl = document.getElementById('dataSource');
+
+  // ── Sumber 1: crudMaster MASTER_ASSET (paling akurat) ──
+  try {
+    const r = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'crudMaster',
+        action_type: 'READ',
+        sheet_name: 'MASTER_ASSET',
+        caller_nik: 'ADMIN'
+      })
+    });
+    const j = await r.json();
+    console.log('crudMaster result:', j.status, j.count);
+    if (j.status === 'ok' && j.data && j.data.length > 0) {
+      allAssets = j.data.filter(a => String(a.aktif) !== 'N');
+      if (allAssets.length > 0) {
+        if (srcEl) { srcEl.textContent = '✅ Data dari MASTER_ASSET (' + allAssets.length + ' asset)'; srcEl.style.color = '#16A34A'; }
+        buildAreaFilter(); filteredAssets = [...allAssets]; updateStats(); renderGrid();
+        return;
+      }
+    }
+  } catch(e) { console.warn('crudMaster gagal:', e.message); }
+
+  // ── Sumber 2: getInspeksi (extract unique asset) ──
+  try {
+    const r = await fetch(APPS_SCRIPT_URL + '?action=getInspeksi');
+    const j = await r.json();
+    console.log('getInspeksi result:', j.status, j.count);
+    if (j.status === 'ok' && j.data && j.data.length > 0) {
+      const seen = new Set();
+      const assets = [];
+      j.data.forEach(h => {
+        const key = (h.no_id || '').trim() || (h.nama_alat || '').trim();
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        assets.push({
+          asset_id: h.inspeksi_id || key,
+          no_id: h.no_id || '',
+          no_asset: h.no_asset || '',
+          nama_alat: h.nama_alat || '-',
+          merk: h.merk || '-',
+          nama_subarea: h.nama_subarea || '-',
+          subarea_id: h.subarea_id || '',
+          kategori_id: h.kategori_id || '',
+          status_aset_terakhir: h.status_kelayakan || 'LAYAK',
+          tgl_inspeksi_terakhir: h.tanggal_inspeksi || '',
+          aktif: 'Y'
+        });
+      });
+      if (assets.length > 0) {
+        allAssets = assets;
+        if (srcEl) { srcEl.textContent = '✅ Data dari riwayat inspeksi (' + allAssets.length + ' asset)'; srcEl.style.color = '#16A34A'; }
+        buildAreaFilter(); filteredAssets = [...allAssets]; updateStats(); renderGrid();
+        return;
+      }
+    }
+  } catch(e) { console.warn('getInspeksi gagal:', e.message); }
+
+  // ── Sumber 3: Dummy data ──
+  console.warn('Fallback dummy');
+  allAssets = getDummyAssets();
+  if (srcEl) { srcEl.textContent = '⚠️ Data dummy — deploy Apps Script terbaru'; srcEl.style.color = '#D97706'; }
+  buildAreaFilter(); filteredAssets = [...allAssets]; updateStats(); renderGrid();
+}
+
+function buildAreaFilter() {
+  const areas = [...new Set(allAssets.map(a => a.nama_subarea).filter(Boolean))].sort();
+  const sel = document.getElementById('filterArea');
+  sel.innerHTML = '<option value="">Semua Area</option>' +
+    areas.map(a => `<option value="${a}">${a}</option>`).join('');
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = filteredAssets.length + ' Asset';
+  document.getElementById('statLayak').textContent = filteredAssets.filter(a=>a.status_aset_terakhir==='LAYAK').length + ' Layak';
+  document.getElementById('statTidak').textContent = filteredAssets.filter(a=>a.status_aset_terakhir==='TIDAK LAYAK').length + ' Tidak Layak';
+  const selCount = [...selectedIds].filter(id => filteredAssets.find(a=>(a.no_id||a.asset_id)===id)).length;
+  document.getElementById('statSelected').textContent = selCount > 0 ? selCount + ' dipilih' : '';
+  // Tampilkan sumber data
+  const src = document.getElementById('dataSource');
+  if (src) {
+    const isDemo = allAssets.length > 0 && allAssets[0].asset_id === 'AST-001' && !allAssets[0].company_id;
+    src.textContent = isDemo ? '⚠️ Data dummy (Apps Script belum terhubung)' : '✅ Data dari Google Sheets';
+    src.style.color = isDemo ? '#D97706' : '#16A34A';
+  }
+}
+
+// ── FILTER ──
+function filterAssets(q) {
+  const search = (q || document.getElementById('searchInput').value || '').toLowerCase();
+  const area = document.getElementById('filterArea').value;
+  const status = document.getElementById('filterStatus').value;
+
+  filteredAssets = allAssets.filter(a => {
+    const matchSearch = !search ||
+      (a.nama_alat||'').toLowerCase().includes(search) ||
+      (a.no_id||'').toLowerCase().includes(search) ||
+      (a.merk||'').toLowerCase().includes(search);
+    const matchArea = !area || a.nama_subarea === area;
+    const matchStatus = !status || a.status_aset_terakhir === status;
+    return matchSearch && matchArea && matchStatus;
+  });
+
+  updateStats();
+  renderGrid();
+}
+
+// ── RENDER GRID ──
+function renderGrid() {
+  const grid = document.getElementById('assetGrid');
+  const size = parseInt(document.getElementById('qrSize').value) || 128;
+
+  if (!filteredAssets.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div>Tidak ada asset ditemukan</div></div>';
+    return;
+  }
+
+  grid.innerHTML = filteredAssets.map(a => `
+    <div class="asset-card${selectedIds.has(a.no_id||a.asset_id)?' selected':''}" id="card-${a.no_id||a.asset_id}" onclick="toggleSelect('${a.no_id||a.asset_id}')">
+      <div class="card-check">${selectedIds.has(a.no_id||a.asset_id)?'✓':''}</div>
+      <div class="card-qr" id="qr-wrap-${a.no_id||a.asset_id}"></div>
+      <div class="card-info">
+        <div class="card-noid">${a.no_id||a.asset_id||'-'}</div>
+        <div class="card-nama">${a.nama_alat||'-'}</div>
+        <div class="card-merk">${a.merk||'-'}</div>
+        <div class="card-area">📍 ${a.nama_subarea||a.subarea_id||'-'}</div>
+        <span class="card-status ${a.status_aset_terakhir==='LAYAK'?'s-layak':'s-tidak'}">
+          ${a.status_aset_terakhir==='LAYAK'?'✅ LAYAK':'❌ TDK LAYAK'}
+        </span>
+      </div>
+    </div>`).join('');
+
+  // Generate QR per card
+  filteredAssets.forEach(a => {
+    const assetKey = a.no_id || a.asset_id;
+    const wrap = document.getElementById('qr-wrap-' + assetKey);
+    if (!wrap) return;
+    const url = FORM_URL + '?asset=' + encodeURIComponent(assetKey);
+    try {
+      new QRCode(wrap, {
+        text: url,
+        width: size,
+        height: size,
+        colorDark: '#0F1A3C',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch(e) { wrap.innerHTML = `<div style="font-size:10px;color:red;padding:8px">QR Error</div>`; }
+  });
+}
+
+function regenAll() { renderGrid(); }
+
+// ── SELECT ──
+function toggleSelect(noId) {
+  if (!noId || noId === 'undefined') return;
+  if (selectedIds.has(noId)) selectedIds.delete(noId);
+  else selectedIds.add(noId);
+  const card = document.getElementById('card-' + noId);
+  if (card) {
+    card.classList.toggle('selected', selectedIds.has(noId));
+    card.querySelector('.card-check').textContent = selectedIds.has(noId) ? '✓' : '';
+  }
+  updateSelectBar();
+  updateStats();
+}
+
+function selectAll() {
+  filteredAssets.forEach(a => selectedIds.add(a.no_id));
+  renderGrid();
+  updateSelectBar();
+  updateStats();
+}
+
+function deselectAll() {
+  selectedIds.clear();
+  renderGrid();
+  updateSelectBar();
+  updateStats();
+}
+
+function updateSelectBar() {
+  const bar = document.getElementById('selectBar');
+  const count = selectedIds.size;
+  document.getElementById('selectCount').textContent = count + ' asset dipilih';
+  bar.classList.toggle('show', count > 0);
+  document.body.style.paddingBottom = count > 0 ? '60px' : '0';
+}
+
+// ── PRINT ──
+function printSelected() {
+  if (!selectedIds.size) { alert('Pilih asset dulu sebelum print!'); return; }
+  // Tandai card yang terpilih dengan class print-all supaya @media print tampil
+  document.querySelectorAll('.asset-card').forEach(card => {
+    const noId = card.id.replace('card-', '');
+    if (selectedIds.has(noId)) card.classList.add('selected');
+    else card.classList.remove('selected');
+  });
+  window.print();
+}
+
+function printAll() {
+  // Tampilkan semua untuk print
+  filteredAssets.forEach(a => selectedIds.add(a.no_id));
+  renderGrid();
+  setTimeout(() => window.print(), 500);
+}
+
+// ── DUMMY DATA ──
+function getDummyAssets() {
+  return [
+    {asset_id:'AST-001',no_id:'EQ-001',nama_alat:'Excavator EX-120',merk:'Komatsu',nama_subarea:'WS HE CIA',no_asset:'REG-EX-001',tgl_inspeksi_terakhir:'2026-06-15',status_aset_terakhir:'LAYAK',subarea_id:'SA001',kategori_id:'KT001',aktif:'Y'},
+    {asset_id:'AST-002',no_id:'EQ-002',nama_alat:'Dump Truck DT-08',merk:'Komatsu',nama_subarea:'WS HE CIA',no_asset:'REG-DT-008',tgl_inspeksi_terakhir:'2026-06-14',status_aset_terakhir:'LAYAK',subarea_id:'SA001',kategori_id:'KT001',aktif:'Y'},
+    {asset_id:'AST-003',no_id:'EQ-003',nama_alat:'Bor Listrik Makita',merk:'Makita',nama_subarea:'WS HE CIA',no_asset:'REG-BL-001',tgl_inspeksi_terakhir:'2026-06-13',status_aset_terakhir:'TIDAK LAYAK',subarea_id:'SA001',kategori_id:'KT003',aktif:'Y'},
+    {asset_id:'AST-004',no_id:'EQ-004',nama_alat:'Gerinda Tangan 4"',merk:'Bosch',nama_subarea:'WS HE CIA',no_asset:'REG-GT-001',tgl_inspeksi_terakhir:'2026-06-10',status_aset_terakhir:'LAYAK',subarea_id:'SA001',kategori_id:'KT003',aktif:'Y'},
+    {asset_id:'AST-005',no_id:'EQ-005',nama_alat:'Jack Stand 10T',merk:'Tekiro',nama_subarea:'WS HE CIA',no_asset:'REG-JS-001',tgl_inspeksi_terakhir:'2026-06-16',status_aset_terakhir:'TIDAK LAYAK',subarea_id:'SA001',kategori_id:'KT004',aktif:'Y'},
+    {asset_id:'AST-006',no_id:'EQ-006',nama_alat:'APAR 6kg CO2',merk:'Appron',nama_subarea:'WS HE CIA',no_asset:'REG-AP-001',tgl_inspeksi_terakhir:'2026-06-12',status_aset_terakhir:'LAYAK',subarea_id:'SA001',kategori_id:'KT005',aktif:'Y'},
+    {asset_id:'AST-007',no_id:'EQ-007',nama_alat:'APAR 6kg Dry Powder',merk:'Appron',nama_subarea:'WS HE CIA',no_asset:'REG-AP-002',tgl_inspeksi_terakhir:'2026-06-12',status_aset_terakhir:'LAYAK',subarea_id:'SA001',kategori_id:'KT005',aktif:'Y'},
+    {asset_id:'AST-008',no_id:'EQ-008',nama_alat:'Compressor AC-01',merk:'Atlas Copco',nama_subarea:'WS HE CIA',no_asset:'REG-CP-001',tgl_inspeksi_terakhir:'2026-06-11',status_aset_terakhir:'LAYAK',subarea_id:'SA001',kategori_id:'KT006',aktif:'Y'},
+    {asset_id:'AST-009',no_id:'EQ-009',nama_alat:'Excavator EX-220',merk:'Hitachi',nama_subarea:'BAY CP',no_asset:'REG-EX-002',tgl_inspeksi_terakhir:'2026-06-10',status_aset_terakhir:'LAYAK',subarea_id:'SA002',kategori_id:'KT001',aktif:'Y'},
+    {asset_id:'AST-010',no_id:'EQ-010',nama_alat:'Motor Grader MG-01',merk:'Caterpillar',nama_subarea:'BAY CP',no_asset:'REG-MG-001',tgl_inspeksi_terakhir:'2026-06-09',status_aset_terakhir:'LAYAK',subarea_id:'SA002',kategori_id:'KT001',aktif:'Y'},
+    {asset_id:'AST-011',no_id:'EQ-011',nama_alat:'Jack Stand 20T',merk:'Tekiro',nama_subarea:'BAY CP',no_asset:'REG-JS-002',tgl_inspeksi_terakhir:'2026-06-08',status_aset_terakhir:'TIDAK LAYAK',subarea_id:'SA002',kategori_id:'KT004',aktif:'Y'},
+    {asset_id:'AST-012',no_id:'EQ-012',nama_alat:'APAR 9kg CO2',merk:'Appron',nama_subarea:'BAY CP',no_asset:'REG-AP-003',tgl_inspeksi_terakhir:'2026-06-07',status_aset_terakhir:'LAYAK',subarea_id:'SA002',kategori_id:'KT005',aktif:'Y'},
+    {asset_id:'AST-013',no_id:'EQ-013',nama_alat:'Bulldozer BD-01',merk:'Komatsu',nama_subarea:'WS Tyre',no_asset:'REG-BD-001',tgl_inspeksi_terakhir:'2026-06-05',status_aset_terakhir:'LAYAK',subarea_id:'SA003',kategori_id:'KT001',aktif:'Y'},
+    {asset_id:'AST-014',no_id:'EQ-014',nama_alat:'Crane Workshop 5T',merk:'Kito',nama_subarea:'WS Tyre',no_asset:'REG-CR-001',tgl_inspeksi_terakhir:'2026-06-04',status_aset_terakhir:'TIDAK LAYAK',subarea_id:'SA003',kategori_id:'KT007',aktif:'Y'},
+    {asset_id:'AST-015',no_id:'EQ-015',nama_alat:'APAR 6kg Dry Powder',merk:'Appron',nama_subarea:'WS Tyre',no_asset:'REG-AP-004',tgl_inspeksi_terakhir:'2026-06-03',status_aset_terakhir:'LAYAK',subarea_id:'SA003',kategori_id:'KT005',aktif:'Y'},
+  ];
+}
+
+async function debugLoad() {
+  const results = [];
+  // Test 1: ping
+  try {
+    const r = await fetch(APPS_SCRIPT_URL + '?action=ping');
+    const j = await r.json();
+    results.push('✅ ping: ' + (j.message||JSON.stringify(j)));
+  } catch(e) { results.push('❌ ping: ' + e.message); }
+
+  // Test 2: getInspeksi
+  try {
+    const r = await fetch(APPS_SCRIPT_URL + '?action=getInspeksi');
+    const j = await r.json();
+    results.push('✅ getInspeksi: ' + j.count + ' records');
+  } catch(e) { results.push('❌ getInspeksi: ' + e.message); }
+
+  // Test 3: crudMaster
+  try {
+    const r = await fetch(APPS_SCRIPT_URL, {method:'POST',body:JSON.stringify({action:'crudMaster',action_type:'READ',sheet_name:'MASTER_ASSET',caller_nik:'ADMIN'})});
+    const j = await r.json();
+    if (j.status==='ok') results.push('✅ crudMaster MASTER_ASSET: ' + j.count + ' records');
+    else results.push('❌ crudMaster: ' + j.message);
+  } catch(e) { results.push('❌ crudMaster: ' + e.message); }
+
+  alert('DEBUG RESULTS:\n\n' + results.join('\n'));
+}
+
+function showLoad(){document.getElementById('lo').classList.add('show')}
+function hideLoad(){document.getElementById('lo').classList.remove('show')}
+</script>
+</body>
+</html>  box-shadow:0 -2px 12px rgba(0,0,0,.08);
   padding-bottom:env(safe-area-inset-bottom);
 }
 .bnav-item{
