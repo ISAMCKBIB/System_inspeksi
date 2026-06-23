@@ -2142,7 +2142,7 @@ const MASTER_FIELDS = {
     {key:'status',label:'Status',type:'select',options:['Y','N']},
   ],
   MASTER_ASSET: [
-  {key:'asset_id',        label:'Asset ID',        type:'text',   readonly:true},
+  {key:'asset_id',        label:'Asset ID',        type:'hidden',   readonly:true},
   {key:'nama_alat',       label:'Nama Alat *',     type:'text',   required:true},
   {key:'merk',            label:'Merk',            type:'text'},
   {key:'no_id',           label:'No ID',           type:'text'},
@@ -2250,7 +2250,9 @@ function renderModalFields(record) {
   document.getElementById('modalBody').innerHTML = fields.map(f=>{
     const val = record[f.key]||'';
     const ro = f.readonly && editingRecord;
-    
+    if (f.type === 'hidden') {
+    return `<input type="hidden" id="mf_${f.key}" value="${val}">`;
+    }
     if (f.type==='select') {
       return `<div class="dfield">
         <label>${f.label}${f.required?' <span style="color:var(--red)">*</span>':''}</label>
