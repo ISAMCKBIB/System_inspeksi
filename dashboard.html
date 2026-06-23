@@ -2973,6 +2973,15 @@
 
       // ── INIT ──
       window.onload = async () => {
+        console.log(
+          "localStorage msm_session:",
+          localStorage.getItem("msm_session"),
+        );
+        console.log(
+          "sessionStorage msm_session:",
+          sessionStorage.getItem("msm_session"),
+        );
+
         const raw =
           localStorage.getItem("msm_session") ||
           sessionStorage.getItem("msm_session");
