@@ -702,15 +702,38 @@ body{padding-bottom:var(--nav-h)}
     </div>
     <div class="sec-hdr" style="margin-bottom:10px">
       <div class="sec-title">Daftar Asset</div>
-        <a href="qr-generator.html" target="_blank" 
-          style="background:var(--primary);color:#fff;border:none;border-radius:8px;
-          padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;
-          text-decoration:none;display:inline-flex;align-items:center;gap:6px"> 📷 QR Generator
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+        <button onclick="exportAssetPDF()"
+          style="background:#DC2626;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:5px">
+          📄 Export PDF
+        </button>
+        <a href="qr-generator.html" target="_blank"
+          style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px">
+          📷 QR Generator
         </a>
+      </div>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <input type="text" id="searchAsset" placeholder="🔍 Cari asset..." oninput="searchAssets(this.value)"
-        style="flex:1;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:14px;font-family:'Inter',sans-serif;background:var(--surface);outline:none;color:var(--text)">
+    <div style="position:relative;margin-bottom:10px">
+      <input type="text" id="searchAsset" placeholder="🔍 Cari nama alat, no ID, area, merk..."
+        oninput="applyAssetFilter();showAssetSuggestions(this.value)"
+        onkeydown="handleAssetSearchKey(event)"
+        onfocus="showAssetSuggestions(this.value)"
+        autocomplete="off"
+        style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:14px;font-family:'Inter',sans-serif;background:var(--surface);outline:none;color:var(--text)">
+      <div id="assetSuggestions" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1.5px solid var(--primary);border-radius:10px;z-index:50;box-shadow:0 8px 24px rgba(27,79,216,.15);max-height:220px;overflow-y:auto"></div>
+    </div>
+    <div class="chips" style="margin-bottom:8px">
+      <div class="chip active" onclick="setAssetFilter('semua',this)">Semua <span id="chipCountSemua"></span></div>
+      <div class="chip" onclick="setAssetFilter('layak',this)">✅ Layak <span id="chipCountLayak"></span></div>
+      <div class="chip" onclick="setAssetFilter('tidak_layak',this)">❌ Tidak Layak <span id="chipCountTidakLayak"></span></div>
+      <div class="chip" onclick="setAssetFilter('perlu_inspeksi',this)">⏰ Perlu Inspeksi <span id="chipCountPerluInspeksi"></span></div>
+    </div>
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Jenis Alat</div>
+    <div class="chips" id="assetNamaChips" style="margin-bottom:10px">
+      <div class="chip active" onclick="setAssetNamaFilter('',this)">Semua Jenis</div>
+    </div>
+    <div class="sec-hdr" style="margin-bottom:8px">
+      <div style="font-size:12px;color:var(--muted)">Menampilkan <span id="assetFilterCount" style="font-weight:700;color:var(--primary)">0</span> asset</div>
     </div>
     <div id="assetList"></div>
   </div>
@@ -2008,7 +2031,10 @@ async function loadAdminAsset() {
     assetsRaw = getDemoAssets();
     renderAssetStats({total:assetsRaw.length, layak:assetsRaw.filter(a=>a.status_aset_terakhir==='LAYAK').length, tidak_layak:assetsRaw.filter(a=>a.status_aset_terakhir==='TIDAK LAYAK').length});
   }
-  renderAssetList(assetsRaw);
+  assetStatusFilter = 'semua';
+  assetNamaFilter = '';
+  renderAssetNamaChips();
+  applyAssetFilter();
 }
 
 function renderAssetStats(d) {
@@ -2018,6 +2044,39 @@ function renderAssetStats(d) {
   document.getElementById('assetLayak').textContent = d.layak||0;
   document.getElementById('assetTidakLayak').textContent = d.tidak_layak||0;
   document.getElementById('assetOverdue').textContent = overdue;
+}
+
+let assetNamaFilter = '';
+
+function renderAssetNamaChips() {
+  const el = document.getElementById('assetNamaChips');
+  if (!el) return;
+
+  // Gunakan kata pertama nama_alat sebagai jenis (bor, compressor, toolbox, dll)
+  const countMap = {};
+  assetsRaw.forEach(a => {
+    const jenisRaw = (a.nama_alat||'').trim().split(' ')[0];
+    if (!jenisRaw) return;
+    const key = jenisRaw.toLowerCase();
+    if (!countMap[key]) countMap[key] = { label: jenisRaw, count: 0 };
+    countMap[key].count++;
+  });
+
+  const sorted = Object.values(countMap).sort((a,b) => b.count - a.count);
+
+  el.innerHTML = `<div class="chip ${assetNamaFilter===''?'active':''}" onclick="setAssetNamaFilter('',this)">Semua Jenis</div>` +
+    sorted.map(c =>
+      `<div class="chip ${assetNamaFilter===c.label.toLowerCase()?'active':''}" onclick="setAssetNamaFilter('${c.label.toLowerCase()}',this)">
+        ${c.label} <span style="opacity:.65">(${c.count})</span>
+      </div>`
+    ).join('');
+}
+
+function setAssetNamaFilter(val, chipEl) {
+  assetNamaFilter = val;
+  document.querySelectorAll('#assetNamaChips .chip').forEach(c => c.classList.remove('active'));
+  if (chipEl) chipEl.classList.add('active');
+  applyAssetFilter();
 }
 
 function renderAssetList(assets) {
@@ -2052,10 +2111,329 @@ function renderAssetList(assets) {
   }).join('');
 }
 
-function searchAssets(q) {
-  const filtered = q ? assetsRaw.filter(a=>(a.nama_alat||'').toLowerCase().includes(q.toLowerCase())||(a.no_id||'').toLowerCase().includes(q.toLowerCase())||(a.nama_subarea||'').toLowerCase().includes(q.toLowerCase())) : assetsRaw;
+let assetStatusFilter = 'semua';
+
+function setAssetFilter(status, chipEl) {
+  assetStatusFilter = status;
+  document.querySelectorAll('#viewAdminAsset .chips .chip').forEach(c => c.classList.remove('active'));
+  if (chipEl) chipEl.classList.add('active');
+  applyAssetFilter();
+}
+
+function applyAssetFilter() {
+  const q = (document.getElementById('searchAsset')?.value || '').toLowerCase().trim();
+  const today = new Date().toISOString().split('T')[0];
+
+  let filtered = [...assetsRaw];
+
+  // Status filter
+  if (assetStatusFilter === 'layak') {
+    filtered = filtered.filter(a => a.status_aset_terakhir === 'LAYAK');
+  } else if (assetStatusFilter === 'tidak_layak') {
+    filtered = filtered.filter(a => a.status_aset_terakhir === 'TIDAK LAYAK');
+  } else if (assetStatusFilter === 'perlu_inspeksi') {
+    filtered = filtered.filter(a => a.tgl_inspeksi_due && a.tgl_inspeksi_due < today);
+  }
+
+  // Jenis alat chip filter (kata pertama nama_alat)
+  if (assetNamaFilter) {
+    filtered = filtered.filter(a => {
+      const jenis = (a.nama_alat||'').trim().split(' ')[0].toLowerCase();
+      return jenis === assetNamaFilter;
+    });
+  }
+
+  // Search filter
+  if (q) {
+    filtered = filtered.filter(a =>
+      (a.nama_alat||'').toLowerCase().includes(q) ||
+      (a.no_id||'').toLowerCase().includes(q) ||
+      (a.no_toolbox||'').toLowerCase().includes(q) ||
+      (a.nama_subarea||'').toLowerCase().includes(q) ||
+      (a.merk||'').toLowerCase().includes(q) ||
+      (a.asset_id||'').toLowerCase().includes(q)
+    );
+  }
+
+  // Update count badge
+  const countEl = document.getElementById('assetFilterCount');
+  if (countEl) countEl.textContent = filtered.length;
+
+  // Update chip counts
+  const updateChipCount = (id, arr) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = arr.length ? `(${arr.length})` : '';
+  };
+  const baseFiltered = q ? assetsRaw.filter(a =>
+    (a.nama_alat||'').toLowerCase().includes(q) ||
+    (a.no_id||'').toLowerCase().includes(q) ||
+    (a.no_toolbox||'').toLowerCase().includes(q) ||
+    (a.nama_subarea||'').toLowerCase().includes(q) ||
+    (a.merk||'').toLowerCase().includes(q) ||
+    (a.asset_id||'').toLowerCase().includes(q)
+  ) : assetsRaw;
+  updateChipCount('chipCountSemua', baseFiltered);
+  updateChipCount('chipCountLayak', baseFiltered.filter(a=>a.status_aset_terakhir==='LAYAK'));
+  updateChipCount('chipCountTidakLayak', baseFiltered.filter(a=>a.status_aset_terakhir==='TIDAK LAYAK'));
+  updateChipCount('chipCountPerluInspeksi', baseFiltered.filter(a=>a.tgl_inspeksi_due && a.tgl_inspeksi_due < today));
+
   renderAssetList(filtered);
 }
+
+
+
+// ════════════════════════════════════════════════════════════
+//  EXPORT ASSET PDF
+// ════════════════════════════════════════════════════════════
+function exportAssetPDF() {
+  // Ambil data yang sedang ditampilkan (hasil filter aktif)
+  const q = (document.getElementById('searchAsset')?.value || '').toLowerCase().trim();
+  const today = new Date().toISOString().split('T')[0];
+  let data = [...assetsRaw];
+
+  if (assetStatusFilter === 'layak') data = data.filter(a => a.status_aset_terakhir === 'LAYAK');
+  else if (assetStatusFilter === 'tidak_layak') data = data.filter(a => a.status_aset_terakhir === 'TIDAK LAYAK');
+  else if (assetStatusFilter === 'perlu_inspeksi') data = data.filter(a => a.tgl_inspeksi_due && a.tgl_inspeksi_due < today);
+
+  if (assetNamaFilter) {
+    data = data.filter(a => (a.nama_alat||'').trim().split(' ')[0].toLowerCase() === assetNamaFilter);
+  }
+  if (q) {
+    data = data.filter(a =>
+      (a.nama_alat||'').toLowerCase().includes(q) ||
+      (a.no_id||'').toLowerCase().includes(q) ||
+      (a.no_toolbox||'').toLowerCase().includes(q) ||
+      (a.nama_subarea||'').toLowerCase().includes(q) ||
+      (a.merk||'').toLowerCase().includes(q) ||
+      (a.asset_id||'').toLowerCase().includes(q)
+    );
+  }
+
+  if (!data.length) { showToast('Tidak ada data untuk di-export','warn'); return; }
+
+  // Label filter untuk judul PDF
+  const filterLabels = [];
+  if (assetStatusFilter !== 'semua') filterLabels.push({semua:'',layak:'Layak',tidak_layak:'Tidak Layak',perlu_inspeksi:'Perlu Inspeksi'}[assetStatusFilter]);
+  if (assetNamaFilter) filterLabels.push(assetNamaFilter.charAt(0).toUpperCase()+assetNamaFilter.slice(1));
+  if (q) filterLabels.push('Pencarian: "'+q+'"');
+  const filterTitle = filterLabels.length ? ' — Filter: ' + filterLabels.join(', ') : ' — Semua Asset';
+
+  const now = new Date().toLocaleString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const totalLayak = data.filter(a=>a.status_aset_terakhir==='LAYAK').length;
+  const totalTidakLayak = data.filter(a=>a.status_aset_terakhir==='TIDAK LAYAK').length;
+
+  const rows = data.map((a,i) => {
+    const isLayak = a.status_aset_terakhir === 'LAYAK';
+    const statusColor = isLayak ? '#16A34A' : '#DC2626';
+    const statusBg = isLayak ? '#F0FDF4' : '#FEF2F2';
+    const statusLabel = isLayak ? '✅ LAYAK' : '❌ TDK LAYAK';
+    return `<tr style="background:${i%2===0?'#fff':'#F7F9FF'}">
+      <td style="padding:8px 10px;border:1px solid #D4DCEF;text-align:center;font-size:12px;color:#5A6A8A">${i+1}</td>
+      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px;font-weight:600">${a.nama_alat||'-'}</td>
+      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.no_id||a.no_toolbox||'-'}</td>
+      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.nama_subarea||'-'}</td>
+      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.nama_kategori||'-'}</td>
+      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.merk||'-'}</td>
+      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.tgl_inspeksi_terakhir||'Belum pernah'}</td>
+      <td style="padding:8px 10px;border:1px solid #D4DCEF;text-align:center">
+        <span style="background:${statusBg};color:${statusColor};font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap">${statusLabel}</span>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Export Asset — ISAM CK BIB</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; padding: 24px; color: #0F1A3C; }
+  @media print {
+    body { padding: 0; }
+    .no-print { display: none !important; }
+    table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#1338B0,#1B4FD8);padding:20px 24px;border-radius:10px;margin-bottom:20px;color:#fff">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="font-size:32px">⛏️</div>
+      <div>
+        <div style="font-size:18px;font-weight:700">ISAM CK BIB — Laporan Asset</div>
+        <div style="font-size:12px;opacity:.8;margin-top:3px">Inspeksi K3 System</div>
+      </div>
+      <div style="margin-left:auto;text-align:right;font-size:11px;opacity:.8">
+        <div>Dicetak: ${now}</div>
+        <div>Total data: ${data.length} asset</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter info -->
+  <div style="background:#EEF3FF;border:1px solid #D4DCEF;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:#1B4FD8;font-weight:600">
+    📋 ${filterTitle.replace(' — ','')}
+  </div>
+
+  <!-- Summary badges -->
+  <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <div style="background:#EEF3FF;border:1px solid #D4DCEF;border-radius:8px;padding:10px 16px;text-align:center;min-width:100px">
+      <div style="font-size:22px;font-weight:700;color:#1B4FD8">${data.length}</div>
+      <div style="font-size:10px;color:#5A6A8A;font-weight:600;text-transform:uppercase">Total</div>
+    </div>
+    <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:10px 16px;text-align:center;min-width:100px">
+      <div style="font-size:22px;font-weight:700;color:#16A34A">${totalLayak}</div>
+      <div style="font-size:10px;color:#16A34A;font-weight:600;text-transform:uppercase">Layak</div>
+    </div>
+    <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px 16px;text-align:center;min-width:100px">
+      <div style="font-size:22px;font-weight:700;color:#DC2626">${totalTidakLayak}</div>
+      <div style="font-size:10px;color:#DC2626;font-weight:600;text-transform:uppercase">Tidak Layak</div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead>
+      <tr style="background:#1B4FD8;color:#fff">
+        <th style="padding:10px;border:1px solid #1338B0;width:36px">#</th>
+        <th style="padding:10px;border:1px solid #1338B0;text-align:left">Nama Alat</th>
+        <th style="padding:10px;border:1px solid #1338B0;text-align:left">No ID</th>
+        <th style="padding:10px;border:1px solid #1338B0;text-align:left">Area</th>
+        <th style="padding:10px;border:1px solid #1338B0;text-align:left">Kategori</th>
+        <th style="padding:10px;border:1px solid #1338B0;text-align:left">Merk</th>
+        <th style="padding:10px;border:1px solid #1338B0;text-align:left">Inspeksi Terakhir</th>
+        <th style="padding:10px;border:1px solid #1338B0;text-align:center">Status</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+
+  <!-- Footer -->
+  <div style="margin-top:20px;padding-top:12px;border-top:1px solid #D4DCEF;display:flex;justify-content:space-between;font-size:11px;color:#8FA0BE">
+    <span>ISAM CK BIB — Inspeksi K3 System</span>
+    <span>Digenerate otomatis oleh sistem</span>
+  </div>
+
+  <!-- Print trigger -->
+  <script>window.onload = function() { window.print(); }<\/script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+}
+
+// ════════════════════════════════════════════════════════════
+//  ASSET SEARCH SUGGESTIONS
+// ════════════════════════════════════════════════════════════
+let assetSuggestionIndex = -1;
+
+function showAssetSuggestions(q) {
+  const box = document.getElementById('assetSuggestions');
+  if (!box) return;
+  const val = (q||'').toLowerCase().trim();
+
+  if (!val) { box.style.display='none'; return; }
+
+  // Kumpulin kandidat: nama_alat, merk, nama_subarea, asset_id, no_id
+  const seen = new Set();
+  const results = [];
+  assetsRaw.forEach(a => {
+    const fields = [
+      { text: a.nama_alat, icon: '🔧', sub: a.nama_subarea },
+      { text: a.merk,      icon: '🏷️', sub: 'Merk' },
+      { text: a.no_id,     icon: '🔢', sub: 'No ID' },
+      { text: a.nama_subarea, icon: '📍', sub: 'Area' },
+    ];
+    fields.forEach(f => {
+      if (!f.text) return;
+      const t = f.text.trim();
+      const key = t.toLowerCase();
+      if (!key.includes(val) || seen.has(key)) return;
+      seen.add(key);
+      // Highlight matched part
+      const idx = key.indexOf(val);
+      const highlighted = t.slice(0,idx) + '<strong style="color:var(--primary)">' + t.slice(idx, idx+val.length) + '</strong>' + t.slice(idx+val.length);
+      results.push({ icon: f.icon, highlighted, plain: t, sub: f.sub });
+    });
+  });
+
+  if (!results.length) { box.style.display='none'; return; }
+
+  assetSuggestionIndex = -1;
+  box.innerHTML = results.slice(0,8).map((r,i) =>
+    `<div class="asset-sug-item" data-idx="${i}" data-val="${r.plain.replace(/"/g,'&quot;')}"
+      onmousedown="pickAssetSuggestion('${r.plain.replace(/'/g,"\'")}')"
+      onmouseover="highlightSugItem(${i})"
+      style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);font-size:13px">
+      <span style="font-size:15px">${r.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.highlighted}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px">${r.sub||''}</div>
+      </div>
+    </div>`
+  ).join('');
+
+  // Remove border from last item
+  const items = box.querySelectorAll('.asset-sug-item');
+  if (items.length) items[items.length-1].style.borderBottom = 'none';
+
+  box.style.display = 'block';
+}
+
+function highlightSugItem(idx) {
+  assetSuggestionIndex = idx;
+  document.querySelectorAll('.asset-sug-item').forEach((el,i) => {
+    el.style.background = i===idx ? 'var(--primary-light)' : '';
+  });
+}
+
+function pickAssetSuggestion(val) {
+  const input = document.getElementById('searchAsset');
+  if (input) { input.value = val; }
+  document.getElementById('assetSuggestions').style.display = 'none';
+  applyAssetFilter();
+}
+
+function handleAssetSearchKey(e) {
+  const box = document.getElementById('assetSuggestions');
+  const items = document.querySelectorAll('.asset-sug-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    assetSuggestionIndex = Math.min(assetSuggestionIndex+1, items.length-1);
+    highlightSugItem(assetSuggestionIndex);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    assetSuggestionIndex = Math.max(assetSuggestionIndex-1, 0);
+    highlightSugItem(assetSuggestionIndex);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (assetSuggestionIndex >= 0 && items[assetSuggestionIndex]) {
+      pickAssetSuggestion(items[assetSuggestionIndex].dataset.val);
+    } else {
+      box.style.display = 'none';
+      applyAssetFilter();
+    }
+  } else if (e.key === 'Escape') {
+    box.style.display = 'none';
+  }
+}
+
+// Tutup suggestions kalau klik di luar
+document.addEventListener('click', function(e) {
+  const box = document.getElementById('assetSuggestions');
+  const input = document.getElementById('searchAsset');
+  if (box && input && !box.contains(e.target) && e.target !== input) {
+    box.style.display = 'none';
+  }
+});
+
+function searchAssets(q) { applyAssetFilter(); }
 
 // ════════════════════════════════════════════════════════════
 //  ACTIVITY LOG
