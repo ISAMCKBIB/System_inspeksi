@@ -4097,50 +4097,95 @@
         renderJadwal(filtered);
       }
 
-      function renderJadwal(data) {
-        const el = document.getElementById("jadwalList");
-        if (!data.length) {
-          el.innerHTML =
-            '<div class="empty"><div class="empty-icon">📅</div><div class="empty-title">Tidak ada jadwal</div></div>';
-          return;
-        }
-        const months = [
-          "Jan",
-          "Feb",
-          "Mar",
-          "Apr",
-          "Mei",
-          "Jun",
-          "Jul",
-          "Agt",
-          "Sep",
-          "Okt",
-          "Nov",
-          "Des",
-        ];
-        el.innerHTML = data
-          .slice(0, 10)
-          .map((j) => {
-            const d = j.tgl_inspeksi_due ? new Date(j.tgl_inspeksi_due) : null;
-            const sMap = {
-              OVERDUE: "overdue",
-              UPCOMING: "upcoming",
-              ON_TIME: "ontime",
-            };
-            const sLabel = {
-              OVERDUE: "Overdue",
-              UPCOMING: "Segera",
-              ON_TIME: "On Time",
-            };
-            return `<div class="jadwal-card">
-      <div class="jadwal-date"><div class="jadwal-day">${d ? d.getDate() : "-"}</div><div class="jadwal-mon">${d ? months[d.getMonth()] : "-"}</div></div>
-      <div class="jadwal-info"><div class="jadwal-title">${j.nama_subarea || "-"} — ${j.nama_kategori || "-"}</div><div class="jadwal-sub">PIC: ${j.nama_pic || "-"}</div></div>
-      <span class="jstat ${sMap[j.status_jadwal] || "ontime"}">${sLabel[j.status_jadwal] || "On Time"}</span>
-    </div>`;
-          })
-          .join("");
-      }
+    function renderJadwal(data) {
+       const el = document.getElementById('jadwalList');
+  if (!data.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><div class="empty-title">Tidak ada jadwal</div><div class="empty-sub">Belum ada jadwal inspeksi.</div></div>';
+    return;
+  }
 
+  const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+
+  // Group by nama_kategori
+  const byKat = {};
+  data.forEach(j => {
+    const k = j.nama_kategori || 'Lainnya';
+    if (!byKat[k]) byKat[k] = { interval: j.interval_hari || 30, items: [] };
+    byKat[k].items.push(j);
+  });
+
+  el.innerHTML = Object.entries(byKat).map(([kat, group]) => {
+    const hasOverdue  = group.items.some(j => j.status_jadwal === 'OVERDUE');
+    const hasUpcoming = group.items.some(j => j.status_jadwal === 'UPCOMING');
+    const headerColor = hasOverdue ? 'var(--red)' : hasUpcoming ? 'var(--yellow)' : 'var(--green)';
+    const headerBg    = hasOverdue ? 'var(--red-bg)' : hasUpcoming ? 'var(--yellow-bg)' : 'var(--green-bg)';
+    const headerLabel = hasOverdue ? '🚨 Ada Overdue' : hasUpcoming ? '⏰ Segera' : '✅ On Time';
+
+    const items = group.items.map(j => {
+      const d = j.tgl_inspeksi_due ? new Date(j.tgl_inspeksi_due) : null;
+      const sColor = {
+        OVERDUE:'var(--red)', 
+        UPCOMING:'var(--yellow)', 
+        ON_TIME:'var(--green)'
+      }[j.status_jadwal] || 'var(--muted)';
+      const sLabel = {
+        OVERDUE:'🚨 Overdue', 
+        UPCOMING:'⏰ Segera', 
+        ON_TIME:'✅ On Time'
+      }[j.status_jadwal] || '-';
+
+      return `<div style="display:flex;align-items:center;gap:10px;
+        padding:10px 14px;border-bottom:1px solid var(--border)">
+        <div style="width:40px;height:40px;border-radius:8px;
+          background:var(--primary-light);display:flex;flex-direction:column;
+          align-items:center;justify-content:center;flex-shrink:0">
+          <div style="font-size:14px;font-weight:700;color:var(--primary);line-height:1">
+            ${d ? d.getDate() : '-'}
+          </div>
+          <div style="font-size:9px;color:var(--primary);font-weight:600;text-transform:uppercase">
+            ${d ? months[d.getMonth()] : '-'}
+          </div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${j.nama_alat || j.no_id || '-'}
+          </div>
+          <div style="font-size:11px;color:var(--muted)">
+            No ID: ${j.no_id||'-'} · ${j.nama_subarea||'-'}
+          </div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:${sColor};flex-shrink:0">
+          ${sLabel}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div style="background:var(--surface);border-radius:var(--radius);
+      border:1px solid var(--border);margin-bottom:12px;overflow:hidden">
+      <!-- Header kategori -->
+      <div style="background:${headerBg};padding:10px 14px;
+        display:flex;align-items:center;justify-content:space-between;
+        border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:${headerColor}">
+            🗂️ ${kat}
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">
+            ⏱️ Interval ${group.interval} hari · ${group.items.length} alat
+          </div>
+        </div>
+        <div style="font-size:10px;font-weight:700;color:${headerColor};
+          padding:3px 10px;border-radius:20px;
+          background:${hasOverdue?'var(--red-bg)':hasUpcoming?'var(--yellow-bg)':'var(--green-bg)'}">
+          ${headerLabel}
+        </div>
+      </div>
+      <!-- List alat -->
+      ${items}
+    </div>`;
+  }).join('');
+}
       // ── DRAWER ──
       function openDrawer(insId) {
         const temuan = allTemuan.filter(
