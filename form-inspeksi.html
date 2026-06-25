@@ -1498,6 +1498,7 @@ async function fetchAssetFromURL(noId) {
 
     if (j.data?.found && j.data.asset) {
       const a = j.data.asset;
+      window._assetId = a.asset_id || '';
       fillAssetFields(a);
 
       // Auto-select subarea
