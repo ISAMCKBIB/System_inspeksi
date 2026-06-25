@@ -1257,6 +1257,7 @@ async function onAsset(v){
 }
 
 function fillAssetFields(a) {
+  window._assetId = a.asset_id || '';
   // ── 1. Isi field teks ──
   const textFields = [
     { id:'namaAlat', val:a.nama_alat },
@@ -1920,12 +1921,14 @@ const meta = {
   nama_alat        : isTb
     ? (tbIsRegistered ? tbTipeName : (tbNamaManual || 'Toolbox ' + tbTipeName))
     : document.getElementById('namaAlat').value,
+    tanggal_inspeksi : document.getElementById('tgl').value,
 
   merk             : isTb ? '' : (document.getElementById('merkAlat')?.value || ''),
 
   // no_id hanya untuk alat biasa, toolbox pakai no_toolbox
   no_id            : isTb ? '' : document.getElementById('noId').value,
   no_asset         : isTb ? '' : document.getElementById('noAsset').value,
+  asset_id         : isTb ? (window._tbAssetId || '') : (window._assetId || ''),
 
   nik_inspektor    : document.getElementById('nikIns').value,
   nama_inspektor   : document.getElementById('namaIns').value,
