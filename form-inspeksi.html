@@ -2073,2106 +2073,2122 @@
     <!-- end wrap -->
 
     <script>
-      const APPS_SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbxXYIMZh1r63PBehuExXDXJ8NqAHrJ5AwhivLGh5XcFYD61TTNCo_YWS5j2HLIczJur0Q/exec";
+            const APPS_SCRIPT_URL =
+              "https://script.google.com/macros/s/AKfycbxXYIMZh1r63PBehuExXDXJ8NqAHrJ5AwhivLGh5XcFYD61TTNCo_YWS5j2HLIczJur0Q/exec";
 
-      // ── STATE ───────────────────────────────────────────
-      let M = { area: [], subarea: [], kategori: [], perusahaan: [] };
-      let pertanyaan = [],
-        tbContent = [],
-        answers = {},
-        tbAnswers = {};
-      let selRisiko = "",
-        fotos = [],
-        katId = "",
-        katName = "",
-        isTb = false;
-      let selSec = null,
-        tbTipeId = "",
-        tbTipeName = "",
-        picInfo = null;
+            // ── STATE ───────────────────────────────────────────
+            let M = { area: [], subarea: [], kategori: [], perusahaan: [] };
+            let pertanyaan = [],
+              tbContent = [],
+              answers = {},
+              tbAnswers = {};
+            let selRisiko = "",
+              fotos = [],
+              katId = "",
+              katName = "",
+              isTb = false;
+            let selSec = null,
+              tbTipeId = "",
+              tbTipeName = "",
+              picInfo = null;
 
-      // Subarea yang punya multiple section toolbox
-      const TB_SECTIONS = {
-        SA001: ["Wheel", "Rebuild"],
-        SA005: ["Digger", "Auxiliary"],
-      };
-
-      // ── INIT ────────────────────────────────────────────
-      // Tampilkan form langsung tanpa nunggu data
-      document.addEventListener("DOMContentLoaded", () => {
-        goStep(1);
-        document.getElementById("tgl").value = new Date()
-          .toISOString()
-          .split("T")[0];
-        loadMaster();
-
-        // ── Handle URL param ?asset=EQ-001 dari scan QR ──
-        const urlParams = new URLSearchParams(window.location.search);
-        const assetParam = urlParams.get("asset");
-        if (assetParam) {
-          // Tampilkan banner scan
-          showScanBanner(assetParam);
-          // Tunggu master data loaded, lalu auto-fetch asset
-          setTimeout(() => fetchAssetFromURL(assetParam), 1500);
-        }
-      });
-
-      // ── LOAD MASTER ─────────────────────────────────────
-      async function loadMaster() {
-        // Tampilkan demo data dulu — form langsung bisa dipakai
-        M = demoMaster();
-        fillDropdowns();
-
-        // Load data asli di background
-        try {
-          const r = await fetch(
-            APPS_SCRIPT_URL + "?action=getMasterData&type=all",
-          );
-          const j = await r.json();
-          if (j.status === "ok") {
-            M = j.data;
-            fillDropdowns(); // Update dengan data asli
-          }
-        } catch (e) {
-          // Demo data tetap dipakai jika gagal
-          console.log("Menggunakan demo data");
-        }
-      }
-
-      function fillDropdowns() {
-        // Perusahaan
-        const cS = document.getElementById("compSel");
-        cS.innerHTML = '<option value="">-- Pilih perusahaan --</option>';
-        (M.perusahaan || []).forEach((c) => {
-          if (c.status === "Y" || !c.status)
-            cS.innerHTML += `<option value="${c.company_id}">${c.nama_perusahaan}</option>`;
-        });
-        // Fallback demo kalau kosong
-        if (cS.options.length <= 1) {
-          cS.innerHTML += '<option value="KGB001">PT Cipta Kridatama</option>';
-          cS.innerHTML +=
-            '<option value="KGB002">PT Sanggar Sarana Baja</option>';
-        }
-        // Area
-        const aS = document.getElementById("areaSel");
-        aS.innerHTML = '<option value="">-- Pilih --</option>';
-        (M.area || []).forEach((a) => {
-          aS.innerHTML += `<option value="${a.area_id}">${a.nama_area}</option>`;
-        });
-        // Sembunyikan loading di step 1
-        hideLoad();
-      }
-
-      // ── STEP 1 ───────────────────────────────────────────
-      async function onArea() {
-        const v = document.getElementById("areaSel").value;
-        const sS = document.getElementById("subSel");
-        sS.innerHTML = '<option value="">-- Pilih sub area --</option>';
-        sS.disabled = !v;
-        resetKat();
-        if (!v) return;
-        (M.subarea || [])
-          .filter(
-            (s) =>
-              s.area_id === v &&
-              s.nama_subarea &&
-              (s.status === "Y" || !s.status),
-          )
-          .forEach((s) => {
-            sS.innerHTML += `<option value="${s.subarea_id}">${s.nama_subarea}</option>`;
-          });
-      }
-
-      async function onSub() {
-        const kS = document.getElementById("katSel");
-        kS.innerHTML = '<option value="">-- Pilih kategori --</option>';
-        kS.disabled = false;
-        resetTb();
-        // Reset PIC box saat subarea berubah
-        document.getElementById("picBox").className = "pic-box";
-        document.getElementById("picBox").innerHTML = "";
-        (M.kategori || [])
-          .filter((k) => k.aktif === "Y" || !k.aktif)
-          .forEach((k) => {
-            kS.innerHTML += `<option value="${k.kategori_id}" data-tipe="${k.tipe_inspeksi || "CHECKLIST"}">${k.nama_kategori}</option>`;
-          });
-      }
-
-      function resetKat() {
-        const kS = document.getElementById("katSel");
-        kS.innerHTML = '<option value="">-- Pilih sub area dulu --</option>';
-        kS.disabled = true;
-        resetTb();
-      }
-
-      async function onKat(v) {
-        if (!v) return;
-        katId = v;
-        const opt = document.querySelector(`#katSel option[value="${v}"]`);
-        katName = opt ? opt.textContent.trim() : "";
-        isTb = opt?.dataset.tipe === "TOOLBOX_INVENTORY" || v === "KT017";
-        document.getElementById("nonTb").style.display = isTb
-          ? "none"
-          : "block";
-        document.getElementById("tbFields").style.display = isTb
-          ? "block"
-          : "none";
-        document.getElementById("picBox").className = "pic-box";
-        if (isTb) setupTbSec();
-        else await showPIC(null);
-      }
-
-      async function setupTbSec() {
-        const subId = document.getElementById("subSel").value;
-        const secs = TB_SECTIONS[subId];
-        selSec = null;
-        tbTipeId = "";
-        tbTipeName = "";
-
-        // Reset toolbox UI
-        document.getElementById("secWrap").style.display = "none";
-        document.getElementById("tbSelWrap").style.display = "none";
-        document.getElementById("tbTipe").innerHTML =
-          '<option value="">-- Pilih tipe --</option>';
-
-        if (secs && secs.length > 0) {
-          // Subarea punya section → tampilkan chips section dulu
-          document.getElementById("secWrap").style.display = "block";
-          const ch = document.getElementById("secChips");
-          ch.innerHTML = "";
-          secs.forEach((s) => {
-            const d = document.createElement("div");
-            d.className = "chip";
-            d.textContent = s;
-            d.onclick = async () => {
-              ch.querySelectorAll(".chip").forEach((c) =>
-                c.classList.remove("sel"),
-              );
-              d.classList.add("sel");
-              selSec = s;
-              document.getElementById("tbSelWrap").style.display = "block";
-              await loadTbTipe(subId, s);
-              await showPIC(s);
+            // Subarea yang punya multiple section toolbox
+            const TB_SECTIONS = {
+              SA001: ["Wheel", "Rebuild"],
+              SA005: ["Digger", "Auxiliary"],
             };
-            ch.appendChild(d);
-          });
-        } else {
-          // Tidak ada section → langsung tampilkan pilihan tipe
-          document.getElementById("tbSelWrap").style.display = "block";
-          loadTbTipe(subId, null);
-          showPIC(null);
-        }
-      }
 
-      async function loadTbTipe(subId, sec) {
-        let asets = [];
-        try {
-          const r = await fetch(
-            `${APPS_SCRIPT_URL}?action=getMasterData&type=toolbox_aset&subarea_id=${subId}`,
-          );
-          const j = await r.json();
-          asets = j.data?.toolbox_aset || [];
-        } catch (e) {
-          asets = demoTbAset(subId);
-        }
+            // ── INIT ────────────────────────────────────────────
+            // Tampilkan form langsung tanpa nunggu data
+            document.addEventListener("DOMContentLoaded", () => {
+              goStep(1);
+              document.getElementById("tgl").value = new Date()
+                .toISOString()
+                .split("T")[0];
+              loadMaster();
 
-        // Filter by section jika ada
-        const filtered = sec
-          ? asets.filter((a) => String(a.section) === String(sec))
-          : asets;
+              // ── Handle URL param ?asset=EQ-001 dari scan QR ──
+              const urlParams = new URLSearchParams(window.location.search);
+              const assetParam = urlParams.get("asset");
+              if (assetParam) {
+                // Tampilkan banner scan
+                showScanBanner(assetParam);
+                // Tunggu master data loaded, lalu auto-fetch asset
+                setTimeout(() => fetchAssetFromURL(assetParam), 1500);
+              }
+            });
 
-        const sel = document.getElementById("tbTipe");
-        sel.innerHTML = '<option value="">-- Pilih tipe toolbox --</option>';
-        if (filtered.length === 0) {
-          // Fallback: tampilkan semua tipe default
-          const defaults = [
-            { tipe_id: "TBT001", nama_toolbox: "No Brand / Mentahan" },
-            { tipe_id: "TBT002", nama_toolbox: "Elora" },
-            { tipe_id: "TBT003", nama_toolbox: "Blue Point" },
-            { tipe_id: "TBT004", nama_toolbox: "Strafco" },
-          ];
-          defaults.forEach((a) => {
-            sel.innerHTML += `<option value="${a.tipe_id}">${a.nama_toolbox}</option>`;
-          });
-        } else {
-          filtered.forEach((a) => {
-            sel.innerHTML += `<option value="${a.tipe_id}" data-aid="${a.asset_id || ""}">${a.nama_toolbox}</option>`;
-          });
-        }
-      }
-      // ── TOOLBOX LOOKUP ───────────────────────────────────
-      let tbDebounceTimer = null;
-      let tbIsRegistered = false;
+            // ── LOAD MASTER ─────────────────────────────────────
+            async function loadMaster() {
+              // Tampilkan demo data dulu — form langsung bisa dipakai
+              M = demoMaster();
+              fillDropdowns();
 
-      function onTbNoAsset(v) {
-        v = v.toUpperCase().trim();
-        document.getElementById("tbAutoFill").style.display = "none";
-        document.getElementById("tbManualForm").style.display = "none";
-        document.getElementById("tbLookupStatus").innerHTML = "";
-        tbTipeId = "";
-        tbTipeName = "";
-        tbIsRegistered = false;
-
-        if (v.length < 2) return;
-
-        // Tampilkan loading
-        document.getElementById("tbLookupStatus").innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;
-      background:var(--blue-bg);border:1.5px solid var(--blue-bd);
-      border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:13px;color:var(--blue)">
-      <div style="width:14px;height:14px;border:2px solid var(--blue-bd);
-        border-top-color:var(--blue);border-radius:50%;
-        animation:spin .7s linear infinite"></div>
-      Mencari data toolbox...
-    </div>`;
-
-        clearTimeout(tbDebounceTimer);
-        tbDebounceTimer = setTimeout(() => fetchTbAsset(v), 600);
-      }
-
-      async function fetchTbAsset(noToolbox) {
-        try {
-          const r = await fetch(
-            APPS_SCRIPT_URL +
-              "?action=getMasterData&type=asset_check&no_toolbox=" +
-              encodeURIComponent(noToolbox),
-          );
-          const j = await r.json();
-
-          document.getElementById("tbLookupStatus").innerHTML = "";
-
-          if (j.data?.found && j.data.asset?.is_toolbox) {
-            // ── KETEMU ──
-            const a = j.data.asset;
-            tbIsRegistered = true;
-            tbTipeId = a.tipe_toolbox_id || "";
-            window._tbAssetId = a.asset_id || "";
-            // Nama tipe dari tipe_id
-            const tipeNames = {
-              TBT001: "Set A — No Brand",
-              TBT002: "Set B — Elora",
-              TBT003: "Set C — Blue Point",
-              TBT004: "Set D — Strafco",
-            };
-            tbTipeName = tipeNames[tbTipeId] || tbTipeId;
-
-            // Auto-fill area/subarea/kategori
-            if (a.area_id || a.subarea_id || a.kategori_id) {
-              await autoFillDropdowns(a);
-            }
-
-            // Tampilkan info auto-fill
-            document.getElementById("tbAutoNo").textContent = a.no_toolbox;
-            document.getElementById("tbAutoTipe").textContent = tbTipeName;
-            document.getElementById("tbAutoFill").style.display = "block";
-            document.getElementById("tbManualForm").style.display = "none";
-          } else {
-            // ── BELUM TERDAFTAR ──
-            tbIsRegistered = false;
-            tbTipeId = "";
-            tbTipeName = "";
-            document.getElementById("tbAutoFill").style.display = "none";
-            document.getElementById("tbManualForm").style.display = "block";
-          }
-        } catch (e) {
-          document.getElementById("tbLookupStatus").innerHTML = `
-      <div style="background:var(--red-bg);border:1.5px solid var(--red-bd);
-        border-radius:8px;padding:10px 12px;margin-bottom:10px;
-        font-size:13px;color:var(--red)">
-        ⚠️ Gagal koneksi — isi manual
-      </div>`;
-          document.getElementById("tbManualForm").style.display = "block";
-        }
-      }
-
-      function triggerTbScan() {
-        // Redirect ke scan.html dengan callback ke tbNoAsset
-        window.location.href = "scan.html?callback=toolbox";
-      }
-      function onTbTipe() {
-        const s = document.getElementById("tbTipe");
-        tbTipeId = s.value;
-        tbTipeName = s.options[s.selectedIndex]?.text || "";
-      }
-
-      async function showPIC(sec) {
-        const subId = document.getElementById("subSel").value;
-        const subText =
-          document.getElementById("subSel").options[
-            document.getElementById("subSel").selectedIndex
-          ]?.text || "";
-        if (!subId || !katId) return;
-        let pic = null;
-        try {
-          const p = new URLSearchParams({
-            action: "getMasterData",
-            type: "pic_resolve",
-            subarea_id: subId,
-            kategori_id: katId,
-          });
-          if (sec) p.append("section", sec);
-          const r = await fetch(APPS_SCRIPT_URL + "?" + p);
-          const j = await r.json();
-          if (j.data?.pic) pic = j.data.pic;
-        } catch (e) {
-          pic = demoPIC(subId, katId, sec);
-        }
-        picInfo = pic;
-        const box = document.getElementById("picBox");
-        if (pic) {
-          // Email disembunyikan dari tampilan (tersimpan internal)
-          const emailInfo = "";
-          const delegateInfo = pic.is_delegate
-            ? `<div style="font-size:12px;color:var(--yellow);margin-top:2px">↳ Menggantikan <strong>${pic.original_nama}</strong> (sedang cuti)</div>`
-            : "";
-          box.innerHTML = `
-      <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px">
-        📍 PIC Area — ${subText}${sec ? " / " + sec : ""}
-      </div>
-      <div class="pic-name">👤 ${pic.nama}</div>
-      <div style="margin-top:3px">${emailInfo}</div>
-      ${delegateInfo}`;
-          box.classList.add("show");
-        } else {
-          box.innerHTML =
-            '<span style="color:var(--red)">⚠️ PIC belum diset untuk area ini — cek MASTER_SUBAREA</span>';
-          box.classList.add("show");
-        }
-      }
-
-      // ── ASSET SEARCH dengan autocomplete ────────────────
-      let assetDebounceTimer = null;
-      let assetLastKeyTime = 0;
-      let assetTypingSpeed = [];
-      let assetDropdownItems = [];
-      let assetDropdownIndex = -1;
-
-      function lockAssetFields(msg) {
-        // Lock semua field di bawah no id saat loading
-        const overlay = document.getElementById("assetLoadingOverlay");
-        const msgEl = document.getElementById("assetLoadingMsg");
-        if (overlay) {
-          overlay.classList.add("show");
-        }
-        if (msgEl && msg) msgEl.textContent = msg;
-        ["fieldNoReg", "fieldNamaAlat", "fieldMerk"].forEach((id) => {
-          const el = document.getElementById(id);
-          if (el) el.classList.add("field-disabled");
-        });
-      }
-
-      function unlockAssetFields() {
-        const overlay = document.getElementById("assetLoadingOverlay");
-        if (overlay) overlay.classList.remove("show");
-        ["fieldNoReg", "fieldNamaAlat", "fieldMerk"].forEach((id) => {
-          const el = document.getElementById(id);
-          if (el) el.classList.remove("field-disabled");
-        });
-      }
-
-      function closeAssetDropdown() {
-        const dd = document.getElementById("assetDropdown");
-        if (dd) {
-          dd.innerHTML = "";
-          dd.classList.remove("show");
-        }
-        assetDropdownItems = [];
-        assetDropdownIndex = -1;
-      }
-
-      function onAssetKeydown(e) {
-        const dd = document.getElementById("assetDropdown");
-        if (!dd || !dd.classList.contains("show")) return;
-        const items = dd.querySelectorAll(".asset-dropdown-item");
-        if (e.key === "ArrowDown") {
-          e.preventDefault();
-          assetDropdownIndex = Math.min(
-            assetDropdownIndex + 1,
-            items.length - 1,
-          );
-          items.forEach((it, i) =>
-            it.classList.toggle("active", i === assetDropdownIndex),
-          );
-        } else if (e.key === "ArrowUp") {
-          e.preventDefault();
-          assetDropdownIndex = Math.max(assetDropdownIndex - 1, 0);
-          items.forEach((it, i) =>
-            it.classList.toggle("active", i === assetDropdownIndex),
-          );
-        } else if (e.key === "Enter" && assetDropdownIndex >= 0) {
-          e.preventDefault();
-          items[assetDropdownIndex]?.click();
-        } else if (e.key === "Escape") {
-          closeAssetDropdown();
-        }
-      }
-
-      function onAssetDebounce(v) {
-        const h = document.getElementById("assetHint");
-        const icon = document.getElementById("assetSearchIcon");
-        closeAssetDropdown();
-
-        if (v.length < 2) {
-          h.className = "hint";
-          icon.textContent = "🔍";
-          unlockAssetFields();
-          clearTimeout(assetDebounceTimer);
-          assetTypingSpeed = [];
-          return;
-        }
-
-        // Deteksi kecepatan input
-        const now = Date.now();
-        if (assetLastKeyTime > 0) {
-          assetTypingSpeed.push(now - assetLastKeyTime);
-          if (assetTypingSpeed.length > 5) assetTypingSpeed.shift();
-        }
-        assetLastKeyTime = now;
-
-        const avgSpeed =
-          assetTypingSpeed.length > 0
-            ? assetTypingSpeed.reduce((a, b) => a + b, 0) /
-              assetTypingSpeed.length
-            : 999;
-        const isScanner = avgSpeed < 50 && assetTypingSpeed.length >= 3;
-
-        // Tampilkan loading + lock fields
-        h.innerHTML =
-          '<div class="asset-spinner"></div> ' +
-          (isScanner ? "Memproses scan..." : "Mencari aset...");
-        h.className = "hint searching show";
-        icon.textContent = "⏳";
-        lockAssetFields(
-          isScanner ? "Memproses scan barcode..." : "Mengambil data aset...",
-        );
-
-        clearTimeout(assetDebounceTimer);
-        const delay = isScanner ? 150 : 600;
-
-        assetDebounceTimer = setTimeout(() => {
-          assetTypingSpeed = [];
-          onAsset(v);
-        }, delay);
-      }
-
-      async function onAsset(v) {
-        const h = document.getElementById("assetHint");
-        const icon = document.getElementById("assetSearchIcon");
-        const dd = document.getElementById("assetDropdown");
-
-        try {
-          const r = await fetch(
-            APPS_SCRIPT_URL +
-              "?action=getMasterData&type=asset_check&no_id=" +
-              encodeURIComponent(v),
-          );
-          const j = await r.json();
-
-          if (j.data?.found && j.data.asset) {
-            // ── ASET DITEMUKAN — auto-fill langsung ──
-            const a = j.data.asset;
-            fillAssetFields(a);
-            h.innerHTML =
-              "✅ <strong>Aset ditemukan!</strong> Semua data terisi otomatis" +
-              (a.tgl_inspeksi_terakhir
-                ? "<br>🕒 Terakhir inspeksi: <strong>" +
-                  a.tgl_inspeksi_terakhir +
-                  "</strong>"
-                : "") +
-              (a.status_aset_terakhir
-                ? ' · <span style="color:' +
-                  (a.status_aset_terakhir === "LAIK"
-                    ? "var(--green)"
-                    : "var(--red)") +
-                  '">' +
-                  a.status_aset_terakhir +
-                  "</span>"
-                : "");
-            h.className = "hint found show";
-            icon.textContent = "✅";
-            unlockAssetFields();
-            closeAssetDropdown();
-            return;
-          }
-        } catch (e) {}
-
-        // ── ASET TIDAK DITEMUKAN ──
-        // Kosongkan field
-        document.getElementById("namaAlat").value = "";
-        document.getElementById("noAsset").value = "";
-        document.getElementById("merkAlat").value = "";
-        h.innerHTML =
-          '➕ Aset baru — akan otomatis terdaftar ke MASTER_ASSET saat submit.<br><span style="font-size:11px;color:var(--muted)">Isi Nama Alat dan Merk di bawah.</span>';
-        h.className = "hint new show";
-        icon.textContent = "🆕";
-        unlockAssetFields();
-        closeAssetDropdown();
-
-        // Fokus otomatis ke Nama Alat supaya Inspector langsung isi
-        setTimeout(() => {
-          document.getElementById("namaAlat")?.focus();
-        }, 100);
-      }
-
-      function fillAssetFields(a) {
-        window._assetId = a.asset_id || "";
-        // ── 1. Isi field teks ──
-        const textFields = [
-          { id: "namaAlat", val: a.nama_alat },
-          { id: "noAsset", val: a.no_asset || a.no_id },
-          { id: "merkAlat", val: a.merk },
-        ];
-        textFields.forEach((f) => {
-          const el = document.getElementById(f.id);
-          if (!el || !f.val) return;
-          el.value = f.val;
-          el.style.background = "var(--green-bg)";
-          el.style.borderColor = "var(--green-bd)";
-          setTimeout(() => {
-            el.style.background = "";
-            el.style.borderColor = "";
-          }, 1500);
-        });
-
-        // ── 2. Auto-fill dropdown Area → SubArea → Kategori (cascade) ──
-        if (a.area_id || a.subarea_id || a.kategori_id) {
-          autoFillDropdowns(a);
-        }
-        const markingEl = document.getElementById("markingAlat");
-        const spekEl = document.getElementById("spesifikasiAlat");
-        const section = document.getElementById("markingSpekSection");
-        if (markingEl) markingEl.value = a.marking || "";
-        if (spekEl) spekEl.value = a.spesifikasi || "";
-        if (section) section.style.display = "block";
-      }
-
-      async function autoFillDropdowns(a) {
-        // Step 1: Set Area
-        if (a.area_id) {
-          const aEl = document.getElementById("areaSel");
-          if (aEl) {
-            // Tunggu master data loaded
-            await waitForOptions(aEl, a.area_id, 3000);
-            aEl.value = a.area_id;
-            aEl.dispatchEvent(new Event("change"));
-            flash(aEl);
-          }
-        }
-
-        // Step 2: Set SubArea (setelah area change populate subarea)
-        if (a.subarea_id) {
-          await sleep(600);
-          const sEl = document.getElementById("subSel");
-          if (sEl) {
-            await waitForOptions(sEl, a.subarea_id, 3000);
-            sEl.value = a.subarea_id;
-            sEl.disabled = false;
-            sEl.dispatchEvent(new Event("change"));
-            flash(sEl);
-          }
-        }
-
-        // Step 3: Set Kategori (setelah subarea change populate kategori)
-        if (a.kategori_id) {
-          await sleep(800);
-          const kEl = document.getElementById("katSel");
-          if (kEl) {
-            await waitForOptions(kEl, a.kategori_id, 3000);
-            kEl.value = a.kategori_id;
-            kEl.disabled = false;
-            kEl.dispatchEvent(new Event("change"));
-            flash(kEl);
-          }
-        }
-      }
-
-      // Tunggu sampai option tersedia di select
-      function waitForOptions(selectEl, value, timeout) {
-        return new Promise((resolve) => {
-          const start = Date.now();
-          const check = () => {
-            const hasOption = [...selectEl.options].some(
-              (o) => o.value === value,
-            );
-            if (hasOption || Date.now() - start > timeout) {
-              resolve();
-              return;
-            }
-            setTimeout(check, 100);
-          };
-          check();
-        });
-      }
-
-      function sleep(ms) {
-        return new Promise((r) => setTimeout(r, ms));
-      }
-
-      function flash(el) {
-        if (!el) return;
-        el.style.background = "var(--green-bg)";
-        el.style.borderColor = "var(--green-bd)";
-        setTimeout(() => {
-          el.style.background = "";
-          el.style.borderColor = "";
-        }, 1500);
-      }
-
-      function resetTb() {
-        document.getElementById("tbFields").style.display = "none";
-        document.getElementById("nonTb").style.display = "block";
-        document.getElementById("secWrap").style.display = "none";
-        document.getElementById("tbSelWrap").style.display = "none";
-        document.getElementById("picBox").className = "pic-box";
-        document.getElementById("secChips").innerHTML = "";
-        const tbTipeEl = document.getElementById("tbTipe");
-        if (tbTipeEl) tbTipeEl.value = "";
-        document.getElementById("tbAutoFill").style.display = "none";
-        document.getElementById("tbManualForm").style.display = "none";
-        document.getElementById("tbLookupStatus").innerHTML = "";
-        tbIsRegistered = false;
-        window._tbAssetId = "";
-        selSec = null;
-        tbTipeId = "";
-        tbTipeName = "";
-        katId = "";
-        isTb = false;
-      }
-
-      async function toStep2() {
-        const checks = [
-          ["namaIns", "Nama inspektur"],
-          ["compSel", "Perusahaan"],
-          ["areaSel", "Area"],
-          ["subSel", "Sub area"],
-          ["katSel", "Kategori"],
-        ];
-        for (const [id, lbl] of checks) {
-          if (!document.getElementById(id).value) {
-            toast("⚠️ " + lbl + " wajib diisi", "warn");
-            return;
-          }
-        }
-        if (!isTb && !document.getElementById("namaAlat").value) {
-          toast("⚠️ Nama alat wajib diisi", "warn");
-          return;
-        }
-        if (isTb) {
-          const noTb = document.getElementById("tbNoAsset")?.value?.trim();
-          if (!noTb) {
-            toast("⚠️ No Toolbox wajib diisi", "warn");
-            return;
-          }
-          // Kalau belum terdaftar, tipe harus dipilih manual
-          if (!tbIsRegistered && !tbTipeId) {
-            toast("⚠️ Pilih tipe toolbox dulu", "warn");
-            return;
-          }
-          // Set nama alat dari input manual kalau belum terdaftar
-          if (!tbIsRegistered) {
-            const namaManual = document
-              .getElementById("tbNamaManual")
-              ?.value?.trim();
-            if (!window._tbNamaAlat)
-              window._tbNamaAlat = namaManual || "Toolbox " + tbTipeName;
-          }
-        }
-        goStep(2);
-        // Pastikan konten langsung muncul
-        if (isTb) {
-          document.getElementById("checkMode").style.display = "none";
-          document.getElementById("tbMode").style.display = "block";
-          document.getElementById("modeBadge").className = "mbadge mb-tb";
-          document.getElementById("modeBadge").textContent = "🧰 Toolbox";
-          document.getElementById("modeDesc").textContent =
-            tbTipeName + (selSec ? " — " + selSec : "");
-          tbContent = demoTbContent(tbTipeId);
-          tbAnswers = {};
-          renderTb();
-          // Load asli
-          await loadTbItems();
-        } else {
-          document.getElementById("checkMode").style.display = "block";
-          document.getElementById("tbMode").style.display = "none";
-          document.getElementById("modeBadge").className = "mbadge mb-check";
-          document.getElementById("modeBadge").textContent = "📋 Checklist";
-          document.getElementById("modeDesc").textContent = katName;
-          // Tampilkan loading dulu
-          const tbody = document.getElementById("checkBody");
-          if (tbody)
-            tbody.innerHTML =
-              '<tr><td colspan="4" style="text-align:center;padding:30px;color:#6B7494">⏳ Memuat pertanyaan dari master...</td></tr>';
-          pertanyaan = [];
-          answers = {};
-          // Load langsung dengan await
-          await loadPertanyaan();
-        }
-      }
-
-      // ── STEP 2 ───────────────────────────────────────────
-      async function loadChecklist() {
-        const badge = document.getElementById("modeBadge");
-        const desc = document.getElementById("modeDesc");
-        if (isTb) {
-          document.getElementById("checkMode").style.display = "none";
-          document.getElementById("tbMode").style.display = "block";
-          badge.className = "mbadge mb-tb";
-          badge.textContent = "🧰 Toolbox";
-          desc.textContent = tbTipeName + (selSec ? " — " + selSec : "");
-          await loadTbItems();
-        } else {
-          document.getElementById("checkMode").style.display = "block";
-          document.getElementById("tbMode").style.display = "none";
-          badge.className = "mbadge mb-check";
-          badge.textContent = "📋 Checklist";
-          desc.textContent = katName;
-          await loadPertanyaan();
-        }
-      }
-
-      async function loadPertanyaan() {
-        // Tampilkan loading
-        const tbody = document.getElementById("checkBody");
-        if (tbody)
-          tbody.innerHTML =
-            '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">⏳ Memuat pertanyaan...</td></tr>';
-
-        try {
-          const r = await fetch(
-            APPS_SCRIPT_URL +
-              "?action=getMasterData&type=pertanyaan&kategori_id=" +
-              encodeURIComponent(katId),
-          );
-          const j = await r.json();
-          console.log("Pertanyaan response:", j);
-
-          if (j.status === "ok" && j.data?.pertanyaan?.length) {
-            pertanyaan = j.data.pertanyaan;
-            answers = {};
-            renderCheck();
-            console.log(
-              "✅ Berhasil load",
-              pertanyaan.length,
-              "pertanyaan untuk",
-              katId,
-            );
-            // Scroll ke atas setelah render selesai
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          } else {
-            // Fallback ke demo
-            console.warn("⚠️ Pertanyaan kosong dari API, pakai demo:", j);
-            pertanyaan = demoPertanyaan(katId);
-            answers = {};
-            renderCheck();
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }
-        } catch (e) {
-          console.error("❌ loadPertanyaan error:", e);
-          pertanyaan = demoPertanyaan(katId);
-          answers = {};
-          renderCheck();
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      }
-
-      async function loadTbItems() {
-        const tbody = document.getElementById("tbBody");
-        if (tbody)
-          tbody.innerHTML =
-            '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">⏳ Memuat item toolbox...</td></tr>';
-        try {
-          const r = await fetch(
-            APPS_SCRIPT_URL +
-              "?action=getMasterData&type=toolbox_content&tipe_id=" +
-              encodeURIComponent(tbTipeId),
-          );
-          const j = await r.json();
-          console.log("Toolbox response:", j);
-          if (j.status === "ok" && j.data?.toolbox_content?.length) {
-            tbContent = j.data.toolbox_content;
-            tbAnswers = {};
-            renderTb();
-            console.log("✅ Toolbox loaded:", tbContent.length);
-          } else {
-            console.warn("⚠️ Toolbox kosong, pakai demo");
-            tbContent = demoTbContent(tbTipeId);
-            tbAnswers = {};
-            renderTb();
-          }
-        } catch (e) {
-          console.error("❌ loadTbItems error:", e);
-          tbContent = demoTbContent(tbTipeId);
-          tbAnswers = {};
-          renderTb();
-        }
-      }
-
-      async function fetchAssetFromURL(noId) {
-        if (!noId) return;
-        try {
-          // Lock field noId
-          const el = document.getElementById("noId");
-          if (el) {
-            el.value = noId;
-            el.readOnly = true;
-            el.style.background = "#EEF3FF";
-            el.style.color = "#1B4FD8";
-            el.style.fontWeight = "700";
-          }
-
-          // Fetch asset dari Apps Script
-          const r = await fetch(
-            APPS_SCRIPT_URL +
-              "?" +
-              new URLSearchParams({
-                action: "getMasterData",
-                type: "asset_check",
-                no_id: noId,
-              }),
-          );
-          const j = await r.json();
-
-          if (j.data?.found && j.data.asset) {
-            const a = j.data.asset;
-            window._assetId = a.asset_id || "";
-            fillAssetFields(a);
-
-            // Auto-select subarea
-            if (a.subarea_id) {
-              const se = document.getElementById("subSel");
-              if (se) {
-                const opt = [...se.options].find(
-                  (o) => o.value === a.subarea_id,
+              // Load data asli di background
+              try {
+                const r = await fetch(
+                  APPS_SCRIPT_URL + "?action=getMasterData&type=all",
                 );
-                if (opt) {
-                  se.value = a.subarea_id;
-                  se.dispatchEvent(new Event("change"));
+                const j = await r.json();
+                if (j.status === "ok") {
+                  M = j.data;
+                  fillDropdowns(); // Update dengan data asli
+                }
+              } catch (e) {
+                // Demo data tetap dipakai jika gagal
+                console.log("Menggunakan demo data");
+              }
+            }
+
+            function fillDropdowns() {
+              // Perusahaan
+              const cS = document.getElementById("compSel");
+              cS.innerHTML = '<option value="">-- Pilih perusahaan --</option>';
+              (M.perusahaan || []).forEach((c) => {
+                if (c.status === "Y" || !c.status)
+                  cS.innerHTML += `<option value="${c.company_id}">${c.nama_perusahaan}</option>`;
+              });
+              // Fallback demo kalau kosong
+              if (cS.options.length <= 1) {
+                cS.innerHTML += '<option value="KGB001">PT Cipta Kridatama</option>';
+                cS.innerHTML +=
+                  '<option value="KGB002">PT Sanggar Sarana Baja</option>';
+              }
+              // Area
+              const aS = document.getElementById("areaSel");
+              aS.innerHTML = '<option value="">-- Pilih --</option>';
+              (M.area || []).forEach((a) => {
+                aS.innerHTML += `<option value="${a.area_id}">${a.nama_area}</option>`;
+              });
+              // Sembunyikan loading di step 1
+              hideLoad();
+            }
+
+            // ── STEP 1 ───────────────────────────────────────────
+            async function onArea() {
+              const v = document.getElementById("areaSel").value;
+              const sS = document.getElementById("subSel");
+              sS.innerHTML = '<option value="">-- Pilih sub area --</option>';
+              sS.disabled = !v;
+              resetKat();
+              if (!v) return;
+              (M.subarea || [])
+                .filter(
+                  (s) =>
+                    s.area_id === v &&
+                    s.nama_subarea &&
+                    (s.status === "Y" || !s.status),
+                )
+                .forEach((s) => {
+                  sS.innerHTML += `<option value="${s.subarea_id}">${s.nama_subarea}</option>`;
+                });
+            }
+
+            async function onSub() {
+              const kS = document.getElementById("katSel");
+              kS.innerHTML = '<option value="">-- Pilih kategori --</option>';
+              kS.disabled = false;
+              resetTb();
+              // Reset PIC box saat subarea berubah
+              document.getElementById("picBox").className = "pic-box";
+              document.getElementById("picBox").innerHTML = "";
+              (M.kategori || [])
+                .filter((k) => k.aktif === "Y" || !k.aktif)
+                .forEach((k) => {
+                  kS.innerHTML += `<option value="${k.kategori_id}" data-tipe="${k.tipe_inspeksi || "CHECKLIST"}">${k.nama_kategori}</option>`;
+                });
+            }
+
+            function resetKat() {
+              const kS = document.getElementById("katSel");
+              kS.innerHTML = '<option value="">-- Pilih sub area dulu --</option>';
+              kS.disabled = true;
+              resetTb();
+            }
+
+            async function onKat(v) {
+              if (!v) return;
+              katId = v;
+              const opt = document.querySelector(`#katSel option[value="${v}"]`);
+              katName = opt ? opt.textContent.trim() : "";
+              isTb = opt?.dataset.tipe === "TOOLBOX_INVENTORY" || v === "KT017";
+              document.getElementById("nonTb").style.display = isTb
+                ? "none"
+                : "block";
+              document.getElementById("tbFields").style.display = isTb
+                ? "block"
+                : "none";
+              document.getElementById("picBox").className = "pic-box";
+              if (isTb) setupTbSec();
+              else await showPIC(null);
+            }
+
+            async function setupTbSec() {
+              const subId = document.getElementById("subSel").value;
+              const secs = TB_SECTIONS[subId];
+              selSec = null;
+              tbTipeId = "";
+              tbTipeName = "";
+
+              // Reset toolbox UI
+              document.getElementById("secWrap").style.display = "none";
+              document.getElementById("tbSelWrap").style.display = "none";
+              document.getElementById("tbTipe").innerHTML =
+                '<option value="">-- Pilih tipe --</option>';
+
+              if (secs && secs.length > 0) {
+                // Subarea punya section → tampilkan chips section dulu
+                document.getElementById("secWrap").style.display = "block";
+                const ch = document.getElementById("secChips");
+                ch.innerHTML = "";
+                secs.forEach((s) => {
+                  const d = document.createElement("div");
+                  d.className = "chip";
+                  d.textContent = s;
+                  d.onclick = async () => {
+                    ch.querySelectorAll(".chip").forEach((c) =>
+                      c.classList.remove("sel"),
+                    );
+                    d.classList.add("sel");
+                    selSec = s;
+                    document.getElementById("tbSelWrap").style.display = "block";
+                    await loadTbTipe(subId, s);
+                    await showPIC(s);
+                  };
+                  ch.appendChild(d);
+                });
+              } else {
+                // Tidak ada section → langsung tampilkan pilihan tipe
+                document.getElementById("tbSelWrap").style.display = "block";
+                loadTbTipe(subId, null);
+                showPIC(null);
+              }
+            }
+
+            async function loadTbTipe(subId, sec) {
+              let asets = [];
+              try {
+                const r = await fetch(
+                  `${APPS_SCRIPT_URL}?action=getMasterData&type=toolbox_aset&subarea_id=${subId}`,
+                );
+                const j = await r.json();
+                asets = j.data?.toolbox_aset || [];
+              } catch (e) {
+                asets = demoTbAset(subId);
+              }
+
+              // Filter by section jika ada
+              const filtered = sec
+                ? asets.filter((a) => String(a.section) === String(sec))
+                : asets;
+
+              const sel = document.getElementById("tbTipe");
+              sel.innerHTML = '<option value="">-- Pilih tipe toolbox --</option>';
+              if (filtered.length === 0) {
+                // Fallback: tampilkan semua tipe default
+                const defaults = [
+                  { tipe_id: "TBT001", nama_toolbox: "No Brand / Mentahan" },
+                  { tipe_id: "TBT002", nama_toolbox: "Elora" },
+                  { tipe_id: "TBT003", nama_toolbox: "Blue Point" },
+                  { tipe_id: "TBT004", nama_toolbox: "Strafco" },
+                ];
+                defaults.forEach((a) => {
+                  sel.innerHTML += `<option value="${a.tipe_id}">${a.nama_toolbox}</option>`;
+                });
+              } else {
+                filtered.forEach((a) => {
+                  sel.innerHTML += `<option value="${a.tipe_id}" data-aid="${a.asset_id || ""}">${a.nama_toolbox}</option>`;
+                });
+              }
+            }
+            // ── TOOLBOX LOOKUP ───────────────────────────────────
+            let tbDebounceTimer = null;
+            let tbIsRegistered = false;
+
+            function onTbNoAsset(v) {
+              v = v.toUpperCase().trim();
+              document.getElementById("tbAutoFill").style.display = "none";
+              document.getElementById("tbManualForm").style.display = "none";
+              document.getElementById("tbLookupStatus").innerHTML = "";
+              tbTipeId = "";
+              tbTipeName = "";
+              tbIsRegistered = false;
+
+              if (v.length < 2) return;
+
+              // Tampilkan loading
+              document.getElementById("tbLookupStatus").innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;
+            background:var(--blue-bg);border:1.5px solid var(--blue-bd);
+            border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:13px;color:var(--blue)">
+            <div style="width:14px;height:14px;border:2px solid var(--blue-bd);
+              border-top-color:var(--blue);border-radius:50%;
+              animation:spin .7s linear infinite"></div>
+            Mencari data toolbox...
+          </div>`;
+
+              clearTimeout(tbDebounceTimer);
+              tbDebounceTimer = setTimeout(() => fetchTbAsset(v), 600);
+            }
+
+            async function fetchTbAsset(noToolbox) {
+              try {
+                const r = await fetch(
+                  APPS_SCRIPT_URL +
+                    "?action=getMasterData&type=asset_check&no_toolbox=" +
+                    encodeURIComponent(noToolbox),
+                );
+                const j = await r.json();
+
+                document.getElementById("tbLookupStatus").innerHTML = "";
+
+                if (j.data?.found && j.data.asset?.is_toolbox) {
+                  // ── KETEMU ──
+                  const a = j.data.asset;
+                  tbIsRegistered = true;
+                  tbTipeId = a.tipe_toolbox_id || "";
+                  window._tbAssetId = a.asset_id || "";
+                  // Nama tipe dari tipe_id
+                  const tipeNames = {
+                    TBT001: "Set A — No Brand",
+                    TBT002: "Set B — Elora",
+                    TBT003: "Set C — Blue Point",
+                    TBT004: "Set D — Strafco",
+                  };
+                  tbTipeName = tipeNames[tbTipeId] || tbTipeId;
+
+                  // Auto-fill area/subarea/kategori
+                  if (a.area_id || a.subarea_id || a.kategori_id) {
+                    await autoFillDropdowns(a);
+                  }
+
+                  // Tampilkan info auto-fill
+                  document.getElementById("tbAutoNo").textContent = a.no_toolbox;
+                  document.getElementById("tbAutoTipe").textContent = tbTipeName;
+                  document.getElementById("tbAutoFill").style.display = "block";
+                  document.getElementById("tbManualForm").style.display = "none";
+                } else {
+                  // ── BELUM TERDAFTAR ──
+                  tbIsRegistered = false;
+                  tbTipeId = "";
+                  tbTipeName = "";
+                  document.getElementById("tbAutoFill").style.display = "none";
+                  document.getElementById("tbManualForm").style.display = "block";
+                }
+              } catch (e) {
+                document.getElementById("tbLookupStatus").innerHTML = `
+            <div style="background:var(--red-bg);border:1.5px solid var(--red-bd);
+              border-radius:8px;padding:10px 12px;margin-bottom:10px;
+              font-size:13px;color:var(--red)">
+              ⚠️ Gagal koneksi — isi manual
+            </div>`;
+                document.getElementById("tbManualForm").style.display = "block";
+              }
+            }
+
+            function triggerTbScan() {
+              // Redirect ke scan.html dengan callback ke tbNoAsset
+              window.location.href = "scan.html?callback=toolbox";
+            }
+            function onTbTipe() {
+              const s = document.getElementById("tbTipe");
+              tbTipeId = s.value;
+              tbTipeName = s.options[s.selectedIndex]?.text || "";
+            }
+
+            async function showPIC(sec) {
+              const subId = document.getElementById("subSel").value;
+              const subText =
+                document.getElementById("subSel").options[
+                  document.getElementById("subSel").selectedIndex
+                ]?.text || "";
+              if (!subId || !katId) return;
+              let pic = null;
+              try {
+                const p = new URLSearchParams({
+                  action: "getMasterData",
+                  type: "pic_resolve",
+                  subarea_id: subId,
+                  kategori_id: katId,
+                });
+                if (sec) p.append("section", sec);
+                const r = await fetch(APPS_SCRIPT_URL + "?" + p);
+                const j = await r.json();
+                if (j.data?.pic) pic = j.data.pic;
+              } catch (e) {
+                pic = demoPIC(subId, katId, sec);
+              }
+              picInfo = pic;
+              const box = document.getElementById("picBox");
+              if (pic) {
+                // Email disembunyikan dari tampilan (tersimpan internal)
+                const emailInfo = "";
+                const delegateInfo = pic.is_delegate
+                  ? `<div style="font-size:12px;color:var(--yellow);margin-top:2px">↳ Menggantikan <strong>${pic.original_nama}</strong> (sedang cuti)</div>`
+                  : "";
+                box.innerHTML = `
+            <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px">
+              📍 PIC Area — ${subText}${sec ? " / " + sec : ""}
+            </div>
+            <div class="pic-name">👤 ${pic.nama}</div>
+            <div style="margin-top:3px">${emailInfo}</div>
+            ${delegateInfo}`;
+                box.classList.add("show");
+              } else {
+                box.innerHTML =
+                  '<span style="color:var(--red)">⚠️ PIC belum diset untuk area ini — cek MASTER_SUBAREA</span>';
+                box.classList.add("show");
+              }
+            }
+
+            // ── ASSET SEARCH dengan autocomplete ────────────────
+            let assetDebounceTimer = null;
+            let assetLastKeyTime = 0;
+            let assetTypingSpeed = [];
+            let assetDropdownItems = [];
+            let assetDropdownIndex = -1;
+
+            function lockAssetFields(msg) {
+              // Lock semua field di bawah no id saat loading
+              const overlay = document.getElementById("assetLoadingOverlay");
+              const msgEl = document.getElementById("assetLoadingMsg");
+              if (overlay) {
+                overlay.classList.add("show");
+              }
+              if (msgEl && msg) msgEl.textContent = msg;
+              ["fieldNoReg", "fieldNamaAlat", "fieldMerk"].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add("field-disabled");
+              });
+            }
+
+            function unlockAssetFields() {
+              const overlay = document.getElementById("assetLoadingOverlay");
+              if (overlay) overlay.classList.remove("show");
+              ["fieldNoReg", "fieldNamaAlat", "fieldMerk"].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove("field-disabled");
+              });
+            }
+
+            function closeAssetDropdown() {
+              const dd = document.getElementById("assetDropdown");
+              if (dd) {
+                dd.innerHTML = "";
+                dd.classList.remove("show");
+              }
+              assetDropdownItems = [];
+              assetDropdownIndex = -1;
+            }
+
+            function onAssetKeydown(e) {
+              const dd = document.getElementById("assetDropdown");
+              if (!dd || !dd.classList.contains("show")) return;
+              const items = dd.querySelectorAll(".asset-dropdown-item");
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                assetDropdownIndex = Math.min(
+                  assetDropdownIndex + 1,
+                  items.length - 1,
+                );
+                items.forEach((it, i) =>
+                  it.classList.toggle("active", i === assetDropdownIndex),
+                );
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                assetDropdownIndex = Math.max(assetDropdownIndex - 1, 0);
+                items.forEach((it, i) =>
+                  it.classList.toggle("active", i === assetDropdownIndex),
+                );
+              } else if (e.key === "Enter" && assetDropdownIndex >= 0) {
+                e.preventDefault();
+                items[assetDropdownIndex]?.click();
+              } else if (e.key === "Escape") {
+                closeAssetDropdown();
+              }
+            }
+
+            function onAssetDebounce(v) {
+              const h = document.getElementById("assetHint");
+              const icon = document.getElementById("assetSearchIcon");
+              closeAssetDropdown();
+
+              if (v.length < 2) {
+                h.className = "hint";
+                icon.textContent = "🔍";
+                unlockAssetFields();
+                clearTimeout(assetDebounceTimer);
+                assetTypingSpeed = [];
+                return;
+              }
+
+              // Deteksi kecepatan input
+              const now = Date.now();
+              if (assetLastKeyTime > 0) {
+                assetTypingSpeed.push(now - assetLastKeyTime);
+                if (assetTypingSpeed.length > 5) assetTypingSpeed.shift();
+              }
+              assetLastKeyTime = now;
+
+              const avgSpeed =
+                assetTypingSpeed.length > 0
+                  ? assetTypingSpeed.reduce((a, b) => a + b, 0) /
+                    assetTypingSpeed.length
+                  : 999;
+              const isScanner = avgSpeed < 50 && assetTypingSpeed.length >= 3;
+
+              // Tampilkan loading + lock fields
+              h.innerHTML =
+                '<div class="asset-spinner"></div> ' +
+                (isScanner ? "Memproses scan..." : "Mencari aset...");
+              h.className = "hint searching show";
+              icon.textContent = "⏳";
+              lockAssetFields(
+                isScanner ? "Memproses scan barcode..." : "Mengambil data aset...",
+              );
+
+              clearTimeout(assetDebounceTimer);
+              const delay = isScanner ? 150 : 600;
+
+              assetDebounceTimer = setTimeout(() => {
+                assetTypingSpeed = [];
+                onAsset(v);
+              }, delay);
+            }
+
+            async function onAsset(v) {
+              const h = document.getElementById("assetHint");
+              const icon = document.getElementById("assetSearchIcon");
+              const dd = document.getElementById("assetDropdown");
+
+              try {
+                const r = await fetch(
+                  APPS_SCRIPT_URL +
+                    "?action=getMasterData&type=asset_check&no_id=" +
+                    encodeURIComponent(v),
+                );
+                const j = await r.json();
+
+                if (j.data?.found && j.data.asset) {
+                  // ── ASET DITEMUKAN — auto-fill langsung ──
+                  const a = j.data.asset;
+                  fillAssetFields(a);
+                  h.innerHTML =
+                    "✅ <strong>Aset ditemukan!</strong> Semua data terisi otomatis" +
+                    (a.tgl_inspeksi_terakhir
+                      ? "<br>🕒 Terakhir inspeksi: <strong>" +
+                        a.tgl_inspeksi_terakhir +
+                        "</strong>"
+                      : "") +
+                    (a.status_aset_terakhir
+                      ? ' · <span style="color:' +
+                        (a.status_aset_terakhir === "LAIK"
+                          ? "var(--green)"
+                          : "var(--red)") +
+                        '">' +
+                        a.status_aset_terakhir +
+                        "</span>"
+                      : "");
+                  h.className = "hint found show";
+                  icon.textContent = "✅";
+                  unlockAssetFields();
+                  closeAssetDropdown();
+                  return;
+                }
+              } catch (e) {}
+
+              // ── ASET TIDAK DITEMUKAN ──
+              // Kosongkan field
+              document.getElementById("namaAlat").value = "";
+              document.getElementById("noAsset").value = "";
+              document.getElementById("merkAlat").value = "";
+              h.innerHTML =
+                '➕ Aset baru — akan otomatis terdaftar ke MASTER_ASSET saat submit.<br><span style="font-size:11px;color:var(--muted)">Isi Nama Alat dan Merk di bawah.</span>';
+              h.className = "hint new show";
+              icon.textContent = "🆕";
+              unlockAssetFields();
+              closeAssetDropdown();
+
+              // Fokus otomatis ke Nama Alat supaya Inspector langsung isi
+              setTimeout(() => {
+                document.getElementById("namaAlat")?.focus();
+              }, 100);
+            }
+
+            function fillAssetFields(a) {
+              window._assetId = a.asset_id || "";
+              // ── 1. Isi field teks ──
+              const textFields = [
+                { id: "namaAlat", val: a.nama_alat },
+                { id: "noAsset", val: a.no_asset || a.no_id },
+                { id: "merkAlat", val: a.merk },
+              ];
+              textFields.forEach((f) => {
+                const el = document.getElementById(f.id);
+                if (!el || !f.val) return;
+                el.value = f.val;
+                el.style.background = "var(--green-bg)";
+                el.style.borderColor = "var(--green-bd)";
+                setTimeout(() => {
+                  el.style.background = "";
+                  el.style.borderColor = "";
+                }, 1500);
+              });
+
+              // ── 2. Auto-fill dropdown Area → SubArea → Kategori (cascade) ──
+              if (a.area_id || a.subarea_id || a.kategori_id) {
+                autoFillDropdowns(a);
+              }
+              // ── 3. Auto-fill marking & spesifikasi (read-only) ──
+      const markingEl = document.getElementById('markingAlat');
+      const spekEl = document.getElementById('spesifikasiAlat');
+      const section = document.getElementById('markingSpekSection');
+
+      if (a.marking || a.spesifikasi) {
+        if (markingEl) {
+          markingEl.value = a.marking || '-';
+          markingEl.readOnly = true;
+          markingEl.style.background = 'var(--surface2)';
+          markingEl.style.color = 'var(--muted)';
+        }
+        if (spekEl) {
+          spekEl.value = a.spesifikasi || '-';
+          spekEl.readOnly = true;
+          spekEl.style.background = 'var(--surface2)';
+          spekEl.style.color = 'var(--muted)';
+        }
+        if (section) section.style.display = 'block';
+      } else {
+        // Kalau tidak ada data marking/spesifikasi — sembunyikan section
+        if (section) section.style.display = 'none';
+      }
+            }
+            async function autoFillDropdowns(a) {
+              // Step 1: Set Area
+              if (a.area_id) {
+                const aEl = document.getElementById("areaSel");
+                if (aEl) {
+                  // Tunggu master data loaded
+                  await waitForOptions(aEl, a.area_id, 3000);
+                  aEl.value = a.area_id;
+                  aEl.dispatchEvent(new Event("change"));
+                  flash(aEl);
+                }
+              }
+
+              // Step 2: Set SubArea (setelah area change populate subarea)
+              if (a.subarea_id) {
+                await sleep(600);
+                const sEl = document.getElementById("subSel");
+                if (sEl) {
+                  await waitForOptions(sEl, a.subarea_id, 3000);
+                  sEl.value = a.subarea_id;
+                  sEl.disabled = false;
+                  sEl.dispatchEvent(new Event("change"));
+                  flash(sEl);
+                }
+              }
+
+              // Step 3: Set Kategori (setelah subarea change populate kategori)
+              if (a.kategori_id) {
+                await sleep(800);
+                const kEl = document.getElementById("katSel");
+                if (kEl) {
+                  await waitForOptions(kEl, a.kategori_id, 3000);
+                  kEl.value = a.kategori_id;
+                  kEl.disabled = false;
+                  kEl.dispatchEvent(new Event("change"));
+                  flash(kEl);
                 }
               }
             }
-            // Auto-select kategori setelah delay
-            if (a.kategori_id) {
-              setTimeout(() => {
-                const ke = document.getElementById("kategori");
-                if (ke) {
-                  const opt = [...ke.options].find(
-                    (o) => o.value === a.kategori_id,
+
+            // Tunggu sampai option tersedia di select
+            function waitForOptions(selectEl, value, timeout) {
+              return new Promise((resolve) => {
+                const start = Date.now();
+                const check = () => {
+                  const hasOption = [...selectEl.options].some(
+                    (o) => o.value === value,
                   );
-                  if (opt) {
-                    ke.value = a.kategori_id;
-                    ke.dispatchEvent(new Event("change"));
+                  if (hasOption || Date.now() - start > timeout) {
+                    resolve();
+                    return;
+                  }
+                  setTimeout(check, 100);
+                };
+                check();
+              });
+            }
+
+            function sleep(ms) {
+              return new Promise((r) => setTimeout(r, ms));
+            }
+
+            function flash(el) {
+              if (!el) return;
+              el.style.background = "var(--green-bg)";
+              el.style.borderColor = "var(--green-bd)";
+              setTimeout(() => {
+                el.style.background = "";
+                el.style.borderColor = "";
+              }, 1500);
+            }
+
+            function resetTb() {
+              document.getElementById("tbFields").style.display = "none";
+              document.getElementById("nonTb").style.display = "block";
+              document.getElementById("secWrap").style.display = "none";
+              document.getElementById("tbSelWrap").style.display = "none";
+              document.getElementById("picBox").className = "pic-box";
+              document.getElementById("secChips").innerHTML = "";
+              const tbTipeEl = document.getElementById("tbTipe");
+              if (tbTipeEl) tbTipeEl.value = "";
+              document.getElementById("tbAutoFill").style.display = "none";
+              document.getElementById("tbManualForm").style.display = "none";
+              document.getElementById("tbLookupStatus").innerHTML = "";
+              tbIsRegistered = false;
+              window._tbAssetId = "";
+              selSec = null;
+              tbTipeId = "";
+              tbTipeName = "";
+              katId = "";
+              isTb = false;
+            }
+
+            async function toStep2() {
+              const checks = [
+                ["namaIns", "Nama inspektur"],
+                ["compSel", "Perusahaan"],
+                ["areaSel", "Area"],
+                ["subSel", "Sub area"],
+                ["katSel", "Kategori"],
+              ];
+              for (const [id, lbl] of checks) {
+                if (!document.getElementById(id).value) {
+                  toast("⚠️ " + lbl + " wajib diisi", "warn");
+                  return;
+                }
+              }
+              if (!isTb && !document.getElementById("namaAlat").value) {
+                toast("⚠️ Nama alat wajib diisi", "warn");
+                return;
+              }
+              if (isTb) {
+                const noTb = document.getElementById("tbNoAsset")?.value?.trim();
+                if (!noTb) {
+                  toast("⚠️ No Toolbox wajib diisi", "warn");
+                  return;
+                }
+                // Kalau belum terdaftar, tipe harus dipilih manual
+                if (!tbIsRegistered && !tbTipeId) {
+                  toast("⚠️ Pilih tipe toolbox dulu", "warn");
+                  return;
+                }
+                // Set nama alat dari input manual kalau belum terdaftar
+                if (!tbIsRegistered) {
+                  const namaManual = document
+                    .getElementById("tbNamaManual")
+                    ?.value?.trim();
+                  if (!window._tbNamaAlat)
+                    window._tbNamaAlat = namaManual || "Toolbox " + tbTipeName;
+                }
+              }
+              goStep(2);
+              // Pastikan konten langsung muncul
+              if (isTb) {
+                document.getElementById("checkMode").style.display = "none";
+                document.getElementById("tbMode").style.display = "block";
+                document.getElementById("modeBadge").className = "mbadge mb-tb";
+                document.getElementById("modeBadge").textContent = "🧰 Toolbox";
+                document.getElementById("modeDesc").textContent =
+                  tbTipeName + (selSec ? " — " + selSec : "");
+                tbContent = demoTbContent(tbTipeId);
+                tbAnswers = {};
+                renderTb();
+                // Load asli
+                await loadTbItems();
+              } else {
+                document.getElementById("checkMode").style.display = "block";
+                document.getElementById("tbMode").style.display = "none";
+                document.getElementById("modeBadge").className = "mbadge mb-check";
+                document.getElementById("modeBadge").textContent = "📋 Checklist";
+                document.getElementById("modeDesc").textContent = katName;
+                // Tampilkan loading dulu
+                const tbody = document.getElementById("checkBody");
+                if (tbody)
+                  tbody.innerHTML =
+                    '<tr><td colspan="4" style="text-align:center;padding:30px;color:#6B7494">⏳ Memuat pertanyaan dari master...</td></tr>';
+                pertanyaan = [];
+                answers = {};
+                // Load langsung dengan await
+                await loadPertanyaan();
+              }
+            }
+
+            // ── STEP 2 ───────────────────────────────────────────
+            async function loadChecklist() {
+              const badge = document.getElementById("modeBadge");
+              const desc = document.getElementById("modeDesc");
+              if (isTb) {
+                document.getElementById("checkMode").style.display = "none";
+                document.getElementById("tbMode").style.display = "block";
+                badge.className = "mbadge mb-tb";
+                badge.textContent = "🧰 Toolbox";
+                desc.textContent = tbTipeName + (selSec ? " — " + selSec : "");
+                await loadTbItems();
+              } else {
+                document.getElementById("checkMode").style.display = "block";
+                document.getElementById("tbMode").style.display = "none";
+                badge.className = "mbadge mb-check";
+                badge.textContent = "📋 Checklist";
+                desc.textContent = katName;
+                await loadPertanyaan();
+              }
+            }
+
+            async function loadPertanyaan() {
+              // Tampilkan loading
+              const tbody = document.getElementById("checkBody");
+              if (tbody)
+                tbody.innerHTML =
+                  '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">⏳ Memuat pertanyaan...</td></tr>';
+
+              try {
+                const r = await fetch(
+                  APPS_SCRIPT_URL +
+                    "?action=getMasterData&type=pertanyaan&kategori_id=" +
+                    encodeURIComponent(katId),
+                );
+                const j = await r.json();
+                console.log("Pertanyaan response:", j);
+
+                if (j.status === "ok" && j.data?.pertanyaan?.length) {
+                  pertanyaan = j.data.pertanyaan;
+                  answers = {};
+                  renderCheck();
+                  console.log(
+                    "✅ Berhasil load",
+                    pertanyaan.length,
+                    "pertanyaan untuk",
+                    katId,
+                  );
+                  // Scroll ke atas setelah render selesai
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                } else {
+                  // Fallback ke demo
+                  console.warn("⚠️ Pertanyaan kosong dari API, pakai demo:", j);
+                  pertanyaan = demoPertanyaan(katId);
+                  answers = {};
+                  renderCheck();
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              } catch (e) {
+                console.error("❌ loadPertanyaan error:", e);
+                pertanyaan = demoPertanyaan(katId);
+                answers = {};
+                renderCheck();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }
+            }
+
+            async function loadTbItems() {
+              const tbody = document.getElementById("tbBody");
+              if (tbody)
+                tbody.innerHTML =
+                  '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">⏳ Memuat item toolbox...</td></tr>';
+              try {
+                const r = await fetch(
+                  APPS_SCRIPT_URL +
+                    "?action=getMasterData&type=toolbox_content&tipe_id=" +
+                    encodeURIComponent(tbTipeId),
+                );
+                const j = await r.json();
+                console.log("Toolbox response:", j);
+                if (j.status === "ok" && j.data?.toolbox_content?.length) {
+                  tbContent = j.data.toolbox_content;
+                  tbAnswers = {};
+                  renderTb();
+                  console.log("✅ Toolbox loaded:", tbContent.length);
+                } else {
+                  console.warn("⚠️ Toolbox kosong, pakai demo");
+                  tbContent = demoTbContent(tbTipeId);
+                  tbAnswers = {};
+                  renderTb();
+                }
+              } catch (e) {
+                console.error("❌ loadTbItems error:", e);
+                tbContent = demoTbContent(tbTipeId);
+                tbAnswers = {};
+                renderTb();
+              }
+            }
+
+            async function fetchAssetFromURL(noId) {
+              if (!noId) return;
+              try {
+                // Lock field noId
+                const el = document.getElementById("noId");
+                if (el) {
+                  el.value = noId;
+                  el.readOnly = true;
+                  el.style.background = "#EEF3FF";
+                  el.style.color = "#1B4FD8";
+                  el.style.fontWeight = "700";
+                }
+
+                // Fetch asset dari Apps Script
+                const r = await fetch(
+                  APPS_SCRIPT_URL +
+                    "?" +
+                    new URLSearchParams({
+                      action: "getMasterData",
+                      type: "asset_check",
+                      no_id: noId,
+                    }),
+                );
+                const j = await r.json();
+
+                if (j.data?.found && j.data.asset) {
+                  const a = j.data.asset;
+                  window._assetId = a.asset_id || "";
+                  fillAssetFields(a);
+
+                  // Auto-select subarea
+                  if (a.subarea_id) {
+                    const se = document.getElementById("subSel");
+                    if (se) {
+                      const opt = [...se.options].find(
+                        (o) => o.value === a.subarea_id,
+                      );
+                      if (opt) {
+                        se.value = a.subarea_id;
+                        se.dispatchEvent(new Event("change"));
+                      }
+                    }
+                  }
+                  // Auto-select kategori setelah delay
+                  if (a.kategori_id) {
+                    setTimeout(() => {
+                      const ke = document.getElementById("kategori");
+                      if (ke) {
+                        const opt = [...ke.options].find(
+                          (o) => o.value === a.kategori_id,
+                        );
+                        if (opt) {
+                          ke.value = a.kategori_id;
+                          ke.dispatchEvent(new Event("change"));
+                        }
+                      }
+                    }, 1200);
+                  }
+
+                  hideScanBanner("found", a.nama_alat, a);
+
+                  // Info box
+                  let info = document.getElementById("assetScanInfo");
+                  if (!info) {
+                    info = document.createElement("div");
+                    info.id = "assetScanInfo";
+                    const noIdWrap =
+                      document.getElementById("noId")?.parentElement?.parentElement;
+                    if (noIdWrap) noIdWrap.after(info);
+                  }
+                  info.style.display = "block";
+                  info.innerHTML = `<div style="background:#EEF3FF;border:1.5px solid #C7D7FF;border-radius:10px;padding:12px;margin-top:8px;font-size:13px">
+              <div style="font-weight:700;color:#1B4FD8;margin-bottom:6px">📷 Asset dari QR Scan</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                <div>🔧 <strong>${a.nama_alat || "-"}</strong></div>
+                <div>🏷️ ${a.merk || "-"}</div>
+                <div>No Asset: ${a.no_asset || "-"}</div>
+                <div>${a.tgl_inspeksi_terakhir ? "Terakhir: " + a.tgl_inspeksi_terakhir : "Belum pernah"}</div>
+              </div>
+              ${a.status_aset_terakhir ? `<div style="margin-top:8px;font-weight:600;color:${a.status_aset_terakhir === "LAYAK" ? "#16A34A" : "#DC2626"}">${a.status_aset_terakhir === "LAYAK" ? "✅ LAYAK" : "❌ TIDAK LAYAK"}</div>` : ""}
+            </div>`;
+                } else {
+                  hideScanBanner("new", noId + " — isi data manual");
+                  const ne = document.getElementById("namaAlat");
+                  if (ne) {
+                    ne.focus();
+                    ne.placeholder = "Isi nama alat untuk asset baru";
                   }
                 }
-              }, 1200);
+              } catch (e) {
+                hideScanBanner("error", "Gagal ambil data — isi manual");
+                console.error("fetchAssetFromURL:", e);
+              }
             }
 
-            hideScanBanner("found", a.nama_alat, a);
+            // ══════════════════════════════════════════════
+            // CORE FUNCTIONS (RECOVERED)
+            // ══════════════════════════════════════════════
 
-            // Info box
-            let info = document.getElementById("assetScanInfo");
-            if (!info) {
-              info = document.createElement("div");
-              info.id = "assetScanInfo";
-              const noIdWrap =
-                document.getElementById("noId")?.parentElement?.parentElement;
-              if (noIdWrap) noIdWrap.after(info);
+            // ── STEP NAVIGATION ──
+            function handleStep2() {
+              // Wrapper untuk async toStep2 agar onclick bisa handle
+              toStep2().catch((e) => console.error("toStep2 error:", e));
             }
-            info.style.display = "block";
-            info.innerHTML = `<div style="background:#EEF3FF;border:1.5px solid #C7D7FF;border-radius:10px;padding:12px;margin-top:8px;font-size:13px">
-        <div style="font-weight:700;color:#1B4FD8;margin-bottom:6px">📷 Asset dari QR Scan</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <div>🔧 <strong>${a.nama_alat || "-"}</strong></div>
-          <div>🏷️ ${a.merk || "-"}</div>
-          <div>No Asset: ${a.no_asset || "-"}</div>
-          <div>${a.tgl_inspeksi_terakhir ? "Terakhir: " + a.tgl_inspeksi_terakhir : "Belum pernah"}</div>
-        </div>
-        ${a.status_aset_terakhir ? `<div style="margin-top:8px;font-weight:600;color:${a.status_aset_terakhir === "LAYAK" ? "#16A34A" : "#DC2626"}">${a.status_aset_terakhir === "LAYAK" ? "✅ LAYAK" : "❌ TIDAK LAYAK"}</div>` : ""}
-      </div>`;
-          } else {
-            hideScanBanner("new", noId + " — isi data manual");
-            const ne = document.getElementById("namaAlat");
-            if (ne) {
-              ne.focus();
-              ne.placeholder = "Isi nama alat untuk asset baru";
+
+            function goStep(n) {
+              document
+                .querySelectorAll(".page")
+                .forEach((p) => p.classList.remove("active"));
+              const pg = document.getElementById("page" + n);
+              console.log("goStep", n, "pg found:", !!pg);
+              if (pg) {
+                pg.classList.add("active");
+                console.log("page" + n + " class:", pg.className);
+              }
+              document.querySelectorAll(".step").forEach((s, i) => {
+                s.classList.toggle("done", i < n - 1);
+                s.classList.toggle("active", i === n - 1);
+              });
             }
-          }
-        } catch (e) {
-          hideScanBanner("error", "Gagal ambil data — isi manual");
-          console.error("fetchAssetFromURL:", e);
-        }
-      }
 
-      // ══════════════════════════════════════════════
-      // CORE FUNCTIONS (RECOVERED)
-      // ══════════════════════════════════════════════
+            // ── TOAST NOTIFICATION ──
+            function toast(msg, type = "info") {
+              let t = document.getElementById("toastEl");
+              if (!t) {
+                t = document.createElement("div");
+                t.id = "toastEl";
+                Object.assign(t.style, {
+                  position: "fixed",
+                  bottom: "80px",
+                  left: "50%",
+                  transform: "translateX(-50%) translateY(20px)",
+                  padding: "10px 20px",
+                  borderRadius: "10px",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  zIndex: "9999",
+                  opacity: "0",
+                  transition: "all .3s",
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 4px 16px rgba(0,0,0,.2)",
+                  fontFamily: "Inter,sans-serif",
+                });
+                document.body.appendChild(t);
+              }
+              const colors = {
+                info: "#1B4FD8",
+                warn: "#D97706",
+                error: "#DC2626",
+                success: "#16A34A",
+              };
+              t.style.background = colors[type] || colors.info;
+              t.style.color = "#fff";
+              t.textContent = msg;
+              t.style.opacity = "1";
+              t.style.transform = "translateX(-50%) translateY(0)";
+              clearTimeout(t._timer);
+              t._timer = setTimeout(() => {
+                t.style.opacity = "0";
+                t.style.transform = "translateX(-50%) translateY(20px)";
+              }, 3000);
+            }
 
-      // ── STEP NAVIGATION ──
-      function handleStep2() {
-        // Wrapper untuk async toStep2 agar onclick bisa handle
-        toStep2().catch((e) => console.error("toStep2 error:", e));
-      }
-
-      function goStep(n) {
-        document
-          .querySelectorAll(".page")
-          .forEach((p) => p.classList.remove("active"));
-        const pg = document.getElementById("page" + n);
-        console.log("goStep", n, "pg found:", !!pg);
-        if (pg) {
-          pg.classList.add("active");
-          console.log("page" + n + " class:", pg.className);
-        }
-        document.querySelectorAll(".step").forEach((s, i) => {
-          s.classList.toggle("done", i < n - 1);
-          s.classList.toggle("active", i === n - 1);
-        });
-      }
-
-      // ── TOAST NOTIFICATION ──
-      function toast(msg, type = "info") {
-        let t = document.getElementById("toastEl");
-        if (!t) {
-          t = document.createElement("div");
-          t.id = "toastEl";
-          Object.assign(t.style, {
-            position: "fixed",
-            bottom: "80px",
-            left: "50%",
-            transform: "translateX(-50%) translateY(20px)",
-            padding: "10px 20px",
-            borderRadius: "10px",
-            fontSize: "13px",
-            fontWeight: "600",
-            zIndex: "9999",
-            opacity: "0",
-            transition: "all .3s",
-            whiteSpace: "nowrap",
-            boxShadow: "0 4px 16px rgba(0,0,0,.2)",
-            fontFamily: "Inter,sans-serif",
-          });
-          document.body.appendChild(t);
-        }
-        const colors = {
-          info: "#1B4FD8",
-          warn: "#D97706",
-          error: "#DC2626",
-          success: "#16A34A",
-        };
-        t.style.background = colors[type] || colors.info;
-        t.style.color = "#fff";
-        t.textContent = msg;
-        t.style.opacity = "1";
-        t.style.transform = "translateX(-50%) translateY(0)";
-        clearTimeout(t._timer);
-        t._timer = setTimeout(() => {
-          t.style.opacity = "0";
-          t.style.transform = "translateX(-50%) translateY(20px)";
-        }, 3000);
-      }
-
-      // ── STEP 3: REVIEW ──
-      function toStep3() {
-        if (!isTb) {
-          // Cek semua pertanyaan sudah dijawab
-          const unanswered = pertanyaan.filter(
-            (p) => !answers[p.question_id]?.val,
-          );
-          if (unanswered.length > 0) {
-            toast(`⚠️ ${unanswered.length} pertanyaan belum dijawab`, "warn");
-            return;
-          }
-          // Cek remarks wajib untuk yang TIDAK
-          const noRemarks = pertanyaan.filter(
-            (p) =>
-              answers[p.question_id]?.val === "TIDAK" &&
-              !answers[p.question_id]?.remarks?.trim(),
-          );
-          if (noRemarks.length > 0) {
-            toast(
-              `✏️ ${noRemarks.length} temuan wajib diisi remarks-nya`,
-              "warn",
-            );
-            return;
-          }
-          // Kalau tidak ada temuan (semua YA/NA) → langsung submit
-          const hasTemuan = pertanyaan.some(
-            (p) => answers[p.question_id]?.val === "TIDAK",
-          );
-          if (!hasTemuan) {
-            doSubmit();
-            return;
-          }
-        } else {
-          // Validasi: semua item wajib diisi aktual dan kondisi
-          const belumDiisi = tbContent.filter((item) => {
-            const a = tbAnswers[item.asset_id || item.content_id];
-            return (
-              !a ||
-              a.aktual === null ||
-              a.aktual === undefined ||
-              a.aktual === ""
-            );
-          });
-          if (belumDiisi.length > 0) {
-            toast(
-              `⚠️ ${belumDiisi.length} item belum diisi qty aktualnya`,
-              "warn",
-            );
-            return;
-          }
-          // Toolbox: cek remarks wajib untuk yang bermasalah
-          const noRemarks = tbContent.filter((item) => {
-            const a = tbAnswers[item.content_id];
-            if (!a) return false;
-            const aktualDiisi = a.aktual !== "" && a.aktual !== "0";
-            const isNg =
-              a.kondisi === "RUSAK" ||
-              a.kondisi === "HILANG" ||
-              (aktualDiisi && parseInt(a.aktual) < parseInt(item.qty_standar));
-            return isNg && !a.remarks?.trim();
-          });
-          if (noRemarks.length > 0) {
-            toast(
-              `✏️ ${noRemarks.length} item wajib diisi remarks-nya`,
-              "warn",
-            );
-            return;
-          }
-          // Toolbox: kalau semua sesuai STD → langsung submit
-          const hasTbTemuan = tbContent.some((item) => {
-            const a = tbAnswers[item.content_id];
-            if (!a) return false;
-            const aktualDiisi = a.aktual !== "" && a.aktual !== "0";
-            return (
-              a.kondisi === "RUSAK" ||
-              a.kondisi === "HILANG" ||
-              (aktualDiisi && parseInt(a.aktual) < parseInt(item.qty_standar))
-            );
-          });
-          if (!hasTbTemuan) {
-            doSubmit();
-            return;
-          }
-        }
-        // Ada temuan → ke review
-        buildReview();
-        goStep(3);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-
-      // ── STEP 4: SELESAI ──
-      function toStep4() {
-        goStep(4);
-      }
-
-      // ── BUILD REVIEW ──
-      function buildReview() {
-        let total,
-          ok,
-          ng,
-          na,
-          items = [];
-        if (isTb) {
-          total = tbContent.length;
-          items = tbContent
-            .filter((i) => {
-              const a = tbAnswers[i.content_id];
-              if (!a) return false;
-              const aktDiisi = a.aktual !== "" && a.aktual !== "0";
-              return (
-                a.kondisi === "RUSAK" ||
-                a.kondisi === "HILANG" ||
-                (aktDiisi && parseInt(a.aktual) < parseInt(i.qty_standar))
-              );
-            })
-            .map((i) => ({
-              q: `${i.deskripsi} — ${tbAnswers[i.content_id].kondisi}`,
-              rmk: tbAnswers[i.content_id].remarks || "",
-            }));
-          ng = items.length;
-          ok = total - ng;
-          na = 0;
-        } else {
-          total = pertanyaan.length;
-          items = pertanyaan
-            .filter(
-              (p) =>
-                answers[p.question_id]?.val === "TIDAK" ||
-                answers[p.question_id]?.val === "MERAH",
-            )
-            .map((p) => ({
-              q: p.pertanyaan,
-              rmk: answers[p.question_id]?.remarks || "",
-            }));
-          ng = items.length;
-          na = pertanyaan.filter(
-            (p) => answers[p.question_id]?.val === "N/A",
-          ).length;
-          ok = total - ng - na;
-        }
-        document.getElementById("statRow").innerHTML = `
-    <div class="sc"><div class="sn">${total}</div><div class="sl">Total</div></div>
-    <div class="sc"><div class="sn" style="color:var(--green)">${ok}</div><div class="sl">OK</div></div>
-    <div class="sc"><div class="sn" style="color:var(--red)">${ng}</div><div class="sl">Temuan</div></div>
-    <div class="sc"><div class="sn" style="color:var(--muted)">${na}</div><div class="sl">N/A</div></div>`;
-
-        const listEl = document.getElementById("temuanList");
-        const noT = document.getElementById("noTemuan");
-        console.log(
-          "buildReview: ng=" +
-            ng +
-            ", items=" +
-            items.length +
-            ", listEl=" +
-            !!listEl,
-        );
-        listEl.innerHTML = "";
-        selRisiko = "";
-        if (!items.length) {
-          noT.style.display = "block";
-          document.getElementById("critAlert").className = "crit-alert";
-          document.getElementById("fotoWarn").style.display = "none";
-          return;
-        }
-        noT.style.display = "none";
-        // Foto WAJIB min 1 maks 3
-        const fw = document.getElementById("fotoWarn");
-        if (fw) {
-          fw.style.display = "block";
-          fw.textContent =
-            "📷 Wajib lampirkan foto (min 1, maks 3) — dikompres otomatis";
-        }
-
-        const rOpts = [
-          { v: "LOW", l: "Low — 14 hari", c: "sel-low" },
-          { v: "MEDIUM", l: "Medium — 7 hari", c: "sel-medium" },
-          { v: "HIGH", l: "High — 3 hari", c: "sel-high" },
-          { v: "CRITICAL", l: "Critical — 1 hari", c: "sel-critical" },
-        ];
-        listEl.innerHTML = `
-    <div style="margin-bottom:14px;padding:12px;background:var(--surface2);border-radius:10px;border:1.5px solid var(--border)">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.3px">Tingkat Risiko Keseluruhan *</div>
-      <div class="risk-row">${rOpts.map((r) => `<button class="rrb" data-v="${r.v}" onclick="pickRisiko('${r.v}','${r.c}',this)">${r.l}</button>`).join("")}</div>
-    </div>
-    <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px">Daftar Temuan (${items.length})</div>
-    ${items
-      .map(
-        (t) => `<div class="tc">
-      <div class="tc-title">⚠️ ${t.q}</div>
-      <div class="tc-rmk">${t.rmk || '<span style="color:var(--muted2);font-style:italic">Tidak ada remarks</span>'}</div>
-    </div>`,
-      )
-      .join("")}`;
-      }
-
-      // ── RENDER CHECKLIST ──
-      function renderCheck() {
-        const tbody = document.getElementById("checkBody");
-        console.log(
-          "renderCheck called, pertanyaan:",
-          pertanyaan.length,
-          "tbody:",
-          tbody,
-        );
-        if (!pertanyaan.length) {
-          tbody.innerHTML =
-            '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada pertanyaan</td></tr>';
-          return;
-        }
-        let filled = 0;
-        tbody.innerHTML = "";
-        pertanyaan.forEach((item, i) => {
-          const a = answers[item.question_id] || { val: "", remarks: "" };
-          if (a.val) filled++;
-          const isNg = a.val === "TIDAK" || a.val === "MERAH";
-          const tr = document.createElement("tr");
-          if (isNg) tr.classList.add("ng");
-          const qid = item.question_id;
-          let inp = "";
-          if (item.tipe_jawaban === "PILIHAN") {
-            inp = `<div class="rg">
-        <button class="rb ya${a.val === "YA" ? " sel" : ""}" onclick="setA('${qid}','YA')">YA</button>
-        <button class="rb tidak${a.val === "TIDAK" ? " sel" : ""}" onclick="setA('${qid}','TIDAK')">TIDAK</button>
-        <button class="rb na${a.val === "N/A" ? " sel" : ""}" onclick="setA('${qid}','N/A')">N/A</button>
-      </div>`;
-          } else if (item.tipe_jawaban === "ANGKA") {
-            inp = `<input type="number" inputmode="numeric" style="width:80px;border:1.5px solid var(--border);border-radius:7px;padding:8px;font-size:15px;background:#fff;text-align:center" value="${a.val || ""}" onchange="setAV('${qid}',this.value)">`;
-          } else if (item.tipe_jawaban === "TEKS") {
-            inp = `<input type="text" style="width:100%;border:1.5px solid var(--border);border-radius:7px;padding:8px;font-size:14px;background:#fff" value="${a.val || ""}" onchange="setAV('${qid}',this.value)">`;
-          } else if (item.tipe_jawaban === "TANGGAL") {
-            inp = `<input type="date" style="border:1.5px solid var(--border);border-radius:7px;padding:8px;font-size:14px;background:#fff" value="${a.val || ""}" onchange="setAV('${qid}',this.value)">`;
-          } else if (item.tipe_jawaban === "PILIHAN_KUSTOM") {
-            const opts = (item.pilihan_jawaban || "")
-              .split(",")
-              .map((o) => o.trim())
-              .filter(Boolean);
-            inp = `<div class="rg">${opts.map((o) => `<button class="rb opt${a.val === o ? " sel" : ""}" onclick="setA('${qid}','${o}')">${o}</button>`).join("")}</div>`;
-          }
-          let stat = "";
-          if (a.val) {
-            if (isNg) stat = '<span class="sdot sd-ng">✗</span>';
-            else if (a.val === "N/A")
-              stat = '<span class="sdot sd-na">N/A</span>';
-            else stat = '<span class="sdot sd-ok">✓</span>';
-          } else if (
-            item.tipe_jawaban === "PILIHAN" ||
-            item.tipe_jawaban === "PILIHAN_KUSTOM"
-          ) {
-            stat =
-              '<span class="sdot" style="background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-bd)">?</span>';
-          }
-          tr.innerHTML = `
-      <td style="color:var(--muted2);font-size:10px;font-weight:700">${i + 1}</td>
-      <td style="font-size:13px;line-height:1.5;font-weight:${isNg ? 600 : 400}">${item.pertanyaan}</td>
-      <td>${inp}</td>
-      <td style="text-align:center">${stat}</td>`;
-          tbody.appendChild(tr);
-          if (isNg) {
-            const rr = document.createElement("tr");
-            rr.classList.add("ng");
-            const hasRmk = a.remarks?.trim().length > 0;
-            rr.innerHTML = `<td></td><td colspan="3">
-        <div class="rmk-wrap" style="border:1.5px solid ${hasRmk ? "var(--green-bd)" : "var(--red-bd)"};border-radius:8px;padding:8px 10px;background:${hasRmk ? "var(--green-bg)" : "var(--red-bg)"};margin:4px 0">
-          <div class="rmk-lbl" style="color:${hasRmk ? "var(--green)" : "var(--red)"};font-size:11px;font-weight:700;margin-bottom:4px">✏️ Remarks — Jelaskan kondisi * ${hasRmk ? "✓" : ""}</div>
-          <textarea class="rmk-inp" rows="2" 
-              style="width:100%;border:none;background:transparent;font-size:13px;font-family:inherit;resize:vertical;outline:none;color:var(--text)"
-                placeholder="Jelaskan kondisi yang ditemukan..." 
-                oninput="setR('${qid}',this.value)"
-                onblur="renderCheck()">${a.remarks || ""}</textarea>
-        </div></td>`;
-            tbody.appendChild(rr);
-          }
-        });
-        document.getElementById("progNote").textContent =
-          `${filled} / ${pertanyaan.length} diisi`;
-        const ng = pertanyaan.filter(
-          (p) => answers[p.question_id]?.val === "TIDAK",
-        ).length;
-        document.getElementById("fillNote").textContent =
-          ng > 0 ? `${ng} temuan` : "";
-      }
-
-      function setAns(i, val) {
-        answers[i] = val;
-        renderCheck();
-        // Update stat row
-        updateStatRow();
-      }
-
-      function setRem(i, val) {
-        if (pertanyaan[i]) pertanyaan[i]._rem = val;
-      }
-
-      function updateStatRow() {
-        const el = document.getElementById("statRow");
-        if (!el) return;
-        const total = pertanyaan.length;
-        const ok = Object.values(answers).filter((v) => v === "OK").length;
-        const ng = Object.values(answers).filter((v) => v === "NG").length;
-        const pct = total > 0 ? Math.round((ok / total) * 100) : 0;
-        el.innerHTML = `
-    <div class="scard"><div class="sc-val">${total}</div><div class="sc-lbl">Total</div></div>
-    <div class="scard"><div class="sc-val" style="color:#16A34A">${ok}</div><div class="sc-lbl">OK</div></div>
-    <div class="scard"><div class="sc-val" style="color:#DC2626">${ng}</div><div class="sc-lbl">NG</div></div>
-    <div class="scard"><div class="sc-val" style="color:#1B4FD8">${pct}%</div><div class="sc-lbl">Score</div></div>`;
-      }
-
-      // ── RENDER TOOLBOX ──
-      // ── RENDER TOOLBOX ──
-      function renderTb() {
-        const tbody = document.getElementById("tbBody");
-        document.getElementById("tbTitle").textContent =
-          tbTipeName + (selSec ? " — " + selSec : "");
-        document.getElementById("tbCount").textContent =
-          tbContent.length + " item";
-        if (!tbContent.length) {
-          tbody.innerHTML =
-            '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada item</td></tr>';
-          return;
-        }
-        tbody.innerHTML = "";
-        tbContent.forEach((item, i) => {
-          const cid = item.asset_id || item.content_id;
-          const a = tbAnswers[cid] || {
-            aktual: null,
-            kondisi: "BAIK",
-            remarks: "",
-          };
-          const aktualNum = Number(a.aktual);
-          const stdNum = parseInt(item.qty_standar);
-          const aktualDiisi = a.aktual !== null && a.aktual !== "";
-          const isNg =
-            a.kondisi === "RUSAK" ||
-            a.kondisi === "HILANG" ||
-            (aktualDiisi && !isNaN(aktualNum) && aktualNum < stdNum);
-          const tr = document.createElement("tr");
-          tr.setAttribute("data-cid", cid);
-          if (isNg) tr.classList.add("tb-ng");
-
-          const rmkHtml = isNg
-            ? `
-      <div style="margin-top:6px;border:1.5px solid ${a.remarks?.trim() ? "var(--green-bd)" : "var(--red-bd)"};border-radius:8px;padding:6px 8px;background:${a.remarks?.trim() ? "var(--green-bg)" : "var(--red-bg)"}">
-        <div style="font-size:10px;font-weight:700;color:${a.remarks?.trim() ? "var(--green)" : "var(--red)"};margin-bottom:3px">✏️ Keterangan wajib * ${a.remarks?.trim() ? "✓" : ""}</div>
-        <textarea rows="2" placeholder="Jelaskan kondisi / tindakan yang diambil..."
-          style="width:100%;border:none;background:transparent;font-size:12px;font-family:inherit;resize:none;outline:none;color:var(--text)"
-          data-cid="${cid}" data-field="remarks">${a.remarks || ""}</textarea>
-      </div>`
-            : "";
-
-          tr.innerHTML = `
-      <td style="color:var(--muted2);font-size:10px;font-weight:700">${i + 1}</td>
-      <td style="font-size:13px;line-height:1.4;font-weight:${isNg ? 600 : 400}">
-        <span>${item.deskripsi}</span>${rmkHtml}
-      </td>
-      <td style="text-align:center;font-weight:700;font-size:13px">${item.qty_standar}</td>
-      <td><input type="number" inputmode="numeric" min="0" placeholder="0"
-          value="${aktualDiisi ? a.aktual : ""}"
-          data-cid="${cid}" data-field="aktual" data-std="${item.qty_standar}"
-          style="width:52px;text-align:center;font-size:16px;border:1.5px solid var(--border);border-radius:6px;padding:6px 4px;background:#fff"></td>
-      <td style="font-size:11px;color:var(--muted)">${item.unit}</td>
-      <td><select data-cid="${cid}" data-field="kondisi" data-std="${item.qty_standar}"
-          style="font-size:13px;padding:6px;border:1.5px solid var(--border);border-radius:6px;background:#fff">
-        <option value="BAIK" ${a.kondisi === "BAIK" || !a.kondisi ? "selected" : ""}>BAIK</option>
-        <option value="RUSAK" ${a.kondisi === "RUSAK" ? "selected" : ""}>RUSAK</option>
-        <option value="HILANG" ${a.kondisi === "HILANG" ? "selected" : ""}>HILANG</option>
-      </select></td>`;
-          tbody.appendChild(tr);
-        });
-
-        // Event delegation — tidak pakai inline onchange/oninput
-        tbody.querySelectorAll('input[data-field="aktual"]').forEach((el) => {
-          el.oninput = function () {
-            setTb(this.dataset.cid, "aktual", this.value, this.dataset.std);
-          };
-          el.onblur = function () {
-            renderTb();
-          };
-        });
-        tbody.querySelectorAll('select[data-field="kondisi"]').forEach((el) => {
-          el.onchange = function () {
-            setTb(this.dataset.cid, "kondisi", this.value, this.dataset.std);
-            renderTb();
-          };
-        });
-        tbody
-          .querySelectorAll('textarea[data-field="remarks"]')
-          .forEach((el) => {
-            el.oninput = function () {
-              setTb(this.dataset.cid, "remarks", this.value, "");
-            };
-            el.onblur = function () {
-              renderTb();
-            };
-          });
-
-        const ng = tbContent.filter((i) => {
-          const a = tbAnswers[i.content_id];
-          return a && (a.kondisi === "RUSAK" || a.kondisi === "HILANG");
-        }).length;
-        document.getElementById("progNote").textContent =
-          ng > 0 ? `${ng} temuan` : "Isi qty & kondisi";
-        document.getElementById("fillNote").textContent =
-          ng > 0 ? `${ng} temuan toolbox` : "";
-      }
-
-      function setTb(cid, field, val, std) {
-        if (!tbAnswers[cid])
-          tbAnswers[cid] = { aktual: null, kondisi: "BAIK", remarks: "" };
-        if (field === "aktual") {
-          tbAnswers[cid][field] = val === "" ? null : Number(val);
-        } else {
-          tbAnswers[cid][field] = val;
-        }
-      }
-
-      // ── SUBMIT ──
-      async function doSubmit() {
-        const hasT = isTb
-          ? tbContent.some((i) => {
-              const a = tbAnswers[i.content_id];
-              return a && (a.kondisi === "RUSAK" || a.kondisi === "HILANG");
-            })
-          : pertanyaan.some((p) => answers[p.question_id]?.val === "TIDAK");
-
-        if (hasT && !selRisiko) {
-          toast("⚠️ Pilih tingkat risiko dulu", "warn");
-          return;
-        }
-        if (hasT && fotos.length === 0) {
-          toast("⚠️ Foto wajib dilampirkan untuk semua tingkat risiko", "warn");
-          return;
-        }
-
-        const btn = document.getElementById("btnSub");
-        btn.disabled = true;
-        document.getElementById("subIco").textContent = "⏳";
-        document.getElementById("subTxt").textContent = "Menyimpan...";
-
-        // Kompres foto
-        const fotoData = [];
-        for (let i = 0; i < fotos.length; i++) {
-          showLoad(`Mengompres foto ${i + 1}/${fotos.length}...`);
-          const comp = await compress(fotos[i]);
-          fotoData.push({
-            name: `before_${i + 1}.jpg`,
-            data: comp.split(",")[1],
-          });
-        }
-        showLoad("Menyimpan ke database...");
-
-        const sub = document.getElementById("subSel");
-        const area = document.getElementById("areaSel");
-        const compSel = document.getElementById("compSel");
-        const tbNoVal = isTb
-          ? document.getElementById("tbNoAsset")?.value?.trim().toUpperCase() ||
-            ""
-          : "";
-        const tbNamaManual =
-          document.getElementById("tbNamaManual")?.value?.trim() || "";
-
-        const meta = {
-          tanggal_inspeksi: document.getElementById("tgl").value,
-          company_id: compSel.value,
-          nama_perusahaan: compSel.options[compSel.selectedIndex]?.text || "",
-          area_id: area.value,
-          nama_area: area.options[area.selectedIndex]?.text || "",
-          subarea_id: sub.value,
-          nama_subarea: sub.options[sub.selectedIndex]?.text || "",
-          kategori_id: katId,
-          nama_kategori: katName,
-
-          // Nama alat — toolbox pakai nama manual kalau belum terdaftar
-          nama_alat: isTb
-            ? tbIsRegistered
-              ? tbTipeName
-              : tbNamaManual || "Toolbox " + tbTipeName
-            : document.getElementById("namaAlat").value,
-          tanggal_inspeksi: document.getElementById("tgl").value,
-
-          merk: isTb ? "" : document.getElementById("merkAlat")?.value || "",
-
-          // no_id hanya untuk alat biasa, toolbox pakai no_toolbox
-          no_id: isTb ? "" : document.getElementById("noId").value,
-          no_asset: isTb ? "" : document.getElementById("noAsset").value,
-          asset_id: isTb ? window._tbAssetId || "" : window._assetId || "",
-
-          nik_inspektor: document.getElementById("nikIns").value,
-          nama_inspektor: document.getElementById("namaIns").value,
-          risiko: selRisiko || "LOW",
-          is_toolbox: isTb,
-          toolbox_aset_id: isTb ? window._tbAssetId || "" : "", // akan diisi dari asset_id hasil lookup kalau terdaftar
-          section: selSec || "",
-          inspection_source: "HTML",
-          ada_temuan: hasT ? "Y" : "N",
-          interval_hari: getIntervalHari(),
-
-          // Toolbox specific
-          no_toolbox: tbNoVal,
-          tipe_toolbox_id: isTb ? tbTipeId : "",
-          marking: document.getElementById("markingAlat")?.value?.trim() || "",
-          spesifikasi:
-            document.getElementById("spesifikasiAlat")?.value?.trim() || "",
-        };
-
-        const detail = isTb
-          ? []
-          : pertanyaan.map((p) => ({
-              question_id: p.question_id,
-              pertanyaan: p.pertanyaan,
-              jawaban: answers[p.question_id]?.val || "",
-              remarks: answers[p.question_id]?.remarks || "",
-              ada_temuan: answers[p.question_id]?.val === "TIDAK" ? "Y" : "N",
-            }));
-
-        const toolbox = isTb
-          ? tbContent.map((t) => ({
-              content_id: t.content_id,
-              deskripsi: t.deskripsi,
-              part_number: t.part_number || "",
-              qty_standar: t.qty_standar,
-              qty_aktual: tbAnswers[t.content_id]?.aktual || 0,
-              unit: t.unit,
-              kondisi: tbAnswers[t.content_id]?.kondisi || "BAIK",
-              remarks: tbAnswers[t.content_id]?.remarks || "",
-              ada_temuan:
-                tbAnswers[t.content_id]?.kondisi === "RUSAK" ||
-                tbAnswers[t.content_id]?.kondisi === "HILANG"
-                  ? "Y"
-                  : "N",
-            }))
-          : [];
-
-        try {
-          const res = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({
-              action: "saveInspeksi",
-              meta,
-              detail,
-              toolbox,
-              foto_temuan: fotoData,
-            }),
-          });
-          const json = await res.json();
-          hideLoad();
-          if (json.status === "ok") {
-            buildSuccess(json);
-            goStep(4);
-          } else {
-            toast("❌ Gagal: " + json.message, "error");
-          }
-        } catch (e) {
-          hideLoad();
-          // Demo mode
-          buildSuccess({
-            inspeksi_id:
-              "INS-2026-" +
-              String(Math.floor(Math.random() * 9999) + 1).padStart(6, "0"),
-            total_temuan: hasT ? 1 : 0,
-            ada_temuan: hasT ? "Y" : "N",
-          });
-          goStep(4);
-        }
-
-        btn.disabled = false;
-        document.getElementById("subIco").textContent = "✅";
-        document.getElementById("subTxt").textContent = "Submit Inspeksi";
-      }
-
-      // ══════════════════════════════════════════════
-      // DEMO DATA FUNCTIONS
-      // ══════════════════════════════════════════════
-      function demoMaster() {
-        return {
-          companies: [
-            { company_id: "CMP001", nama_perusahaan: "PT Cipta Kridatama" },
-          ],
-          areas: [{ area_id: "AR001", nama_area: "KGB" }],
-          subareas: [
-            {
-              subarea_id: "SA001",
-              area_id: "AR001",
-              nama_subarea: "WS HE CIA",
-            },
-            { subarea_id: "SA002", area_id: "AR001", nama_subarea: "BAY CP" },
-            { subarea_id: "SA003", area_id: "AR001", nama_subarea: "WS Tyre" },
-            { subarea_id: "SA004", area_id: "AR001", nama_subarea: "GRB" },
-          ],
-          kategoris: [
-            {
-              kategori_id: "KT001",
-              subarea_id: "SA001",
-              nama_kategori: "Alat Berat",
-              tipe: "CHECK",
-            },
-            {
-              kategori_id: "KT002",
-              subarea_id: "SA001",
-              nama_kategori: "Dump Truck",
-              tipe: "CHECK",
-            },
-            {
-              kategori_id: "KT003",
-              subarea_id: "SA001",
-              nama_kategori: "Alat Listrik Portable",
-              tipe: "CHECK",
-            },
-            {
-              kategori_id: "KT004",
-              subarea_id: "SA001",
-              nama_kategori: "Jack Stand",
-              tipe: "CHECK",
-            },
-            {
-              kategori_id: "KT005",
-              subarea_id: "SA001",
-              nama_kategori: "Apar",
-              tipe: "CHECK",
-            },
-            {
-              kategori_id: "KT006",
-              subarea_id: "SA001",
-              nama_kategori: "Kompresor",
-              tipe: "CHECK",
-            },
-            {
-              kategori_id: "KT007",
-              subarea_id: "SA001",
-              nama_kategori: "Crane Workshop",
-              tipe: "CHECK",
-            },
-            {
-              kategori_id: "KT017",
-              subarea_id: "SA001",
-              nama_kategori: "Toolbox Inventory",
-              tipe: "TOOLBOX_INVENTORY",
-            },
-          ],
-          pics: {},
-        };
-      }
-
-      function demoPertanyaan(katId) {
-        return [
-          {
-            question_id: katId + "-Q001",
-            pertanyaan: "Kondisi fisik alat baik (tidak rusak/retak)",
-            tipe_jawaban: "PILIHAN",
-          },
-          {
-            question_id: katId + "-Q002",
-            pertanyaan: "Tidak ada kebocoran oli/bahan bakar",
-            tipe_jawaban: "PILIHAN",
-          },
-          {
-            question_id: katId + "-Q003",
-            pertanyaan: "Semua baut dan mur terpasang dengan kencang",
-            tipe_jawaban: "PILIHAN",
-          },
-          {
-            question_id: katId + "-Q004",
-            pertanyaan: "Label/stiker identifikasi alat terbaca jelas",
-            tipe_jawaban: "PILIHAN",
-          },
-          {
-            question_id: katId + "-Q005",
-            pertanyaan: "Alat berfungsi normal sesuai peruntukannya",
-            tipe_jawaban: "PILIHAN",
-          },
-          {
-            question_id: katId + "-Q006",
-            pertanyaan: "Tidak ada kerusakan pada kabel/selang",
-            tipe_jawaban: "PILIHAN",
-          },
-          {
-            question_id: katId + "-Q007",
-            pertanyaan: "Area sekitar alat bersih dan aman",
-            tipe_jawaban: "PILIHAN",
-          },
-        ];
-      }
-
-      function demoTbContent(tipeId) {
-        return [
-          {
-            item_id: "TB001",
-            nama_item: "Kunci Ring 10-19mm (set)",
-            qty_standar: 1,
-          },
-          {
-            item_id: "TB002",
-            nama_item: "Kunci Pas 10-19mm (set)",
-            qty_standar: 1,
-          },
-          { item_id: "TB003", nama_item: "Obeng Plus (+)", qty_standar: 3 },
-          { item_id: "TB004", nama_item: "Obeng Minus (-)", qty_standar: 3 },
-          { item_id: "TB005", nama_item: "Tang Kombinasi", qty_standar: 2 },
-          { item_id: "TB006", nama_item: "Tang Potong", qty_standar: 1 },
-          { item_id: "TB007", nama_item: "Palu Besi", qty_standar: 1 },
-          { item_id: "TB008", nama_item: "Kunci L (Hex) Set", qty_standar: 1 },
-          { item_id: "TB009", nama_item: "Meteran 5m", qty_standar: 1 },
-          { item_id: "TB010", nama_item: "Senter", qty_standar: 1 },
-        ];
-      }
-
-      // ══════════════════════════════════════════════
-      // QR SCAN FUNCTIONS
-      // ══════════════════════════════════════════════
-      function showScanBanner(noId) {
-        if (!document.getElementById("scanBannerStyle")) {
-          const s = document.createElement("style");
-          s.id = "scanBannerStyle";
-          s.textContent = `
-      @keyframes sbSlideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
-      @keyframes sbProgress{from{width:0}to{width:90%}}
-      @keyframes sbDots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
-      #scanBanner{animation:sbSlideDown .35s cubic-bezier(.34,1.2,.64,1)}
-      .sb-dot::after{content:'';animation:sbDots 1.2s infinite}
-      .sb-progress-fill{animation:sbProgress 2s ease-out forwards}
-    `;
-          document.head.appendChild(s);
-        }
-        let b = document.getElementById("scanBanner");
-        if (!b) {
-          b = document.createElement("div");
-          b.id = "scanBanner";
-          Object.assign(b.style, {
-            position: "fixed",
-            top: "0",
-            left: "0",
-            right: "0",
-            zIndex: "9999",
-            background: "linear-gradient(135deg,#1B4FD8,#1338B0)",
-            color: "#fff",
-            fontFamily: "Inter,-apple-system,sans-serif",
-            boxShadow: "0 4px 20px rgba(27,79,216,.5)",
-            overflow: "hidden",
-          });
-          document.body.prepend(b);
-        }
-        b.innerHTML = `
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.2)">
-      <div class="sb-progress-fill" style="height:100%;background:rgba(255,255,255,.8);width:0"></div>
-    </div>
-    <div style="padding:12px 16px 14px;display:flex;align-items:center;gap:12px">
-      <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:20px">📷</div>
-      <div style="flex:1">
-        <div style="font-size:11px;opacity:.75">SCAN QR BERHASIL</div>
-        <div style="font-size:14px;font-weight:700">Memverifikasi <span style="font-family:monospace;background:rgba(255,255,255,.15);padding:1px 6px;border-radius:4px">${noId}</span><span class="sb-dot"></span></div>
-        <div style="font-size:11px;opacity:.6;margin-top:2px">Mengambil data dari database...</div>
-      </div>
-      <div style="width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></div>
-    </div>`;
-        document.body.style.paddingTop = "68px";
-      }
-
-      function hideScanBanner(status, msg, assetData) {
-        const b = document.getElementById("scanBanner");
-        if (!b) return;
-        const bg = {
-          found: "linear-gradient(135deg,#15803D,#16A34A)",
-          new: "linear-gradient(135deg,#B45309,#D97706)",
-          error: "linear-gradient(135deg,#B91C1C,#DC2626)",
-        };
-        const ic = { found: "✅", new: "🆕", error: "❌" };
-        b.style.background = bg[status] || bg.error;
-        const area = assetData?.nama_subarea || "";
-        b.innerHTML = `
-    <div style="padding:12px 16px 14px;display:flex;align-items:center;gap:12px">
-      <div style="font-size:24px">${ic[status] || "ℹ️"}</div>
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:700">${msg}</div>
-        ${area ? `<div style="font-size:11px;opacity:.8;margin-top:2px">📍 ${area}</div>` : ""}
-      </div>
-    </div>`;
-        setTimeout(() => {
-          b.style.transition = "transform .4s ease-in,opacity .4s";
-          b.style.transform = "translateY(-100%)";
-          b.style.opacity = "0";
-          setTimeout(() => {
-            b.remove();
-            document.body.style.paddingTop = "";
-          }, 400);
-        }, 3500);
-      }
-
-      function openQRScanner() {
-        const ret = encodeURIComponent(window.location.href.split("?")[0]);
-        window.location.href = "scan.html?return=" + ret;
-      }
-
-      // ══════════════════════════════════════════════
-      // LOGOUT
-      // ══════════════════════════════════════════════
-      function logout() {
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.replace("login.html?logout=1&t=" + Date.now());
-      }
-
-      // ── UTILITY FUNCTIONS ──
-      function showLoad(msg) {
-        let lo = document.getElementById("loadOverlay");
-        if (!lo) {
-          lo = document.createElement("div");
-          lo.id = "loadOverlay";
-          Object.assign(lo.style, {
-            position: "fixed",
-            inset: "0",
-            background: "rgba(255,255,255,.9)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: "9998",
-            fontFamily: "Inter,sans-serif",
-          });
-          lo.innerHTML = `<div style="width:36px;height:36px;border:3px solid #E5E9F0;border-top-color:#1B4FD8;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px"></div>
-      <div id="loadMsg" style="font-size:14px;color:#6B7494;font-weight:500">Memuat...</div>`;
-          document.body.appendChild(lo);
-        }
-        lo.style.display = "flex";
-        const m = document.getElementById("loadMsg");
-        if (m && msg) m.textContent = msg;
-      }
-
-      function hideLoad() {
-        const lo = document.getElementById("loadOverlay");
-        if (lo) lo.style.display = "none";
-      }
-
-      function fmtDate(d) {
-        if (!d) return "-";
-        try {
-          return new Date(d).toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          });
-        } catch (e) {
-          return d;
-        }
-      }
-
-      // ── RECOVERED FROM WORKING VERSION ──
-      function buildSuccess(result) {
-        document.getElementById("succId").textContent = result.inspeksi_id;
-        const subText =
-          document.getElementById("subSel").options[
-            document.getElementById("subSel").selectedIndex
-          ]?.text || "";
-        document.getElementById("succBox").innerHTML = `
-    <div>📍 <strong>${subText}</strong> · ${katName}</div>
-    <div>🔧 ${isTb ? tbTipeName : document.getElementById("namaAlat").value}</div>
-    <div>👤 ${document.getElementById("namaIns").value}</div>
-    ${
-      result.total_temuan > 0
-        ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
-      ⚠️ <strong>${result.total_temuan} temuan</strong> · Risiko: <strong>${selRisiko}</strong><br>
-      📧 Notifikasi dikirim ke PIC${picInfo ? " (" + picInfo.nama + ")" : ""}<br>
-      🗜️ ${fotos.length} foto dikompres & disimpan ke Drive
-    </div>`
-        : `<div style="color:var(--green);margin-top:6px;font-weight:600">✅ Tidak ada temuan</div>`
-    }`;
-      }
-
-      function compress(file, quality = 0.7, maxPx = 1280) {
-        return new Promise((resolve) => {
-          const img = new Image();
-          const rd = new FileReader();
-          rd.onload = (e) => {
-            img.src = e.target.result;
-            img.onload = () => {
-              const c = document.createElement("canvas");
-              let w = img.width,
-                h = img.height;
-              if (w > maxPx || h > maxPx) {
-                if (w > h) {
-                  h = Math.round((h / w) * maxPx);
-                  w = maxPx;
-                } else {
-                  w = Math.round((w / h) * maxPx);
-                  h = maxPx;
+            // ── STEP 3: REVIEW ──
+            function toStep3() {
+              if (!isTb) {
+                // Cek semua pertanyaan sudah dijawab
+                const unanswered = pertanyaan.filter(
+                  (p) => !answers[p.question_id]?.val,
+                );
+                if (unanswered.length > 0) {
+                  toast(`⚠️ ${unanswered.length} pertanyaan belum dijawab`, "warn");
+                  return;
+                }
+                // Cek remarks wajib untuk yang TIDAK
+                const noRemarks = pertanyaan.filter(
+                  (p) =>
+                    answers[p.question_id]?.val === "TIDAK" &&
+                    !answers[p.question_id]?.remarks?.trim(),
+                );
+                if (noRemarks.length > 0) {
+                  toast(
+                    `✏️ ${noRemarks.length} temuan wajib diisi remarks-nya`,
+                    "warn",
+                  );
+                  return;
+                }
+                // Kalau tidak ada temuan (semua YA/NA) → langsung submit
+                const hasTemuan = pertanyaan.some(
+                  (p) => answers[p.question_id]?.val === "TIDAK",
+                );
+                if (!hasTemuan) {
+                  doSubmit();
+                  return;
+                }
+              } else {
+                // Validasi: semua item wajib diisi aktual dan kondisi
+                const belumDiisi = tbContent.filter((item) => {
+                  const a = tbAnswers[item.asset_id || item.content_id];
+                  return (
+                    !a ||
+                    a.aktual === null ||
+                    a.aktual === undefined ||
+                    a.aktual === ""
+                  );
+                });
+                if (belumDiisi.length > 0) {
+                  toast(
+                    `⚠️ ${belumDiisi.length} item belum diisi qty aktualnya`,
+                    "warn",
+                  );
+                  return;
+                }
+                // Toolbox: cek remarks wajib untuk yang bermasalah
+                const noRemarks = tbContent.filter((item) => {
+                  const a = tbAnswers[item.content_id];
+                  if (!a) return false;
+                  const aktualDiisi = a.aktual !== "" && a.aktual !== "0";
+                  const isNg =
+                    a.kondisi === "RUSAK" ||
+                    a.kondisi === "HILANG" ||
+                    (aktualDiisi && parseInt(a.aktual) < parseInt(item.qty_standar));
+                  return isNg && !a.remarks?.trim();
+                });
+                if (noRemarks.length > 0) {
+                  toast(
+                    `✏️ ${noRemarks.length} item wajib diisi remarks-nya`,
+                    "warn",
+                  );
+                  return;
+                }
+                // Toolbox: kalau semua sesuai STD → langsung submit
+                const hasTbTemuan = tbContent.some((item) => {
+                  const a = tbAnswers[item.content_id];
+                  if (!a) return false;
+                  const aktualDiisi = a.aktual !== "" && a.aktual !== "0";
+                  return (
+                    a.kondisi === "RUSAK" ||
+                    a.kondisi === "HILANG" ||
+                    (aktualDiisi && parseInt(a.aktual) < parseInt(item.qty_standar))
+                  );
+                });
+                if (!hasTbTemuan) {
+                  doSubmit();
+                  return;
                 }
               }
-              c.width = w;
-              c.height = h;
-              c.getContext("2d").drawImage(img, 0, 0, w, h);
-              resolve(c.toDataURL("image/jpeg", quality));
-            };
-          };
-          rd.readAsDataURL(file);
-        });
-      }
+              // Ada temuan → ke review
+              buildReview();
+              goStep(3);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
 
-      function demoPIC(subId, katId, sec) {
-        const pics = {
-          "SA001-null": {
-            nama: "Zainal",
-            email: "zainaltyre@gmail.com",
-            is_delegate: false,
-          },
-          "SA001-Wheel": { nama: "Masduki", email: "", is_delegate: false },
-          "SA001-Rebuild": {
-            nama: "Zanuar Pribadi",
-            email: "",
-            is_delegate: false,
-          },
-          "SA003-null": {
-            nama: "M Yusuf Ismail",
-            email: "",
-            is_delegate: false,
-          },
-          "SA005-Digger": {
-            nama: "Ahmad Roqib",
-            email: "",
-            is_delegate: false,
-          },
-          "SA005-Auxiliary": {
-            nama: "Panbel Tua Girsang",
-            email: "",
-            is_delegate: false,
-          },
-          "SA006-null": { nama: "Riswanto", email: "", is_delegate: false },
-        };
-        const key = katId === "KT017" ? `${subId}-${sec}` : `${subId}-null`;
-        return pics[key] || { nama: "PIC Area", email: "", is_delegate: false };
-      }
+            // ── STEP 4: SELESAI ──
+            function toStep4() {
+              goStep(4);
+            }
 
-      function demoTbAset(subId) {
-        const base = [
-          {
-            asset_id: "TBA001",
-            nama_toolbox: "Toolbox No Brand",
-            tipe_id: "TBT001",
-          },
-          {
-            asset_id: "TBA002",
-            nama_toolbox: "Toolbox Elora",
-            tipe_id: "TBT002",
-          },
-          {
-            asset_id: "TBA003",
-            nama_toolbox: "Toolbox Blue Point",
-            tipe_id: "TBT003",
-          },
-          {
-            asset_id: "TBA004",
-            nama_toolbox: "Toolbox Strafco",
-            tipe_id: "TBT004",
-          },
-        ];
-        // SA001 punya section Wheel & Rebuild
-        if (subId === "SA001") {
-          return [
-            ...base.map((b) => ({
-              ...b,
-              section: "Wheel",
-              subarea_id: "SA001",
-            })),
-            ...base.map((b) => ({
-              ...b,
-              asset_id: b.asset_id + "R",
-              section: "Rebuild",
-              subarea_id: "SA001",
-            })),
-          ];
-        }
-        if (subId === "SA005") {
-          return [
-            ...base.map((b) => ({
-              ...b,
-              section: "Digger",
-              subarea_id: "SA005",
-            })),
-            ...base.map((b) => ({
-              ...b,
-              asset_id: b.asset_id + "A",
-              section: "Auxiliary",
-              subarea_id: "SA005",
-            })),
-          ];
-        }
-        return base.map((b) => ({ ...b, subarea_id: subId }));
-      }
+            // ── BUILD REVIEW ──
+            function buildReview() {
+              let total,
+                ok,
+                ng,
+                na,
+                items = [];
+              if (isTb) {
+                total = tbContent.length;
+                items = tbContent
+                  .filter((i) => {
+                    const a = tbAnswers[i.content_id];
+                    if (!a) return false;
+                    const aktDiisi = a.aktual !== "" && a.aktual !== "0";
+                    return (
+                      a.kondisi === "RUSAK" ||
+                      a.kondisi === "HILANG" ||
+                      (aktDiisi && parseInt(a.aktual) < parseInt(i.qty_standar))
+                    );
+                  })
+                  .map((i) => ({
+                    q: `${i.deskripsi} — ${tbAnswers[i.content_id].kondisi}`,
+                    rmk: tbAnswers[i.content_id].remarks || "",
+                  }));
+                ng = items.length;
+                ok = total - ng;
+                na = 0;
+              } else {
+                total = pertanyaan.length;
+                items = pertanyaan
+                  .filter(
+                    (p) =>
+                      answers[p.question_id]?.val === "TIDAK" ||
+                      answers[p.question_id]?.val === "MERAH",
+                  )
+                  .map((p) => ({
+                    q: p.pertanyaan,
+                    rmk: answers[p.question_id]?.remarks || "",
+                  }));
+                ng = items.length;
+                na = pertanyaan.filter(
+                  (p) => answers[p.question_id]?.val === "N/A",
+                ).length;
+                ok = total - ng - na;
+              }
+              document.getElementById("statRow").innerHTML = `
+          <div class="sc"><div class="sn">${total}</div><div class="sl">Total</div></div>
+          <div class="sc"><div class="sn" style="color:var(--green)">${ok}</div><div class="sl">OK</div></div>
+          <div class="sc"><div class="sn" style="color:var(--red)">${ng}</div><div class="sl">Temuan</div></div>
+          <div class="sc"><div class="sn" style="color:var(--muted)">${na}</div><div class="sl">N/A</div></div>`;
 
-      function getIntervalHari() {
-        const k = (M.kategori || []).find((k) => k.kategori_id === katId);
-        return parseInt(k?.interval_hari) || 30;
-      }
+              const listEl = document.getElementById("temuanList");
+              const noT = document.getElementById("noTemuan");
+              console.log(
+                "buildReview: ng=" +
+                  ng +
+                  ", items=" +
+                  items.length +
+                  ", listEl=" +
+                  !!listEl,
+              );
+              listEl.innerHTML = "";
+              selRisiko = "";
+              if (!items.length) {
+                noT.style.display = "block";
+                document.getElementById("critAlert").className = "crit-alert";
+                document.getElementById("fotoWarn").style.display = "none";
+                return;
+              }
+              noT.style.display = "none";
+              // Foto WAJIB min 1 maks 3
+              const fw = document.getElementById("fotoWarn");
+              if (fw) {
+                fw.style.display = "block";
+                fw.textContent =
+                  "📷 Wajib lampirkan foto (min 1, maks 3) — dikompres otomatis";
+              }
 
-      function onFoto(input) {
-        const files = Array.from(input.files).slice(0, 3 - fotos.length);
-        if (fotos.length >= 3) {
-          toast("Maksimal 3 foto", "warn");
-          input.value = "";
-          return;
-        }
-        files.forEach((f) => {
-          if (fotos.length < 3) fotos.push(f);
-        });
-        renderPhotos();
-        input.value = "";
-      }
+              const rOpts = [
+                { v: "LOW", l: "Low — 14 hari", c: "sel-low" },
+                { v: "MEDIUM", l: "Medium — 7 hari", c: "sel-medium" },
+                { v: "HIGH", l: "High — 3 hari", c: "sel-high" },
+                { v: "CRITICAL", l: "Critical — 1 hari", c: "sel-critical" },
+              ];
+              listEl.innerHTML = `
+          <div style="margin-bottom:14px;padding:12px;background:var(--surface2);border-radius:10px;border:1.5px solid var(--border)">
+            <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.3px">Tingkat Risiko Keseluruhan *</div>
+            <div class="risk-row">${rOpts.map((r) => `<button class="rrb" data-v="${r.v}" onclick="pickRisiko('${r.v}','${r.c}',this)">${r.l}</button>`).join("")}</div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px">Daftar Temuan (${items.length})</div>
+          ${items
+            .map(
+              (t) => `<div class="tc">
+            <div class="tc-title">⚠️ ${t.q}</div>
+            <div class="tc-rmk">${t.rmk || '<span style="color:var(--muted2);font-style:italic">Tidak ada remarks</span>'}</div>
+          </div>`,
+            )
+            .join("")}`;
+            }
 
-      function pickRisiko(v, cls, btn) {
-        selRisiko = v;
-        document.querySelectorAll(".rrb").forEach((b) => (b.className = "rrb"));
-        btn.className = "rrb " + cls;
-        // Alert CRITICAL
-        document.getElementById("critAlert").className =
-          "crit-alert" + (v === "CRITICAL" ? " show" : "");
-        // Foto wajib untuk SEMUA risiko
-        document.getElementById("fotoWarn").style.display = "block";
-        document.getElementById("fotoWarn").textContent =
-          "📷 Foto wajib untuk semua tingkat risiko — " + v;
-      }
+            // ── RENDER CHECKLIST ──
+            function renderCheck() {
+              const tbody = document.getElementById("checkBody");
+              console.log(
+                "renderCheck called, pertanyaan:",
+                pertanyaan.length,
+                "tbody:",
+                tbody,
+              );
+              if (!pertanyaan.length) {
+                tbody.innerHTML =
+                  '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada pertanyaan</td></tr>';
+                return;
+              }
+              let filled = 0;
+              tbody.innerHTML = "";
+              pertanyaan.forEach((item, i) => {
+                const a = answers[item.question_id] || { val: "", remarks: "" };
+                if (a.val) filled++;
+                const isNg = a.val === "TIDAK" || a.val === "MERAH";
+                const tr = document.createElement("tr");
+                if (isNg) tr.classList.add("ng");
+                const qid = item.question_id;
+                let inp = "";
+                if (item.tipe_jawaban === "PILIHAN") {
+                  inp = `<div class="rg">
+              <button class="rb ya${a.val === "YA" ? " sel" : ""}" onclick="setA('${qid}','YA')">YA</button>
+              <button class="rb tidak${a.val === "TIDAK" ? " sel" : ""}" onclick="setA('${qid}','TIDAK')">TIDAK</button>
+              <button class="rb na${a.val === "N/A" ? " sel" : ""}" onclick="setA('${qid}','N/A')">N/A</button>
+            </div>`;
+                } else if (item.tipe_jawaban === "ANGKA") {
+                  inp = `<input type="number" inputmode="numeric" style="width:80px;border:1.5px solid var(--border);border-radius:7px;padding:8px;font-size:15px;background:#fff;text-align:center" value="${a.val || ""}" onchange="setAV('${qid}',this.value)">`;
+                } else if (item.tipe_jawaban === "TEKS") {
+                  inp = `<input type="text" style="width:100%;border:1.5px solid var(--border);border-radius:7px;padding:8px;font-size:14px;background:#fff" value="${a.val || ""}" onchange="setAV('${qid}',this.value)">`;
+                } else if (item.tipe_jawaban === "TANGGAL") {
+                  inp = `<input type="date" style="border:1.5px solid var(--border);border-radius:7px;padding:8px;font-size:14px;background:#fff" value="${a.val || ""}" onchange="setAV('${qid}',this.value)">`;
+                } else if (item.tipe_jawaban === "PILIHAN_KUSTOM") {
+                  const opts = (item.pilihan_jawaban || "")
+                    .split(",")
+                    .map((o) => o.trim())
+                    .filter(Boolean);
+                  inp = `<div class="rg">${opts.map((o) => `<button class="rb opt${a.val === o ? " sel" : ""}" onclick="setA('${qid}','${o}')">${o}</button>`).join("")}</div>`;
+                }
+                let stat = "";
+                if (a.val) {
+                  if (isNg) stat = '<span class="sdot sd-ng">✗</span>';
+                  else if (a.val === "N/A")
+                    stat = '<span class="sdot sd-na">N/A</span>';
+                  else stat = '<span class="sdot sd-ok">✓</span>';
+                } else if (
+                  item.tipe_jawaban === "PILIHAN" ||
+                  item.tipe_jawaban === "PILIHAN_KUSTOM"
+                ) {
+                  stat =
+                    '<span class="sdot" style="background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-bd)">?</span>';
+                }
+                tr.innerHTML = `
+            <td style="color:var(--muted2);font-size:10px;font-weight:700">${i + 1}</td>
+            <td style="font-size:13px;line-height:1.5;font-weight:${isNg ? 600 : 400}">${item.pertanyaan}</td>
+            <td>${inp}</td>
+            <td style="text-align:center">${stat}</td>`;
+                tbody.appendChild(tr);
+                if (isNg) {
+                  const rr = document.createElement("tr");
+                  rr.classList.add("ng");
+                  const hasRmk = a.remarks?.trim().length > 0;
+                  rr.innerHTML = `<td></td><td colspan="3">
+              <div class="rmk-wrap" style="border:1.5px solid ${hasRmk ? "var(--green-bd)" : "var(--red-bd)"};border-radius:8px;padding:8px 10px;background:${hasRmk ? "var(--green-bg)" : "var(--red-bg)"};margin:4px 0">
+                <div class="rmk-lbl" style="color:${hasRmk ? "var(--green)" : "var(--red)"};font-size:11px;font-weight:700;margin-bottom:4px">✏️ Remarks — Jelaskan kondisi * ${hasRmk ? "✓" : ""}</div>
+                <textarea class="rmk-inp" rows="2"
+                    style="width:100%;border:none;background:transparent;font-size:13px;font-family:inherit;resize:vertical;outline:none;color:var(--text)"
+                      placeholder="Jelaskan kondisi yang ditemukan..."
+                      oninput="setR('${qid}',this.value)"
+                      onblur="renderCheck()">${a.remarks || ""}</textarea>
+              </div></td>`;
+                  tbody.appendChild(rr);
+                }
+              });
+              document.getElementById("progNote").textContent =
+                `${filled} / ${pertanyaan.length} diisi`;
+              const ng = pertanyaan.filter(
+                (p) => answers[p.question_id]?.val === "TIDAK",
+              ).length;
+              document.getElementById("fillNote").textContent =
+                ng > 0 ? `${ng} temuan` : "";
+            }
 
-      function renderPhotos() {
-        const row = document.getElementById("pRow");
-        row.innerHTML = "";
-        fotos.forEach((f, i) => {
-          const rd = new FileReader();
-          rd.onload = (e) => {
-            const w = document.createElement("div");
-            w.style.position = "relative";
-            const img = document.createElement("img");
-            img.src = e.target.result;
-            img.className = "pthumb";
-            const del = document.createElement("div");
-            del.className = "pdel";
-            del.textContent = "✕";
-            del.onclick = () => {
-              fotos.splice(i, 1);
+            function setAns(i, val) {
+              answers[i] = val;
+              renderCheck();
+              // Update stat row
+              updateStatRow();
+            }
+
+            function setRem(i, val) {
+              if (pertanyaan[i]) pertanyaan[i]._rem = val;
+            }
+
+            function updateStatRow() {
+              const el = document.getElementById("statRow");
+              if (!el) return;
+              const total = pertanyaan.length;
+              const ok = Object.values(answers).filter((v) => v === "OK").length;
+              const ng = Object.values(answers).filter((v) => v === "NG").length;
+              const pct = total > 0 ? Math.round((ok / total) * 100) : 0;
+              el.innerHTML = `
+          <div class="scard"><div class="sc-val">${total}</div><div class="sc-lbl">Total</div></div>
+          <div class="scard"><div class="sc-val" style="color:#16A34A">${ok}</div><div class="sc-lbl">OK</div></div>
+          <div class="scard"><div class="sc-val" style="color:#DC2626">${ng}</div><div class="sc-lbl">NG</div></div>
+          <div class="scard"><div class="sc-val" style="color:#1B4FD8">${pct}%</div><div class="sc-lbl">Score</div></div>`;
+            }
+
+            // ── RENDER TOOLBOX ──
+            // ── RENDER TOOLBOX ──
+            function renderTb() {
+              const tbody = document.getElementById("tbBody");
+              document.getElementById("tbTitle").textContent =
+                tbTipeName + (selSec ? " — " + selSec : "");
+              document.getElementById("tbCount").textContent =
+                tbContent.length + " item";
+              if (!tbContent.length) {
+                tbody.innerHTML =
+                  '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada item</td></tr>';
+                return;
+              }
+              tbody.innerHTML = "";
+              tbContent.forEach((item, i) => {
+                const cid = item.asset_id || item.content_id;
+                const a = tbAnswers[cid] || {
+                  aktual: null,
+                  kondisi: "BAIK",
+                  remarks: "",
+                };
+                const aktualNum = Number(a.aktual);
+                const stdNum = parseInt(item.qty_standar);
+                const aktualDiisi = a.aktual !== null && a.aktual !== "";
+                const isNg =
+                  a.kondisi === "RUSAK" ||
+                  a.kondisi === "HILANG" ||
+                  (aktualDiisi && !isNaN(aktualNum) && aktualNum < stdNum);
+                const tr = document.createElement("tr");
+                tr.setAttribute("data-cid", cid);
+                if (isNg) tr.classList.add("tb-ng");
+
+                const rmkHtml = isNg
+                  ? `
+            <div style="margin-top:6px;border:1.5px solid ${a.remarks?.trim() ? "var(--green-bd)" : "var(--red-bd)"};border-radius:8px;padding:6px 8px;background:${a.remarks?.trim() ? "var(--green-bg)" : "var(--red-bg)"}">
+              <div style="font-size:10px;font-weight:700;color:${a.remarks?.trim() ? "var(--green)" : "var(--red)"};margin-bottom:3px">✏️ Keterangan wajib * ${a.remarks?.trim() ? "✓" : ""}</div>
+              <textarea rows="2" placeholder="Jelaskan kondisi / tindakan yang diambil..."
+                style="width:100%;border:none;background:transparent;font-size:12px;font-family:inherit;resize:none;outline:none;color:var(--text)"
+                data-cid="${cid}" data-field="remarks">${a.remarks || ""}</textarea>
+            </div>`
+                  : "";
+
+                tr.innerHTML = `
+            <td style="color:var(--muted2);font-size:10px;font-weight:700">${i + 1}</td>
+            <td style="font-size:13px;line-height:1.4;font-weight:${isNg ? 600 : 400}">
+              <span>${item.deskripsi}</span>${rmkHtml}
+            </td>
+            <td style="text-align:center;font-weight:700;font-size:13px">${item.qty_standar}</td>
+            <td><input type="number" inputmode="numeric" min="0" placeholder="0"
+                value="${aktualDiisi ? a.aktual : ""}"
+                data-cid="${cid}" data-field="aktual" data-std="${item.qty_standar}"
+                style="width:52px;text-align:center;font-size:16px;border:1.5px solid var(--border);border-radius:6px;padding:6px 4px;background:#fff"></td>
+            <td style="font-size:11px;color:var(--muted)">${item.unit}</td>
+            <td><select data-cid="${cid}" data-field="kondisi" data-std="${item.qty_standar}"
+                style="font-size:13px;padding:6px;border:1.5px solid var(--border);border-radius:6px;background:#fff">
+              <option value="BAIK" ${a.kondisi === "BAIK" || !a.kondisi ? "selected" : ""}>BAIK</option>
+              <option value="RUSAK" ${a.kondisi === "RUSAK" ? "selected" : ""}>RUSAK</option>
+              <option value="HILANG" ${a.kondisi === "HILANG" ? "selected" : ""}>HILANG</option>
+            </select></td>`;
+                tbody.appendChild(tr);
+              });
+
+              // Event delegation — tidak pakai inline onchange/oninput
+              tbody.querySelectorAll('input[data-field="aktual"]').forEach((el) => {
+                el.oninput = function () {
+                  setTb(this.dataset.cid, "aktual", this.value, this.dataset.std);
+                };
+                el.onblur = function () {
+                  renderTb();
+                };
+              });
+              tbody.querySelectorAll('select[data-field="kondisi"]').forEach((el) => {
+                el.onchange = function () {
+                  setTb(this.dataset.cid, "kondisi", this.value, this.dataset.std);
+                  renderTb();
+                };
+              });
+              tbody
+                .querySelectorAll('textarea[data-field="remarks"]')
+                .forEach((el) => {
+                  el.oninput = function () {
+                    setTb(this.dataset.cid, "remarks", this.value, "");
+                  };
+                  el.onblur = function () {
+                    renderTb();
+                  };
+                });
+
+              const ng = tbContent.filter((i) => {
+                const a = tbAnswers[i.content_id];
+                return a && (a.kondisi === "RUSAK" || a.kondisi === "HILANG");
+              }).length;
+              document.getElementById("progNote").textContent =
+                ng > 0 ? `${ng} temuan` : "Isi qty & kondisi";
+              document.getElementById("fillNote").textContent =
+                ng > 0 ? `${ng} temuan toolbox` : "";
+            }
+
+            function setTb(cid, field, val, std) {
+              if (!tbAnswers[cid])
+                tbAnswers[cid] = { aktual: null, kondisi: "BAIK", remarks: "" };
+              if (field === "aktual") {
+                tbAnswers[cid][field] = val === "" ? null : Number(val);
+              } else {
+                tbAnswers[cid][field] = val;
+              }
+            }
+
+            // ── SUBMIT ──
+            async function doSubmit() {
+              const hasT = isTb
+                ? tbContent.some((i) => {
+                    const a = tbAnswers[i.content_id];
+                    return a && (a.kondisi === "RUSAK" || a.kondisi === "HILANG");
+                  })
+                : pertanyaan.some((p) => answers[p.question_id]?.val === "TIDAK");
+
+              if (hasT && !selRisiko) {
+                toast("⚠️ Pilih tingkat risiko dulu", "warn");
+                return;
+              }
+              if (hasT && fotos.length === 0) {
+                toast("⚠️ Foto wajib dilampirkan untuk semua tingkat risiko", "warn");
+                return;
+              }
+
+              const btn = document.getElementById("btnSub");
+              btn.disabled = true;
+              document.getElementById("subIco").textContent = "⏳";
+              document.getElementById("subTxt").textContent = "Menyimpan...";
+
+              // Kompres foto
+              const fotoData = [];
+              for (let i = 0; i < fotos.length; i++) {
+                showLoad(`Mengompres foto ${i + 1}/${fotos.length}...`);
+                const comp = await compress(fotos[i]);
+                fotoData.push({
+                  name: `before_${i + 1}.jpg`,
+                  data: comp.split(",")[1],
+                });
+              }
+              showLoad("Menyimpan ke database...");
+
+              const sub = document.getElementById("subSel");
+              const area = document.getElementById("areaSel");
+              const compSel = document.getElementById("compSel");
+              const tbNoVal = isTb
+                ? document.getElementById("tbNoAsset")?.value?.trim().toUpperCase() ||
+                  ""
+                : "";
+              const tbNamaManual =
+                document.getElementById("tbNamaManual")?.value?.trim() || "";
+
+              const meta = {
+                tanggal_inspeksi: document.getElementById("tgl").value,
+                company_id: compSel.value,
+                nama_perusahaan: compSel.options[compSel.selectedIndex]?.text || "",
+                area_id: area.value,
+                nama_area: area.options[area.selectedIndex]?.text || "",
+                subarea_id: sub.value,
+                nama_subarea: sub.options[sub.selectedIndex]?.text || "",
+                kategori_id: katId,
+                nama_kategori: katName,
+
+                // Nama alat — toolbox pakai nama manual kalau belum terdaftar
+                nama_alat: isTb
+                  ? tbIsRegistered
+                    ? tbTipeName
+                    : tbNamaManual || "Toolbox " + tbTipeName
+                  : document.getElementById("namaAlat").value,
+                tanggal_inspeksi: document.getElementById("tgl").value,
+
+                merk: isTb ? "" : document.getElementById("merkAlat")?.value || "",
+
+                // no_id hanya untuk alat biasa, toolbox pakai no_toolbox
+                no_id: isTb ? "" : document.getElementById("noId").value,
+                no_asset: isTb ? "" : document.getElementById("noAsset").value,
+                asset_id: isTb ? window._tbAssetId || "" : window._assetId || "",
+
+                nik_inspektor: document.getElementById("nikIns").value,
+                nama_inspektor: document.getElementById("namaIns").value,
+                risiko: selRisiko || "LOW",
+                is_toolbox: isTb,
+                toolbox_aset_id: isTb ? window._tbAssetId || "" : "", // akan diisi dari asset_id hasil lookup kalau terdaftar
+                section: selSec || "",
+                inspection_source: "HTML",
+                ada_temuan: hasT ? "Y" : "N",
+                interval_hari: getIntervalHari(),
+
+                // Toolbox specific
+                no_toolbox: tbNoVal,
+                tipe_toolbox_id: isTb ? tbTipeId : "",
+                marking: document.getElementById("markingAlat")?.value?.trim() || "",
+                spesifikasi:
+                  document.getElementById("spesifikasiAlat")?.value?.trim() || "",
+              };
+
+              const detail = isTb
+                ? []
+                : pertanyaan.map((p) => ({
+                    question_id: p.question_id,
+                    pertanyaan: p.pertanyaan,
+                    jawaban: answers[p.question_id]?.val || "",
+                    remarks: answers[p.question_id]?.remarks || "",
+                    ada_temuan: answers[p.question_id]?.val === "TIDAK" ? "Y" : "N",
+                  }));
+
+              const toolbox = isTb
+                ? tbContent.map((t) => ({
+                    content_id: t.content_id,
+                    deskripsi: t.deskripsi,
+                    part_number: t.part_number || "",
+                    qty_standar: t.qty_standar,
+                    qty_aktual: tbAnswers[t.content_id]?.aktual || 0,
+                    unit: t.unit,
+                    kondisi: tbAnswers[t.content_id]?.kondisi || "BAIK",
+                    remarks: tbAnswers[t.content_id]?.remarks || "",
+                    ada_temuan:
+                      tbAnswers[t.content_id]?.kondisi === "RUSAK" ||
+                      tbAnswers[t.content_id]?.kondisi === "HILANG"
+                        ? "Y"
+                        : "N",
+                  }))
+                : [];
+
+              try {
+                const res = await fetch(APPS_SCRIPT_URL, {
+                  method: "POST",
+                  body: JSON.stringify({
+                    action: "saveInspeksi",
+                    meta,
+                    detail,
+                    toolbox,
+                    foto_temuan: fotoData,
+                  }),
+                });
+                const json = await res.json();
+                hideLoad();
+                if (json.status === "ok") {
+                  buildSuccess(json);
+                  goStep(4);
+                } else {
+                  toast("❌ Gagal: " + json.message, "error");
+                }
+              } catch (e) {
+                hideLoad();
+                // Demo mode
+                buildSuccess({
+                  inspeksi_id:
+                    "INS-2026-" +
+                    String(Math.floor(Math.random() * 9999) + 1).padStart(6, "0"),
+                  total_temuan: hasT ? 1 : 0,
+                  ada_temuan: hasT ? "Y" : "N",
+                });
+                goStep(4);
+              }
+
+              btn.disabled = false;
+              document.getElementById("subIco").textContent = "✅";
+              document.getElementById("subTxt").textContent = "Submit Inspeksi";
+            }
+
+            // ══════════════════════════════════════════════
+            // DEMO DATA FUNCTIONS
+            // ══════════════════════════════════════════════
+            function demoMaster() {
+              return {
+                companies: [
+                  { company_id: "CMP001", nama_perusahaan: "PT Cipta Kridatama" },
+                ],
+                areas: [{ area_id: "AR001", nama_area: "KGB" }],
+                subareas: [
+                  {
+                    subarea_id: "SA001",
+                    area_id: "AR001",
+                    nama_subarea: "WS HE CIA",
+                  },
+                  { subarea_id: "SA002", area_id: "AR001", nama_subarea: "BAY CP" },
+                  { subarea_id: "SA003", area_id: "AR001", nama_subarea: "WS Tyre" },
+                  { subarea_id: "SA004", area_id: "AR001", nama_subarea: "GRB" },
+                ],
+                kategoris: [
+                  {
+                    kategori_id: "KT001",
+                    subarea_id: "SA001",
+                    nama_kategori: "Alat Berat",
+                    tipe: "CHECK",
+                  },
+                  {
+                    kategori_id: "KT002",
+                    subarea_id: "SA001",
+                    nama_kategori: "Dump Truck",
+                    tipe: "CHECK",
+                  },
+                  {
+                    kategori_id: "KT003",
+                    subarea_id: "SA001",
+                    nama_kategori: "Alat Listrik Portable",
+                    tipe: "CHECK",
+                  },
+                  {
+                    kategori_id: "KT004",
+                    subarea_id: "SA001",
+                    nama_kategori: "Jack Stand",
+                    tipe: "CHECK",
+                  },
+                  {
+                    kategori_id: "KT005",
+                    subarea_id: "SA001",
+                    nama_kategori: "Apar",
+                    tipe: "CHECK",
+                  },
+                  {
+                    kategori_id: "KT006",
+                    subarea_id: "SA001",
+                    nama_kategori: "Kompresor",
+                    tipe: "CHECK",
+                  },
+                  {
+                    kategori_id: "KT007",
+                    subarea_id: "SA001",
+                    nama_kategori: "Crane Workshop",
+                    tipe: "CHECK",
+                  },
+                  {
+                    kategori_id: "KT017",
+                    subarea_id: "SA001",
+                    nama_kategori: "Toolbox Inventory",
+                    tipe: "TOOLBOX_INVENTORY",
+                  },
+                ],
+                pics: {},
+              };
+            }
+
+            function demoPertanyaan(katId) {
+              return [
+                {
+                  question_id: katId + "-Q001",
+                  pertanyaan: "Kondisi fisik alat baik (tidak rusak/retak)",
+                  tipe_jawaban: "PILIHAN",
+                },
+                {
+                  question_id: katId + "-Q002",
+                  pertanyaan: "Tidak ada kebocoran oli/bahan bakar",
+                  tipe_jawaban: "PILIHAN",
+                },
+                {
+                  question_id: katId + "-Q003",
+                  pertanyaan: "Semua baut dan mur terpasang dengan kencang",
+                  tipe_jawaban: "PILIHAN",
+                },
+                {
+                  question_id: katId + "-Q004",
+                  pertanyaan: "Label/stiker identifikasi alat terbaca jelas",
+                  tipe_jawaban: "PILIHAN",
+                },
+                {
+                  question_id: katId + "-Q005",
+                  pertanyaan: "Alat berfungsi normal sesuai peruntukannya",
+                  tipe_jawaban: "PILIHAN",
+                },
+                {
+                  question_id: katId + "-Q006",
+                  pertanyaan: "Tidak ada kerusakan pada kabel/selang",
+                  tipe_jawaban: "PILIHAN",
+                },
+                {
+                  question_id: katId + "-Q007",
+                  pertanyaan: "Area sekitar alat bersih dan aman",
+                  tipe_jawaban: "PILIHAN",
+                },
+              ];
+            }
+
+            function demoTbContent(tipeId) {
+              return [
+                {
+                  item_id: "TB001",
+                  nama_item: "Kunci Ring 10-19mm (set)",
+                  qty_standar: 1,
+                },
+                {
+                  item_id: "TB002",
+                  nama_item: "Kunci Pas 10-19mm (set)",
+                  qty_standar: 1,
+                },
+                { item_id: "TB003", nama_item: "Obeng Plus (+)", qty_standar: 3 },
+                { item_id: "TB004", nama_item: "Obeng Minus (-)", qty_standar: 3 },
+                { item_id: "TB005", nama_item: "Tang Kombinasi", qty_standar: 2 },
+                { item_id: "TB006", nama_item: "Tang Potong", qty_standar: 1 },
+                { item_id: "TB007", nama_item: "Palu Besi", qty_standar: 1 },
+                { item_id: "TB008", nama_item: "Kunci L (Hex) Set", qty_standar: 1 },
+                { item_id: "TB009", nama_item: "Meteran 5m", qty_standar: 1 },
+                { item_id: "TB010", nama_item: "Senter", qty_standar: 1 },
+              ];
+            }
+
+            // ══════════════════════════════════════════════
+            // QR SCAN FUNCTIONS
+            // ══════════════════════════════════════════════
+            function showScanBanner(noId) {
+              if (!document.getElementById("scanBannerStyle")) {
+                const s = document.createElement("style");
+                s.id = "scanBannerStyle";
+                s.textContent = `
+            @keyframes sbSlideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+            @keyframes sbProgress{from{width:0}to{width:90%}}
+            @keyframes sbDots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+            #scanBanner{animation:sbSlideDown .35s cubic-bezier(.34,1.2,.64,1)}
+            .sb-dot::after{content:'';animation:sbDots 1.2s infinite}
+            .sb-progress-fill{animation:sbProgress 2s ease-out forwards}
+          `;
+                document.head.appendChild(s);
+              }
+              let b = document.getElementById("scanBanner");
+              if (!b) {
+                b = document.createElement("div");
+                b.id = "scanBanner";
+                Object.assign(b.style, {
+                  position: "fixed",
+                  top: "0",
+                  left: "0",
+                  right: "0",
+                  zIndex: "9999",
+                  background: "linear-gradient(135deg,#1B4FD8,#1338B0)",
+                  color: "#fff",
+                  fontFamily: "Inter,-apple-system,sans-serif",
+                  boxShadow: "0 4px 20px rgba(27,79,216,.5)",
+                  overflow: "hidden",
+                });
+                document.body.prepend(b);
+              }
+              b.innerHTML = `
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.2)">
+            <div class="sb-progress-fill" style="height:100%;background:rgba(255,255,255,.8);width:0"></div>
+          </div>
+          <div style="padding:12px 16px 14px;display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:20px">📷</div>
+            <div style="flex:1">
+              <div style="font-size:11px;opacity:.75">SCAN QR BERHASIL</div>
+              <div style="font-size:14px;font-weight:700">Memverifikasi <span style="font-family:monospace;background:rgba(255,255,255,.15);padding:1px 6px;border-radius:4px">${noId}</span><span class="sb-dot"></span></div>
+              <div style="font-size:11px;opacity:.6;margin-top:2px">Mengambil data dari database...</div>
+            </div>
+            <div style="width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></div>
+          </div>`;
+              document.body.style.paddingTop = "68px";
+            }
+
+            function hideScanBanner(status, msg, assetData) {
+              const b = document.getElementById("scanBanner");
+              if (!b) return;
+              const bg = {
+                found: "linear-gradient(135deg,#15803D,#16A34A)",
+                new: "linear-gradient(135deg,#B45309,#D97706)",
+                error: "linear-gradient(135deg,#B91C1C,#DC2626)",
+              };
+              const ic = { found: "✅", new: "🆕", error: "❌" };
+              b.style.background = bg[status] || bg.error;
+              const area = assetData?.nama_subarea || "";
+              b.innerHTML = `
+          <div style="padding:12px 16px 14px;display:flex;align-items:center;gap:12px">
+            <div style="font-size:24px">${ic[status] || "ℹ️"}</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700">${msg}</div>
+              ${area ? `<div style="font-size:11px;opacity:.8;margin-top:2px">📍 ${area}</div>` : ""}
+            </div>
+          </div>`;
+              setTimeout(() => {
+                b.style.transition = "transform .4s ease-in,opacity .4s";
+                b.style.transform = "translateY(-100%)";
+                b.style.opacity = "0";
+                setTimeout(() => {
+                  b.remove();
+                  document.body.style.paddingTop = "";
+                }, 400);
+              }, 3500);
+            }
+
+            function openQRScanner() {
+              const ret = encodeURIComponent(window.location.href.split("?")[0]);
+              window.location.href = "scan.html?return=" + ret;
+            }
+
+            // ══════════════════════════════════════════════
+            // LOGOUT
+            // ══════════════════════════════════════════════
+            function logout() {
+              localStorage.clear();
+              sessionStorage.clear();
+              window.location.replace("login.html?logout=1&t=" + Date.now());
+            }
+
+            // ── UTILITY FUNCTIONS ──
+            function showLoad(msg) {
+              let lo = document.getElementById("loadOverlay");
+              if (!lo) {
+                lo = document.createElement("div");
+                lo.id = "loadOverlay";
+                Object.assign(lo.style, {
+                  position: "fixed",
+                  inset: "0",
+                  background: "rgba(255,255,255,.9)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: "9998",
+                  fontFamily: "Inter,sans-serif",
+                });
+                lo.innerHTML = `<div style="width:36px;height:36px;border:3px solid #E5E9F0;border-top-color:#1B4FD8;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px"></div>
+            <div id="loadMsg" style="font-size:14px;color:#6B7494;font-weight:500">Memuat...</div>`;
+                document.body.appendChild(lo);
+              }
+              lo.style.display = "flex";
+              const m = document.getElementById("loadMsg");
+              if (m && msg) m.textContent = msg;
+            }
+
+            function hideLoad() {
+              const lo = document.getElementById("loadOverlay");
+              if (lo) lo.style.display = "none";
+            }
+
+            function fmtDate(d) {
+              if (!d) return "-";
+              try {
+                return new Date(d).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                });
+              } catch (e) {
+                return d;
+              }
+            }
+
+            // ── RECOVERED FROM WORKING VERSION ──
+            function buildSuccess(result) {
+              document.getElementById("succId").textContent = result.inspeksi_id;
+              const subText =
+                document.getElementById("subSel").options[
+                  document.getElementById("subSel").selectedIndex
+                ]?.text || "";
+              document.getElementById("succBox").innerHTML = `
+          <div>📍 <strong>${subText}</strong> · ${katName}</div>
+          <div>🔧 ${isTb ? tbTipeName : document.getElementById("namaAlat").value}</div>
+          <div>👤 ${document.getElementById("namaIns").value}</div>
+          ${
+            result.total_temuan > 0
+              ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+            ⚠️ <strong>${result.total_temuan} temuan</strong> · Risiko: <strong>${selRisiko}</strong><br>
+            📧 Notifikasi dikirim ke PIC${picInfo ? " (" + picInfo.nama + ")" : ""}<br>
+            🗜️ ${fotos.length} foto dikompres & disimpan ke Drive
+          </div>`
+              : `<div style="color:var(--green);margin-top:6px;font-weight:600">✅ Tidak ada temuan</div>`
+          }`;
+            }
+
+            function compress(file, quality = 0.7, maxPx = 1280) {
+              return new Promise((resolve) => {
+                const img = new Image();
+                const rd = new FileReader();
+                rd.onload = (e) => {
+                  img.src = e.target.result;
+                  img.onload = () => {
+                    const c = document.createElement("canvas");
+                    let w = img.width,
+                      h = img.height;
+                    if (w > maxPx || h > maxPx) {
+                      if (w > h) {
+                        h = Math.round((h / w) * maxPx);
+                        w = maxPx;
+                      } else {
+                        w = Math.round((w / h) * maxPx);
+                        h = maxPx;
+                      }
+                    }
+                    c.width = w;
+                    c.height = h;
+                    c.getContext("2d").drawImage(img, 0, 0, w, h);
+                    resolve(c.toDataURL("image/jpeg", quality));
+                  };
+                };
+                rd.readAsDataURL(file);
+              });
+            }
+
+            function demoPIC(subId, katId, sec) {
+              const pics = {
+                "SA001-null": {
+                  nama: "Zainal",
+                  email: "zainaltyre@gmail.com",
+                  is_delegate: false,
+                },
+                "SA001-Wheel": { nama: "Masduki", email: "", is_delegate: false },
+                "SA001-Rebuild": {
+                  nama: "Zanuar Pribadi",
+                  email: "",
+                  is_delegate: false,
+                },
+                "SA003-null": {
+                  nama: "M Yusuf Ismail",
+                  email: "",
+                  is_delegate: false,
+                },
+                "SA005-Digger": {
+                  nama: "Ahmad Roqib",
+                  email: "",
+                  is_delegate: false,
+                },
+                "SA005-Auxiliary": {
+                  nama: "Panbel Tua Girsang",
+                  email: "",
+                  is_delegate: false,
+                },
+                "SA006-null": { nama: "Riswanto", email: "", is_delegate: false },
+              };
+              const key = katId === "KT017" ? `${subId}-${sec}` : `${subId}-null`;
+              return pics[key] || { nama: "PIC Area", email: "", is_delegate: false };
+            }
+
+            function demoTbAset(subId) {
+              const base = [
+                {
+                  asset_id: "TBA001",
+                  nama_toolbox: "Toolbox No Brand",
+                  tipe_id: "TBT001",
+                },
+                {
+                  asset_id: "TBA002",
+                  nama_toolbox: "Toolbox Elora",
+                  tipe_id: "TBT002",
+                },
+                {
+                  asset_id: "TBA003",
+                  nama_toolbox: "Toolbox Blue Point",
+                  tipe_id: "TBT003",
+                },
+                {
+                  asset_id: "TBA004",
+                  nama_toolbox: "Toolbox Strafco",
+                  tipe_id: "TBT004",
+                },
+              ];
+              // SA001 punya section Wheel & Rebuild
+              if (subId === "SA001") {
+                return [
+                  ...base.map((b) => ({
+                    ...b,
+                    section: "Wheel",
+                    subarea_id: "SA001",
+                  })),
+                  ...base.map((b) => ({
+                    ...b,
+                    asset_id: b.asset_id + "R",
+                    section: "Rebuild",
+                    subarea_id: "SA001",
+                  })),
+                ];
+              }
+              if (subId === "SA005") {
+                return [
+                  ...base.map((b) => ({
+                    ...b,
+                    section: "Digger",
+                    subarea_id: "SA005",
+                  })),
+                  ...base.map((b) => ({
+                    ...b,
+                    asset_id: b.asset_id + "A",
+                    section: "Auxiliary",
+                    subarea_id: "SA005",
+                  })),
+                ];
+              }
+              return base.map((b) => ({ ...b, subarea_id: subId }));
+            }
+
+            function getIntervalHari() {
+              const k = (M.kategori || []).find((k) => k.kategori_id === katId);
+              return parseInt(k?.interval_hari) || 30;
+            }
+
+            function onFoto(input) {
+              const files = Array.from(input.files).slice(0, 3 - fotos.length);
+              if (fotos.length >= 3) {
+                toast("Maksimal 3 foto", "warn");
+                input.value = "";
+                return;
+              }
+              files.forEach((f) => {
+                if (fotos.length < 3) fotos.push(f);
+              });
               renderPhotos();
-            };
-            w.appendChild(img);
-            w.appendChild(del);
-            row.appendChild(w);
-          };
-          rd.readAsDataURL(f);
-        });
-        // Sembunyikan upload zone kalau sudah 3
-        document.getElementById("uzone").style.display =
-          fotos.length >= 3 ? "none" : "flex";
-      }
+              input.value = "";
+            }
 
-      function resetForm() {
-        answers = {};
-        tbAnswers = {};
-        fotos = [];
-        selRisiko = "";
-        katId = "";
-        katName = "";
-        isTb = false;
-        selSec = null;
-        tbTipeId = "";
-        tbTipeName = "";
-        picInfo = null;
-        ["compSel", "areaSel"].forEach(
-          (id) => (document.getElementById(id).value = ""),
-        );
-        document.getElementById("subSel").innerHTML =
-          '<option value="">-- Pilih area --</option>';
-        document.getElementById("subSel").disabled = true;
-        document.getElementById("katSel").innerHTML =
-          '<option value="">-- Pilih sub area dulu --</option>';
-        document.getElementById("katSel").disabled = true;
-        [
-          "namaAlat",
-          "merkAlat",
-          "noId",
-          "noAsset",
-          "nikIns",
-          "namaIns",
-          "tbNoAsset",
-        ].forEach((id) => {
-          const el = document.getElementById(id);
-          if (el) el.value = "";
-        });
-        document.getElementById("assetHint").className = "hint";
-        document.getElementById("pRow").innerHTML = "";
-        document.getElementById("uzone").style.display = "flex";
-        resetTb();
-        goStep(1);
-      }
+            function pickRisiko(v, cls, btn) {
+              selRisiko = v;
+              document.querySelectorAll(".rrb").forEach((b) => (b.className = "rrb"));
+              btn.className = "rrb " + cls;
+              // Alert CRITICAL
+              document.getElementById("critAlert").className =
+                "crit-alert" + (v === "CRITICAL" ? " show" : "");
+              // Foto wajib untuk SEMUA risiko
+              document.getElementById("fotoWarn").style.display = "block";
+              document.getElementById("fotoWarn").textContent =
+                "📷 Foto wajib untuk semua tingkat risiko — " + v;
+            }
 
-      function setA(qid, val) {
-        if (!answers[qid]) answers[qid] = { val: "", remarks: "" };
-        answers[qid].val = val;
-        renderCheck();
-      }
+            function renderPhotos() {
+              const row = document.getElementById("pRow");
+              row.innerHTML = "";
+              fotos.forEach((f, i) => {
+                const rd = new FileReader();
+                rd.onload = (e) => {
+                  const w = document.createElement("div");
+                  w.style.position = "relative";
+                  const img = document.createElement("img");
+                  img.src = e.target.result;
+                  img.className = "pthumb";
+                  const del = document.createElement("div");
+                  del.className = "pdel";
+                  del.textContent = "✕";
+                  del.onclick = () => {
+                    fotos.splice(i, 1);
+                    renderPhotos();
+                  };
+                  w.appendChild(img);
+                  w.appendChild(del);
+                  row.appendChild(w);
+                };
+                rd.readAsDataURL(f);
+              });
+              // Sembunyikan upload zone kalau sudah 3
+              document.getElementById("uzone").style.display =
+                fotos.length >= 3 ? "none" : "flex";
+            }
 
-      function setAV(qid, val) {
-        if (!answers[qid]) answers[qid] = { val: "", remarks: "" };
-        answers[qid].val = val;
-      }
+            function resetForm() {
+              answers = {};
+              tbAnswers = {};
+              fotos = [];
+              selRisiko = "";
+              katId = "";
+              katName = "";
+              isTb = false;
+              selSec = null;
+              tbTipeId = "";
+              tbTipeName = "";
+              picInfo = null;
+              ["compSel", "areaSel"].forEach(
+                (id) => (document.getElementById(id).value = ""),
+              );
+              document.getElementById("subSel").innerHTML =
+                '<option value="">-- Pilih area --</option>';
+              document.getElementById("subSel").disabled = true;
+              document.getElementById("katSel").innerHTML =
+                '<option value="">-- Pilih sub area dulu --</option>';
+              document.getElementById("katSel").disabled = true;
+              [
+                "namaAlat",
+                "merkAlat",
+                "noId",
+                "noAsset",
+                "nikIns",
+                "namaIns",
+                "tbNoAsset",
+              ].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.value = "";
+              });
+              document.getElementById("assetHint").className = "hint";
+              document.getElementById("pRow").innerHTML = "";
+              document.getElementById("uzone").style.display = "flex";
+              resetTb();
+              goStep(1);
+            }
 
-      function setR(qid, val) {
-        if (!answers[qid]) answers[qid] = { val: "", remarks: "" };
-        answers[qid].remarks = val;
-      }
+            function setA(qid, val) {
+              if (!answers[qid]) answers[qid] = { val: "", remarks: "" };
+              answers[qid].val = val;
+              renderCheck();
+            }
+
+            function setAV(qid, val) {
+              if (!answers[qid]) answers[qid] = { val: "", remarks: "" };
+              answers[qid].val = val;
+            }
+
+            function setR(qid, val) {
+              if (!answers[qid]) answers[qid] = { val: "", remarks: "" };
+              answers[qid].remarks = val;
+            }
     </script>
     <script>
       if ("serviceWorker" in navigator) {
