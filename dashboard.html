@@ -2713,6 +2713,105 @@
           <div class="chip" onclick="setAssetFilter('perlu_inspeksi', this)">
             ⏰ Perlu Inspeksi <span id="chipCountPerluInspeksi"></span>
           </div>
+
+          <!-- CHIP BARU: SERTIFIKASI -->
+          <div class="chip" onclick="setAssetFilter('sertifikasi', this)">
+            📋 Sertifikasi <span id="chipCountSertifikasi"></span>
+          </div>
+        </div>
+        <!-- ==================== SERTIFIKASI STATS ==================== -->
+        <div id="sertifikasiStats" style="display: none; margin-bottom: 16px">
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 10px;
+            "
+          >
+            <!-- Expired -->
+            <div
+              style="
+                background: var(--red-bg);
+                border: 1px solid var(--red-bd);
+                border-radius: 10px;
+                padding: 14px 10px;
+                text-align: center;
+              "
+            >
+              <div
+                style="font-size: 26px; font-weight: 700; color: var(--red)"
+                id="sertExpiredCount"
+              >
+                0
+              </div>
+              <div
+                style="
+                  font-size: 11px;
+                  font-weight: 600;
+                  color: var(--red);
+                  margin-top: 4px;
+                "
+              >
+                🔴 EXPIRED
+              </div>
+            </div>
+
+            <!-- Warning (≤60 hari) -->
+            <div
+              style="
+                background: var(--yellow-bg);
+                border: 1px solid var(--yellow-bd);
+                border-radius: 10px;
+                padding: 14px 10px;
+                text-align: center;
+              "
+            >
+              <div
+                style="font-size: 26px; font-weight: 700; color: var(--yellow)"
+                id="sertWarningCount"
+              >
+                0
+              </div>
+              <div
+                style="
+                  font-size: 11px;
+                  font-weight: 600;
+                  color: var(--yellow);
+                  margin-top: 4px;
+                "
+              >
+                🟡 Akan Expired<br />(≤60 hari)
+              </div>
+            </div>
+
+            <!-- Valid -->
+            <div
+              style="
+                background: var(--green-bg);
+                border: 1px solid var(--green-bd);
+                border-radius: 10px;
+                padding: 14px 10px;
+                text-align: center;
+              "
+            >
+              <div
+                style="font-size: 26px; font-weight: 700; color: var(--green)"
+                id="sertValidCount"
+              >
+                0
+              </div>
+              <div
+                style="
+                  font-size: 11px;
+                  font-weight: 600;
+                  color: var(--green);
+                  margin-top: 4px;
+                "
+              >
+                🟢 Masih Valid
+              </div>
+            </div>
+          </div>
         </div>
         <div
           style="
@@ -5458,58 +5557,123 @@
       function renderAssetList(assets) {
         const el = document.getElementById("assetList");
         if (!el) return;
+
         if (!assets.length) {
-          el.innerHTML =
-            '<div class="empty"><div class="empty-icon">🔧</div><div class="empty-title">Belum ada asset</div></div>';
+          el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Tidak ada data sertifikasi</div></div>`;
           return;
         }
+
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const isSertFilter = assetStatusFilter === "sertifikasi";
+
         el.innerHTML = assets
           .map((a) => {
             const isLayak = a.status_aset_terakhir === "LAYAK";
             const isTb = !!(a.no_toolbox && String(a.no_toolbox).trim() !== "");
-            return `<div style="background:var(--surface);border-radius:10px;border:1px solid var(--border);padding:12px 14px;margin-bottom:8px">
-      <div style="display:flex;align-items:flex-start;gap:10px">
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.nama_alat || "-"}</div>
-            ${isTb ? `<span style="background:var(--yellow-bg);color:var(--yellow);font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0">🧰 TOOLBOX</span>` : ""}
+
+            let sertHtml = "";
+
+            if (isSertFilter && a.tanggal_expired) {
+              const exp = new Date(a.tanggal_expired);
+              if (!isNaN(exp.getTime())) {
+                const diffDays = Math.ceil((exp - now) / 86400000);
+
+                // Highlight logic
+                let borderColor = "var(--green-bd)";
+                let bgColor = "var(--green-bg)";
+                let textColor = "var(--green)";
+                let label = "🟢 VALID";
+
+                if (diffDays < 0) {
+                  borderColor = "var(--red-bd)";
+                  bgColor = "var(--red-bg)";
+                  textColor = "var(--red)";
+                  label = "🔴 EXPIRED";
+                } else if (diffDays <= 30) {
+                  borderColor = "var(--yellow-bd)";
+                  bgColor = "var(--yellow-bg)";
+                  textColor = "var(--yellow)";
+                  label = `🟡 ${diffDays} hari lagi`;
+                } else if (diffDays <= 60) {
+                  borderColor = "var(--yellow-bd)";
+                  bgColor = "var(--yellow-bg)";
+                  textColor = "#f59e0b";
+                  label = `🟡 ${diffDays} hari lagi`;
+                }
+
+                sertHtml = `
+          <div style="margin-top:12px; padding:12px; background:${bgColor}; border:2px solid ${borderColor}; border-radius:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-size:12px; font-weight:700; color:var(--muted)">📋 SERTIFIKASI</span>
+              <span style="font-size:13px; font-weight:700; color:${textColor}">${label}</span>
+            </div>
+            <div style="font-size:13px; font-weight:600; color:${textColor}; margin-bottom:4px;">
+              Expired: ${exp.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+            </div>
+            <div style="font-size:12px; color:var(--muted)">
+              No: ${a.no_sertifikasi || "-"} • ${a.nama_penguji || "-"}
+            </div>
+          </div>`;
+              }
+            }
+
+            return `
+      <div style="background:var(--surface); border-radius:12px; border:1px solid var(--border); padding:14px; margin-bottom:12px;">
+        <div style="display:flex; gap:12px;">
+          <div style="flex:1; min-width:0;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+              <div style="font-weight:600; font-size:15px;">${a.nama_alat || "-"}</div>
+              ${isTb ? `<span style="background:var(--yellow-bg); color:var(--yellow); font-size:10px; padding:2px 8px; border-radius:12px; font-weight:700;">🧰 TOOLBOX</span>` : ""}
+            </div>
+            
+            <div style="font-size:13px; color:var(--primary); margin-bottom:8px;">🪪 ${a.asset_id || "-"}</div>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12px; color:var(--muted);">
+              <div>📍 ${a.nama_subarea || "-"}</div>
+              <div>🗂️ ${a.nama_kategori || "-"}</div>
+            </div>
+
+            ${sertHtml}
           </div>
-          <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:4px;letter-spacing:.2px">🪪 ${a.asset_id || "-"}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px">
-            <div style="font-size:11px;color:var(--muted)">📍 ${a.nama_subarea || "-"}</div>
-            <div style="font-size:11px;color:var(--muted)">🗂️ ${a.nama_kategori || "-"}</div>
-            <div style="font-size:11px;color:var(--muted)">🔢 No ID: ${a.no_id || a.no_toolbox || "-"}</div>
-            <div style="font-size:11px;color:var(--muted)">🏷️ ${a.merk || "-"}</div>
-            <div style="font-size:11px;color:var(--muted)">📅 Daftar: ${formatTgl(a.tanggal_register) || "-"}</div>
-            <div style="font-size:11px;color:${a.tgl_inspeksi_terakhir ? "var(--muted)" : "var(--red)"}">🔍 Inspeksi: ${a.tgl_inspeksi_terakhir ? formatTgl(a.tgl_inspeksi_terakhir, true) : "Belum pernah"}</div>
+
+          <div style="text-align:right; flex-shrink:0;">
+            <div style="padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; 
+                        ${isLayak ? "background:var(--green-bg); color:var(--green)" : "background:var(--red-bg); color:var(--red)"}">
+              ${isLayak ? "✅ LAYAK" : "❌ TIDAK LAYAK"}
+            </div>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
-          <div style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;${isLayak ? "background:var(--green-bg);color:var(--green)" : "background:var(--red-bg);color:var(--red)"}">${isLayak ? "✅ LAYAK" : "❌ TDK LAYAK"}</div>
-          <div style="font-size:10px;color:var(--muted2)">${a.asset_id || "-"}</div>
-        </div>
-      </div>
-    </div>`;
+      </div>`;
           })
           .join("");
       }
-
       let assetStatusFilter = "semua";
-
       function setAssetFilter(status, chipEl) {
         assetStatusFilter = status;
+
+        // Reset semua chip jadi tidak aktif
         document
           .querySelectorAll("#viewAdminAsset .chips .chip")
           .forEach((c) => c.classList.remove("active"));
         if (chipEl) chipEl.classList.add("active");
-        // Reset highlight kategori card
+
+        // Reset filter nama kategori
         document
           .querySelectorAll("#assetKategoriBreakdown > div")
           .forEach((d) => {
             d.style.borderColor = "var(--border)";
             d.style.background = "var(--surface)";
           });
-        assetNamaFilter = ""; // ← reset filter jenis juga
+
+        assetNamaFilter = "";
+
+        // === SHOW / HIDE SERTIFIKASI STATS ===
+        const sertStats = document.getElementById("sertifikasiStats");
+        if (sertStats) {
+          sertStats.style.display = status === "sertifikasi" ? "block" : "none";
+        }
+
         applyAssetFilter();
       }
 
@@ -5517,8 +5681,8 @@
         const q = (document.getElementById("searchAsset")?.value || "")
           .toLowerCase()
           .trim();
-        const today = new Date().toISOString().split("T")[0];
 
+        const today = new Date().toISOString().split("T")[0];
         let filtered = [...assetsRaw];
 
         // Status filter
@@ -5532,7 +5696,55 @@
           filtered = filtered.filter(
             (a) => a.tgl_inspeksi_due && a.tgl_inspeksi_due < today,
           );
+
+          // ==================== TAMBAHKAN DI SINI ====================
+        } else if (assetStatusFilter === "sertifikasi") {
+          // Filter asset yang punya tanggal expired
+          filtered = filtered.filter(
+            (a) => a.tanggal_expired && String(a.tanggal_expired).trim() !== "",
+          );
+
+          const now = new Date();
+          now.setHours(0, 0, 0, 0);
+
+          // Hitung statistik
+          let expiredCount = 0;
+          let warningCount = 0;
+          let validCount = 0;
+
+          filtered.forEach((a) => {
+            const expDate = new Date(a.tanggal_expired);
+            if (isNaN(expDate.getTime())) return;
+
+            const diffTime = expDate.getTime() - now.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+
+            if (diffDays < 0) expiredCount++;
+            else if (diffDays <= 60) warningCount++;
+            else validCount++;
+          });
+
+          // Update stats box
+          document.getElementById("sertExpiredCount").textContent =
+            expiredCount;
+          document.getElementById("sertWarningCount").textContent =
+            warningCount;
+          document.getElementById("sertValidCount").textContent = validCount;
+
+          // Update chip count
+          const chipSert = document.getElementById("chipCountSertifikasi");
+          if (chipSert) chipSert.textContent = `(${filtered.length})`;
+
+          // SORTING: Expired paling atas
+          filtered.sort((a, b) => {
+            const dateA = new Date(a.tanggal_expired);
+            const dateB = new Date(b.tanggal_expired);
+            if (isNaN(dateA.getTime())) return 1;
+            if (isNaN(dateB.getTime())) return -1;
+            return dateA - dateB;
+          });
         }
+        // =========================================================
 
         // Jenis alat chip filter (kata pertama nama_alat)
         if (assetNamaFilter) {
@@ -5563,11 +5775,12 @@
         const countEl = document.getElementById("assetFilterCount");
         if (countEl) countEl.textContent = filtered.length;
 
-        // Update chip counts
+        // Update chip counts (lainnya)
         const updateChipCount = (id, arr) => {
           const el = document.getElementById(id);
           if (el) el.textContent = arr.length ? `(${arr.length})` : "";
         };
+
         const baseFiltered = q
           ? assetsRaw.filter(
               (a) =>
@@ -5579,6 +5792,7 @@
                 (a.asset_id || "").toLowerCase().includes(q),
             )
           : assetsRaw;
+
         updateChipCount("chipCountSemua", baseFiltered);
         updateChipCount(
           "chipCountLayak",
@@ -5597,7 +5811,6 @@
 
         renderAssetList(filtered);
       }
-
       // ════════════════════════════════════════════════════════════
       //  EXPORT ASSET PDF
       // ════════════════════════════════════════════════════════════
