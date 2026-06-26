@@ -2829,6 +2829,42 @@
             "
           />
         </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 10px">
+          <button
+            onclick="setMasterAktifFilter('Y', this)"
+            id="btnAktif"
+            style="
+              padding: 6px 16px;
+              border-radius: 20px;
+              border: 1.5px solid var(--primary);
+              background: var(--primary);
+              color: #fff;
+              font-size: 12px;
+              font-weight: 600;
+              cursor: pointer;
+              font-family: &quot;Inter&quot;, sans-serif;
+            "
+          >
+            ✅ Aktif
+          </button>
+          <button
+            onclick="setMasterAktifFilter('N', this)"
+            id="btnNonaktif"
+            style="
+              padding: 6px 16px;
+              border-radius: 20px;
+              border: 1.5px solid var(--border);
+              background: #fff;
+              color: var(--muted);
+              font-size: 12px;
+              font-weight: 600;
+              cursor: pointer;
+              font-family: &quot;Inter&quot;, sans-serif;
+            "
+          >
+            ❌ Nonaktif
+          </button>
+        </div>
         <div id="masterList"></div>
       </div>
 
@@ -4732,6 +4768,7 @@
       let actLogRaw = [];
       let monitorFilter = "open";
       let editingRecord = null;
+      let masterAktifFilter = "Y"; // default hanya tampil data aktif
 
       // ════════════════════════════════════════════════════════════
       //  ADMIN — BUILD NAV
@@ -6238,17 +6275,55 @@
       }
 
       function filterMasterList(q) {
-        if (!q) {
-          masterDataFiltered = [...masterDataRaw];
-        } else {
-          const lq = q.toLowerCase();
-          masterDataFiltered = masterDataRaw.filter((r) =>
-            Object.values(r).some((v) => String(v).toLowerCase().includes(lq)),
+        let data = [...masterDataRaw];
+
+        // Filter berdasarkan status aktif / nonaktif
+        if (masterAktifFilter === "Y") {
+          data = data.filter((r) => String(r.aktif || "Y") !== "N");
+        } else if (masterAktifFilter === "N") {
+          data = data.filter((r) => String(r.aktif) === "N");
+        }
+
+        // Filter pencarian teks
+        if (q && q.trim() !== "") {
+          const lq = q.toLowerCase().trim();
+          data = data.filter((r) =>
+            Object.values(r).some((v) =>
+              String(v || "")
+                .toLowerCase()
+                .includes(lq),
+            ),
           );
         }
+
+        masterDataFiltered = data;
         renderMasterList();
       }
 
+      function setMasterAktifFilter(val, btn) {
+        masterAktifFilter = val;
+
+        const btnAktif = document.getElementById("btnAktif");
+        const btnNonaktif = document.getElementById("btnNonaktif");
+
+        if (btnAktif) {
+          btnAktif.style.background = val === "Y" ? "var(--primary)" : "#fff";
+          btnAktif.style.color = val === "Y" ? "#fff" : "var(--muted)";
+          btnAktif.style.borderColor =
+            val === "Y" ? "var(--primary)" : "var(--border)";
+        }
+
+        if (btnNonaktif) {
+          btnNonaktif.style.background = val === "N" ? "var(--red)" : "#fff";
+          btnNonaktif.style.color = val === "N" ? "#fff" : "var(--muted)";
+          btnNonaktif.style.borderColor =
+            val === "N" ? "var(--red)" : "var(--border)";
+        }
+
+        const searchValue =
+          document.getElementById("searchMaster")?.value || "";
+        filterMasterList(searchValue);
+      }
       function renderMasterList() {
         const el = document.getElementById("masterList");
         if (!el) return;
@@ -6282,9 +6357,28 @@
           <div style="font-size:10px;color:var(--muted2);margin-top:3px">${masterKeyCol}: ${keyVal || "-"}</div>
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0">
-          <button onclick="openEditModal('${keyVal}')" style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;color:var(--primary)">Edit</button>
-          <button onclick="deleteMasterRecord('${keyVal}')" style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--red-bd);background:var(--red-bg);font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;color:var(--red)">Hapus</button>
-        </div>
+  ${
+    isInaktif
+      ? `
+    <button onclick="reaktivasiMasterRecord('${keyVal}')" 
+      style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--green-bd);
+      background:var(--green-bg);font-size:12px;font-weight:500;cursor:pointer;
+      font-family:'Inter',sans-serif;color:var(--green)">
+      ✅ Aktifkan
+    </button>
+  `
+      : `
+    <button onclick="openEditModal('${keyVal}')" 
+      style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);
+      background:#fff;font-size:12px;font-weight:500;cursor:pointer;
+      font-family:'Inter',sans-serif;color:var(--primary)">Edit</button>
+    <button onclick="deleteMasterRecord('${keyVal}')" 
+      style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--red-bd);
+      background:var(--red-bg);font-size:12px;font-weight:500;cursor:pointer;
+      font-family:'Inter',sans-serif;color:var(--red)">Hapus</button>
+  `
+  }
+</div>
       </div>
     </div>`;
           })
@@ -6575,6 +6669,44 @@
             showToast("✅ Data dihapus", "success");
             await loadMasterSheet(masterSheetActive, masterKeyCol);
           } else showToast("❌ " + (json.message || "Error"), "error");
+        } catch (e) {
+          hideLoad();
+          showToast("❌ Koneksi gagal", "error");
+        }
+      }
+
+      // ==================== REAKTIVASI RECORD ====================
+      async function reaktivasiMasterRecord(keyVal) {
+        if (!confirm("Aktifkan kembali data ini?")) return;
+
+        showLoad("Mengaktifkan...");
+
+        try {
+          const res = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({
+              action: "crudMaster",
+              action_type: "UPDATE",
+              sheet_name: masterSheetActive,
+              key_col: masterKeyCol,
+              key_val: keyVal,
+              record: { aktif: "Y" },
+              caller_nik: SESSION.nik || "SYSTEM",
+            }),
+          });
+
+          const json = await res.json();
+          hideLoad();
+
+          if (json.status === "ok") {
+            showToast("✅ Data berhasil diaktifkan kembali", "success");
+            await loadMasterSheet(masterSheetActive, masterKeyCol);
+          } else {
+            showToast(
+              "❌ " + (json.message || "Gagal mengaktifkan data"),
+              "error",
+            );
+          }
         } catch (e) {
           hideLoad();
           showToast("❌ Koneksi gagal", "error");
