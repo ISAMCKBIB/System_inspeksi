@@ -6088,26 +6088,92 @@
             options: ["Y", "N"],
           },
         ],
-MASTER_ASSET: [
-  {key:'asset_id',           label:'Asset ID',                type:'hidden',       readonly:true},
-  {key:'nama_alat',          label:'Nama Alat *',             type:'text',         required:true},
-  {key:'merk',               label:'Merk',                    type:'text'},
-  {key:'no_id',              label:'No ID',                   type:'text'},
-  {key:'no_toolbox',         label:'No Toolbox',              type:'text'},
-  {key:'tipe_toolbox_id',    label:'Tipe Toolbox',            type:'select',       options:['','TBT001','TBT002','TBT003','TBT004']},
-  {key:'company_id',         label:'Perusahaan *',            type:'select_master', source:'perusahaan', required:true},
-  {key:'area_id',            label:'Area *',                  type:'select_master', source:'area',       required:true},
-  {key:'subarea_id',         label:'Sub Area *',              type:'select_master', source:'subarea',    required:true},
-  {key:'kategori_id',        label:'Kategori *',              type:'select_master', source:'kategori',   required:true},
-  {key:'tanggal_expired',    label:'Tgl Expired Sertifikasi', type:'date'},
-  {key:'marking',            label:'Marking',                 type:'text'},
-  {key:'spesifikasi',        label:'Spesifikasi',             type:'text'},
-  {key:'no_sertifikat',      label:'No Sertifikat',           type:'text'},
-  {key:'nama_penguji',       label:'Nama Penguji',            type:'text'},
-  {key:'status_sertifikasi', label:'Status Sertifikasi',      type:'select',       options:['','VALID','PENDING','EXPIRED']},
-  {key:'status_aset_terakhir', label:'Status Aset',           type:'select',       options:['LAYAK','TIDAK LAYAK']},
-  {key:'aktif',              label:'Aktif',                   type:'select',       options:['Y','N']},
-],
+        MASTER_ASSET: [
+          {
+            key: "asset_id",
+            label: "Asset ID",
+            type: "hidden",
+            readonly: true,
+          },
+          {
+            key: "nama_alat",
+            label: "Nama Alat *",
+            type: "text",
+            required: true,
+          },
+          { key: "merk", label: "Merk", type: "text" },
+          { key: "no_id", label: "No ID", type: "text" },
+          { key: "no_toolbox", label: "No Toolbox", type: "text" },
+          {
+            key: "tipe_toolbox_id",
+            label: "Tipe Toolbox",
+            type: "select",
+            options: ["", "TBT001", "TBT002", "TBT003", "TBT004"],
+          },
+          {
+            key: "company_id",
+            label: "Perusahaan *",
+            type: "select_master",
+            source: "perusahaan",
+            required: true,
+          },
+          {
+            key: "area_id",
+            label: "Area *",
+            type: "select_master",
+            source: "area",
+            required: true,
+          },
+          {
+            key: "subarea_id",
+            label: "Sub Area *",
+            type: "select_master",
+            source: "subarea",
+            required: true,
+          },
+          {
+            key: "kategori_id",
+            label: "Kategori *",
+            type: "select_master",
+            source: "kategori",
+            required: true,
+          },
+          {
+            key: "no_toolbox",
+            label: "No Toolbox",
+            type: "text",
+            conditional: "isToolbox",
+          },
+          {
+            key: "tipe_toolbox_id",
+            label: "Tipe Toolbox",
+            type: "select",
+            options: ["", "TBT001", "TBT002", "TBT003", "TBT004"],
+            conditional: "isToolbox",
+          },
+          {
+            key: "tanggal_expired",
+            label: "Tgl Expired Sertifikasi",
+            type: "date",
+          },
+          { key: "marking", label: "Marking", type: "text" },
+          { key: "spesifikasi", label: "Spesifikasi", type: "text" },
+          { key: "no_sertifikat", label: "No Sertifikat", type: "text" },
+          { key: "nama_penguji", label: "Nama Penguji", type: "text" },
+          {
+            key: "status_sertifikasi",
+            label: "Status Sertifikasi",
+            type: "select",
+            options: ["", "VALID", "PENDING", "EXPIRED"],
+          },
+          {
+            key: "status_aset_terakhir",
+            label: "Status Aset",
+            type: "select",
+            options: ["LAYAK", "TIDAK LAYAK"],
+          },
+          { key: "aktif", label: "Aktif", type: "select", options: ["Y", "N"] },
+        ],
         MASTER_SLA: [
           {
             key: "risiko",
@@ -6264,6 +6330,17 @@ MASTER_ASSET: [
             if (f.type === "hidden") {
               return `<input type="hidden" id="mf_${f.key}" value="${val}">`;
             }
+            if (f.conditional === "isToolbox") {
+              const katEl = document.getElementById("mf_kategori_id");
+              const katVal = katEl ? katEl.value : "";
+              const isToolbox = masterDropdowns.kategori.find(
+                (k) =>
+                  k.kategori_id === katVal &&
+                  k.tipe_inspeksi === "TOOLBOX_INVENTORY",
+              );
+              if (!isToolbox)
+                return `<div style="display:none"><input type="hidden" id="mf_${f.key}" value=""></div>`;
+            }
             if (f.type === "select") {
               return `<div class="dfield">
         <label>${f.label}${f.required ? ' <span style="color:var(--red)">*</span>' : ""}</label>
@@ -6287,7 +6364,12 @@ MASTER_ASSET: [
                 });
               }
               if (f.source === "subarea") {
-                (masterDropdowns.subarea || []).forEach((s) => {
+                const selectedArea =
+                  document.getElementById("mf_area_id")?.value || "";
+                const filteredSub = (masterDropdowns.subarea || []).filter(
+                  (s) => !selectedArea || s.area_id === selectedArea,
+                );
+                filteredSub.forEach((s) => {
                   opts += `<option value="${s.subarea_id}" ${val === s.subarea_id ? "selected" : ""}>${s.nama_subarea}</option>`;
                 });
               }
@@ -6317,6 +6399,62 @@ MASTER_ASSET: [
     </div>`;
           })
           .join("");
+        // === EVENT LISTENERS TAMBAHAN ===
+        setTimeout(() => {
+          // Fix 1: Area → Filter Subarea
+          const areaEl = document.getElementById("mf_area_id");
+          if (areaEl) {
+            areaEl.addEventListener("change", () => {
+              const subEl = document.getElementById("mf_subarea_id");
+              if (!subEl) return;
+              const selectedArea = areaEl.value;
+              const filteredSub = (masterDropdowns.subarea || []).filter(
+                (s) => !selectedArea || s.area_id === selectedArea,
+              );
+              subEl.innerHTML =
+                '<option value="">-- Pilih --</option>' +
+                filteredSub
+                  .map(
+                    (s) =>
+                      `<option value="${s.subarea_id}">${s.nama_subarea}</option>`,
+                  )
+                  .join("");
+            });
+          }
+
+          // Fix 3: Status Sertifikasi Otomatis
+          const tglExpEl = document.getElementById("mf_tanggal_expired");
+          const sertEl = document.getElementById("mf_status_sertifikasi");
+          if (tglExpEl && sertEl) {
+            tglExpEl.addEventListener("change", () => {
+              const exp = new Date(tglExpEl.value);
+              const now = new Date();
+              if (!isNaN(exp.getTime())) {
+                sertEl.value = exp > now ? "VALID" : "EXPIRED";
+              }
+            });
+          }
+
+          // Fix 5: Show/Hide Toolbox Fields
+          const katEl = document.getElementById("mf_kategori_id");
+          if (katEl) {
+            katEl.addEventListener("change", () => {
+              const isToolbox = masterDropdowns.kategori.find(
+                (k) =>
+                  k.kategori_id === katEl.value &&
+                  k.tipe_inspeksi === "TOOLBOX_INVENTORY",
+              );
+              const tbFields = ["no_toolbox", "tipe_toolbox_id"];
+              tbFields.forEach((key) => {
+                const wrap = document
+                  .getElementById("mf_" + key)
+                  ?.closest(".dfield");
+                if (wrap) wrap.style.display = isToolbox ? "block" : "none";
+              });
+            });
+            katEl.dispatchEvent(new Event("change")); // Trigger pertama kali
+          }
+        }, 150);
       }
 
       function closeModal() {
@@ -6341,6 +6479,44 @@ MASTER_ASSET: [
           } else el.style.borderColor = "var(--border)";
           record[f.key] = val;
         });
+        // ← AUTO FILL NAMA & NORMALIZE TANGGAL
+        if (masterSheetActive === "MASTER_ASSET") {
+          // Auto-fill nama dari ID
+          const cmp = masterDropdowns.perusahaan.find(
+            (p) => p.company_id === record.company_id,
+          );
+          if (cmp) record.nama_perusahaan = cmp.nama_perusahaan;
+
+          const area = masterDropdowns.area.find(
+            (a) => a.area_id === record.area_id,
+          );
+          if (area) record.nama_area = area.nama_area;
+
+          const sub = masterDropdowns.subarea.find(
+            (s) => s.subarea_id === record.subarea_id,
+          );
+          if (sub) record.nama_subarea = sub.nama_subarea;
+
+          const kat = masterDropdowns.kategori.find(
+            (k) => k.kategori_id === record.kategori_id,
+          );
+          if (kat) record.nama_kategori = kat.nama_kategori;
+
+          // Fix 6: Normalize tanggal ke YYYY-MM-DD
+          ["tanggal_register", "tanggal_expired"].forEach((key) => {
+            if (record[key]) {
+              const d = new Date(record[key]);
+              if (!isNaN(d.getTime())) {
+                record[key] = d.toISOString().split("T")[0];
+              }
+            }
+          });
+        }
+
+        if (!valid) {
+          showToast("Isi semua field wajib", "warn");
+          return;
+        }
         if (!valid) {
           showToast("Isi semua field wajib", "warn");
           return;
