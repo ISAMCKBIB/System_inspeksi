@@ -2549,48 +2549,95 @@
       </div>
 
       <!-- ADMIN ASSET MONITORING -->
+      <!-- ADMIN ASSET MONITORING -->
       <div class="view" id="viewAdminAsset">
+        <!-- TOPBAR ASSET -->
         <div
-          class="stats-grid"
-          style="grid-template-columns: 1fr 1fr; margin-bottom: 14px"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 14px;
+          "
         >
-          <div class="stat-card c-blue">
-            <div class="stat-icon c-blue">🔧</div>
-            <div class="stat-value c-blue" id="assetTotal">—</div>
-            <div class="stat-label">Total Asset</div>
-            <div class="stat-sub">terdaftar</div>
+          <div>
+            <div style="font-size: 15px; font-weight: 600" id="assetViewTitle">
+              Asset Monitoring
+            </div>
+            <div style="font-size: 12px; color: var(--muted)" id="assetViewSub">
+              Memuat data...
+            </div>
           </div>
-          <div class="stat-card c-green">
-            <div class="stat-icon c-green">✅</div>
-            <div class="stat-value c-green" id="assetLayak">—</div>
-            <div class="stat-label">Layak Operasi</div>
-          </div>
-        </div>
-        <div
-          class="stats-grid"
-          style="grid-template-columns: 1fr 1fr; margin-bottom: 14px"
-        >
-          <div class="stat-card c-red">
-            <div class="stat-icon c-red">❌</div>
-            <div class="stat-value c-red" id="assetTidakLayak">—</div>
-            <div class="stat-label">Tidak Layak</div>
-          </div>
-          <div class="stat-card c-yellow">
-            <div class="stat-icon c-yellow">⏰</div>
-            <div class="stat-value c-yellow" id="assetOverdue">—</div>
-            <div class="stat-label">Perlu Inspeksi</div>
-          </div>
-        </div>
-        <div class="sec-hdr" style="margin-bottom: 10px">
-          <div class="sec-title">Daftar Asset</div>
           <div
             style="
               display: flex;
-              gap: 6px;
+              gap: 8px;
+              align-items: center;
               flex-wrap: wrap;
-              justify-content: flex-end;
             "
           >
+            <!-- Area Toggle -->
+            <div
+              style="
+                display: flex;
+                background: var(--surface2);
+                border: 1.5px solid var(--border);
+                border-radius: 8px;
+                overflow: hidden;
+              "
+            >
+              <button
+                onclick="setAssetArea('ALL', this)"
+                id="areaBtnALL"
+                style="
+                  padding: 6px 14px;
+                  font-size: 12px;
+                  font-weight: 600;
+                  border: none;
+                  background: var(--primary);
+                  color: #fff;
+                  cursor: pointer;
+                  font-family: &quot;Inter&quot;, sans-serif;
+                "
+              >
+                Semua
+              </button>
+              <button
+                onclick="setAssetArea('AR001', this)"
+                id="areaBtnAR001"
+                style="
+                  padding: 6px 14px;
+                  font-size: 12px;
+                  font-weight: 600;
+                  border: none;
+                  background: transparent;
+                  color: var(--muted);
+                  cursor: pointer;
+                  font-family: &quot;Inter&quot;, sans-serif;
+                "
+              >
+                KGB
+              </button>
+              <button
+                onclick="setAssetArea('AR002', this)"
+                id="areaBtnAR002"
+                style="
+                  padding: 6px 14px;
+                  font-size: 12px;
+                  font-weight: 600;
+                  border: none;
+                  background: transparent;
+                  color: var(--muted);
+                  cursor: pointer;
+                  font-family: &quot;Inter&quot;, sans-serif;
+                "
+              >
+                GRB
+              </button>
+            </div>
+            <!-- Action buttons -->
             <button
               onclick="exportAssetPDF()"
               style="
@@ -2598,7 +2645,7 @@
                 color: #fff;
                 border: none;
                 border-radius: 8px;
-                padding: 6px 12px;
+                padding: 7px 12px;
                 font-size: 12px;
                 font-weight: 600;
                 cursor: pointer;
@@ -2618,7 +2665,7 @@
                 color: #fff;
                 border: none;
                 border-radius: 8px;
-                padding: 6px 12px;
+                padding: 7px 12px;
                 font-size: 12px;
                 font-weight: 600;
                 cursor: pointer;
@@ -2628,12 +2675,121 @@
                 gap: 5px;
               "
             >
-              📷 QR Generator
-            </a>
+              📷 QR Generator</a
+            >
           </div>
         </div>
-        <!-- Breakdown per kategori -->
-        <div style="margin-bottom: 14px">
+
+        <!-- TABS -->
+        <div
+          style="
+            display: flex;
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 14px;
+          "
+        >
+          <button
+            onclick="setAssetTab('asset', this)"
+            id="assetTab-asset"
+            style="
+              flex: 1;
+              padding: 10px 8px;
+              font-size: 13px;
+              font-weight: 600;
+              border: none;
+              background: var(--primary);
+              color: #fff;
+              cursor: pointer;
+              font-family: &quot;Inter&quot;, sans-serif;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 5px;
+            "
+          >
+            🔧 Asset
+          </button>
+          <button
+            onclick="setAssetTab('sertifikasi', this)"
+            id="assetTab-sertifikasi"
+            style="
+              flex: 1;
+              padding: 10px 8px;
+              font-size: 13px;
+              font-weight: 600;
+              border: none;
+              background: transparent;
+              color: var(--muted);
+              cursor: pointer;
+              font-family: &quot;Inter&quot;, sans-serif;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 5px;
+            "
+          >
+            📋 Sertifikasi
+          </button>
+          <button
+            onclick="setAssetTab('spesifikasi', this)"
+            id="assetTab-spesifikasi"
+            style="
+              flex: 1;
+              padding: 10px 8px;
+              font-size: 13px;
+              font-weight: 600;
+              border: none;
+              background: transparent;
+              color: var(--muted);
+              cursor: pointer;
+              font-family: &quot;Inter&quot;, sans-serif;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 5px;
+            "
+          >
+            ⚙️ Spesifikasi
+          </button>
+        </div>
+
+        <!-- ═══ TAB: ASSET ═══ -->
+        <div id="assetTabContent-asset">
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 10px;
+              margin-bottom: 14px;
+            "
+            id="assetStatCards"
+          >
+            <div class="stat-card c-blue">
+              <div class="stat-icon c-blue">🔧</div>
+              <div class="stat-value c-blue" id="assetTotal2">—</div>
+              <div class="stat-label">Total Asset</div>
+            </div>
+            <div class="stat-card c-green">
+              <div class="stat-icon c-green">✅</div>
+              <div class="stat-value c-green" id="assetLayak2">—</div>
+              <div class="stat-label">Layak Operasi</div>
+            </div>
+            <div class="stat-card c-red">
+              <div class="stat-icon c-red">❌</div>
+              <div class="stat-value c-red" id="assetTidakLayak2">—</div>
+              <div class="stat-label">Tidak Layak</div>
+            </div>
+            <div class="stat-card c-yellow">
+              <div class="stat-icon c-yellow">⏰</div>
+              <div class="stat-value c-yellow" id="assetOverdue2">—</div>
+              <div class="stat-label">Perlu Inspeksi</div>
+            </div>
+          </div>
+
+          <!-- Breakdown kategori -->
           <div
             style="
               font-size: 11px;
@@ -2644,103 +2800,166 @@
               margin-bottom: 8px;
             "
           >
-            Breakdown Kategori
+            Kategori
           </div>
           <div
-            id="assetKategoriBreakdown"
+            id="assetKategoriCards"
             style="
               display: flex;
               gap: 8px;
               overflow-x: auto;
-              padding-bottom: 4px;
+              padding-bottom: 6px;
+              margin-bottom: 14px;
               scrollbar-width: none;
               -webkit-overflow-scrolling: touch;
             "
           ></div>
-        </div>
-        <div style="position: relative; margin-bottom: 10px">
-          <input
-            type="text"
-            id="searchAsset"
-            placeholder="🔍 Cari nama alat, no ID, area, merk..."
-            oninput="
-              applyAssetFilter();
-              showAssetSuggestions(this.value);
-            "
-            onkeydown="handleAssetSearchKey(event)"
-            onfocus="showAssetSuggestions(this.value)"
-            autocomplete="off"
-            style="
-              width: 100%;
-              border: 1.5px solid var(--border);
-              border-radius: 10px;
-              padding: 10px 14px;
-              font-size: 14px;
-              font-family: &quot;Inter&quot;, sans-serif;
-              background: var(--surface);
-              outline: none;
-              color: var(--text);
-            "
-          />
+
+          <!-- Dynamic filter dari spec_fields -->
           <div
-            id="assetSuggestions"
+            id="dynSpecFilter"
             style="
               display: none;
-              position: absolute;
-              top: calc(100% + 4px);
-              left: 0;
-              right: 0;
-              background: var(--surface);
-              border: 1.5px solid var(--primary);
-              border-radius: 10px;
-              z-index: 50;
-              box-shadow: 0 8px 24px rgba(27, 79, 216, 0.15);
-              max-height: 220px;
-              overflow-y: auto;
+              background: #fff;
+              border: 1.5px solid var(--blue-bd, #bfdbfe);
+              border-radius: 12px;
+              padding: 14px;
+              margin-bottom: 12px;
             "
-          ></div>
-        </div>
-        <div class="chips" style="margin-bottom: 8px">
-          <div class="chip active" onclick="setAssetFilter('semua', this)">
-            Semua <span id="chipCountSemua"></span>
-          </div>
-          <div class="chip" onclick="setAssetFilter('layak', this)">
-            ✅ Layak <span id="chipCountLayak"></span>
-          </div>
-          <div class="chip" onclick="setAssetFilter('tidak_layak', this)">
-            ❌ Tidak Layak <span id="chipCountTidakLayak"></span>
-          </div>
-          <div class="chip" onclick="setAssetFilter('perlu_inspeksi', this)">
-            ⏰ Perlu Inspeksi <span id="chipCountPerluInspeksi"></span>
+          >
+            <div
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--primary);
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              🔧 <span id="dynSpecFilterTitle">Filter Spesifikasi</span>
+            </div>
+            <div id="dynSpecFilterBody"></div>
           </div>
 
-          <!-- CHIP BARU: SERTIFIKASI -->
-          <div class="chip" onclick="setAssetFilter('sertifikasi', this)">
-            📋 Sertifikasi <span id="chipCountSertifikasi"></span>
+          <!-- Filter PIC -->
+          <div
+            style="
+              display: flex;
+              gap: 8px;
+              margin-bottom: 10px;
+              flex-wrap: wrap;
+              align-items: center;
+            "
+          >
+            <select
+              id="filterPIC"
+              onchange="applyAssetFilter()"
+              style="
+                border: 1.5px solid var(--border);
+                border-radius: 8px;
+                padding: 7px 12px;
+                font-size: 12px;
+                background: #fff;
+                color: var(--text);
+                font-family: &quot;Inter&quot;, sans-serif;
+                cursor: pointer;
+              "
+            >
+              <option value="">Semua PIC</option>
+            </select>
+            <div style="position: relative; flex: 1; min-width: 160px">
+              <input
+                type="text"
+                id="searchAsset2"
+                placeholder="🔍 Cari nama, no ID, marking..."
+                oninput="applyAssetFilter()"
+                style="
+                  width: 100%;
+                  border: 1.5px solid var(--border);
+                  border-radius: 10px;
+                  padding: 8px 14px;
+                  font-size: 13px;
+                  font-family: &quot;Inter&quot;, sans-serif;
+                  background: #fff;
+                  outline: none;
+                  color: var(--text);
+                "
+              />
+            </div>
           </div>
+
+          <!-- Status chips -->
+          <div
+            style="
+              display: flex;
+              gap: 6px;
+              overflow-x: auto;
+              padding-bottom: 4px;
+              margin-bottom: 10px;
+              scrollbar-width: none;
+            "
+          >
+            <div
+              class="chip active"
+              onclick="setAssetStatusFilter('semua', this)"
+            >
+              Semua <span id="chipAll2"></span>
+            </div>
+            <div class="chip" onclick="setAssetStatusFilter('layak', this)">
+              ✅ Layak <span id="chipLayak2"></span>
+            </div>
+            <div
+              class="chip"
+              onclick="setAssetStatusFilter('tidak_layak', this)"
+            >
+              ❌ Tidak Layak <span id="chipTidak2"></span>
+            </div>
+            <div
+              class="chip"
+              onclick="setAssetStatusFilter('perlu_inspeksi', this)"
+            >
+              ⏰ Perlu Inspeksi <span id="chipInspeksi2"></span>
+            </div>
+          </div>
+
+          <div
+            style="font-size: 12px; color: var(--muted); margin-bottom: 10px"
+          >
+            Menampilkan
+            <span
+              id="assetFilterCount2"
+              style="font-weight: 700; color: var(--primary)"
+              >0</span
+            >
+            asset
+          </div>
+          <div id="assetList2"></div>
         </div>
-        <!-- ==================== SERTIFIKASI STATS ==================== -->
-        <div id="sertifikasiStats" style="display: none; margin-bottom: 16px">
+
+        <!-- ═══ TAB: SERTIFIKASI ═══ -->
+        <div id="assetTabContent-sertifikasi" style="display: none">
           <div
             style="
               display: grid;
               grid-template-columns: repeat(3, 1fr);
-              gap: 10px;
+              gap: 8px;
+              margin-bottom: 14px;
             "
           >
-            <!-- Expired -->
             <div
               style="
                 background: var(--red-bg);
                 border: 1px solid var(--red-bd);
                 border-radius: 10px;
-                padding: 14px 10px;
+                padding: 12px;
                 text-align: center;
               "
             >
               <div
-                style="font-size: 26px; font-weight: 700; color: var(--red)"
-                id="sertExpiredCount"
+                style="font-size: 24px; font-weight: 700; color: var(--red)"
+                id="sertExpired2"
               >
                 0
               </div>
@@ -2749,26 +2968,24 @@
                   font-size: 11px;
                   font-weight: 600;
                   color: var(--red);
-                  margin-top: 4px;
+                  margin-top: 3px;
                 "
               >
-                🔴 EXPIRED
+                🔴 Expired
               </div>
             </div>
-
-            <!-- Warning (≤60 hari) -->
             <div
               style="
                 background: var(--yellow-bg);
                 border: 1px solid var(--yellow-bd);
                 border-radius: 10px;
-                padding: 14px 10px;
+                padding: 12px;
                 text-align: center;
               "
             >
               <div
-                style="font-size: 26px; font-weight: 700; color: var(--yellow)"
-                id="sertWarningCount"
+                style="font-size: 24px; font-weight: 700; color: var(--yellow)"
+                id="sertWarning2"
               >
                 0
               </div>
@@ -2777,26 +2994,24 @@
                   font-size: 11px;
                   font-weight: 600;
                   color: var(--yellow);
-                  margin-top: 4px;
+                  margin-top: 3px;
                 "
               >
-                🟡 Akan Expired<br />(≤60 hari)
+                ⚠️ Akan Expired
               </div>
             </div>
-
-            <!-- Valid -->
             <div
               style="
                 background: var(--green-bg);
                 border: 1px solid var(--green-bd);
                 border-radius: 10px;
-                padding: 14px 10px;
+                padding: 12px;
                 text-align: center;
               "
             >
               <div
-                style="font-size: 26px; font-weight: 700; color: var(--green)"
-                id="sertValidCount"
+                style="font-size: 24px; font-weight: 700; color: var(--green)"
+                id="sertValid2"
               >
                 0
               </div>
@@ -2805,39 +3020,307 @@
                   font-size: 11px;
                   font-weight: 600;
                   color: var(--green);
-                  margin-top: 4px;
+                  margin-top: 3px;
                 "
               >
-                🟢 Masih Valid
+                ✅ Valid
               </div>
             </div>
           </div>
+          <div
+            style="
+              display: flex;
+              gap: 6px;
+              overflow-x: auto;
+              padding-bottom: 4px;
+              margin-bottom: 10px;
+              scrollbar-width: none;
+            "
+          >
+            <div class="chip active" onclick="setSertFilter('semua', this)">
+              Semua
+            </div>
+            <div
+              class="chip"
+              style="
+                background: var(--red-bg);
+                color: var(--red);
+                border-color: var(--red-bd);
+              "
+              onclick="setSertFilter('expired', this)"
+            >
+              🔴 Expired
+            </div>
+            <div
+              class="chip"
+              style="
+                background: var(--yellow-bg);
+                color: var(--yellow);
+                border-color: var(--yellow-bd);
+              "
+              onclick="setSertFilter('warning', this)"
+            >
+              ⚠️ Akan Expired
+            </div>
+            <div
+              class="chip"
+              style="
+                background: var(--green-bg);
+                color: var(--green);
+                border-color: var(--green-bd);
+              "
+              onclick="setSertFilter('valid', this)"
+            >
+              ✅ Valid
+            </div>
+          </div>
+          <div id="sertifikasiList2"></div>
         </div>
-        <div
-          style="
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-          "
-        >
-          Jenis Alat
-        </div>
-        <div class="chips" id="assetNamaChips" style="display: none"></div>
-        <div class="sec-hdr" style="margin-bottom: 8px">
-          <div style="font-size: 12px; color: var(--muted)">
+
+        <!-- ═══ TAB: SPESIFIKASI ═══ -->
+        <div id="assetTabContent-spesifikasi" style="display: none">
+          <div
+            style="
+              background: var(--blue-bg, #eef3ff);
+              border: 1px solid var(--blue-bd, #bfdbfe);
+              border-radius: 10px;
+              padding: 10px 14px;
+              margin-bottom: 12px;
+              font-size: 12px;
+              color: var(--primary);
+            "
+          >
+            ⚙️ Filter berdasarkan spesifikasi teknis tiap kategori — dari data
+            <code>spec_fields</code>
+          </div>
+          <div
+            style="
+              display: flex;
+              gap: 6px;
+              overflow-x: auto;
+              padding-bottom: 4px;
+              margin-bottom: 12px;
+              scrollbar-width: none;
+            "
+            id="specKatChips"
+          ></div>
+          <div
+            id="dynSpecFilter2"
+            style="
+              display: none;
+              background: #fff;
+              border: 1.5px solid var(--blue-bd, #bfdbfe);
+              border-radius: 12px;
+              padding: 14px;
+              margin-bottom: 12px;
+            "
+          >
+            <div
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--primary);
+                margin-bottom: 10px;
+              "
+              id="dynSpecFilter2Title"
+            >
+              Filter Spesifikasi
+            </div>
+            <div id="dynSpecFilter2Body"></div>
+          </div>
+          <div
+            style="font-size: 12px; color: var(--muted); margin-bottom: 10px"
+          >
             Menampilkan
             <span
-              id="assetFilterCount"
+              id="specFilterCount"
               style="font-weight: 700; color: var(--primary)"
               >0</span
             >
             asset
           </div>
+          <div id="specAssetList"></div>
         </div>
-        <div id="assetList"></div>
+      </div>
+
+      <!-- MODAL SERTIFIKASI -->
+      <div
+        id="sertModalBg"
+        onclick="closeSertModal()"
+        style="
+          display: none;
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 26, 60, 0.5);
+          z-index: 500;
+          backdrop-filter: blur(3px);
+        "
+      ></div>
+      <div
+        id="sertModal"
+        style="
+          display: none;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) scale(0.95);
+          opacity: 0;
+          background: #fff;
+          border-radius: 16px;
+          z-index: 501;
+          width: calc(100vw - 32px);
+          max-width: 480px;
+          max-height: 88vh;
+          overflow-y: auto;
+          transition: all 0.25s;
+        "
+      >
+        <div
+          style="
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 1;
+          "
+        >
+          <div
+            style="font-size: 15px; font-weight: 700; flex: 1"
+            id="sertModalTitle"
+          >
+            Update Sertifikasi
+          </div>
+          <button
+            onclick="closeSertModal()"
+            style="
+              width: 30px;
+              height: 30px;
+              border-radius: 50%;
+              background: var(--surface2);
+              border: none;
+              cursor: pointer;
+              font-size: 14px;
+            "
+          >
+            ✕
+          </button>
+        </div>
+        <div style="padding: 16px 20px" id="sertModalBody"></div>
+        <div style="padding: 0 20px 20px; display: flex; gap: 8px">
+          <button
+            onclick="closeSertModal()"
+            style="
+              flex: 1;
+              padding: 12px;
+              border-radius: 10px;
+              border: 1.5px solid var(--border);
+              background: #fff;
+              font-size: 14px;
+              color: var(--muted);
+              cursor: pointer;
+              font-family: &quot;Inter&quot;, sans-serif;
+            "
+          >
+            Batal
+          </button>
+          <button
+            onclick="saveSertifikasi()"
+            style="
+              flex: 2;
+              padding: 12px;
+              border-radius: 10px;
+              border: none;
+              background: var(--primary);
+              color: #fff;
+              font-size: 14px;
+              font-weight: 600;
+              cursor: pointer;
+              font-family: &quot;Inter&quot;, sans-serif;
+            "
+          >
+            ✅ Simpan
+          </button>
+        </div>
+      </div>
+
+      <!-- DRAWER HISTORY INSPEKSI -->
+      <div
+        id="historyDrawerBg"
+        onclick="closeHistoryDrawer()"
+        style="
+          display: none;
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 26, 60, 0.5);
+          z-index: 500;
+          backdrop-filter: blur(3px);
+        "
+      ></div>
+      <div
+        id="historyDrawer"
+        style="
+          display: none;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: #fff;
+          border-radius: 20px 20px 0 0;
+          z-index: 501;
+          max-height: 80vh;
+          overflow-y: auto;
+          transform: translateY(100%);
+          transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+          padding-bottom: env(safe-area-inset-bottom);
+        "
+      >
+        <div
+          style="
+            width: 36px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 12px auto 0;
+          "
+        ></div>
+        <div
+          style="
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            background: #fff;
+          "
+        >
+          <div
+            style="font-size: 15px; font-weight: 700; flex: 1"
+            id="historyDrawerTitle"
+          >
+            Riwayat Inspeksi
+          </div>
+          <button
+            onclick="closeHistoryDrawer()"
+            style="
+              width: 30px;
+              height: 30px;
+              border-radius: 50%;
+              background: var(--surface2);
+              border: none;
+              cursor: pointer;
+              font-size: 14px;
+            "
+          >
+            ✕
+          </button>
+        </div>
+        <div style="padding: 16px 20px" id="historyDrawerBody"></div>
       </div>
 
       <!-- ADMIN ACTIVITY LOG -->
@@ -5368,766 +5851,1050 @@
       // ════════════════════════════════════════════════════════════
       //  ASSET MONITORING
       // ════════════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════════
+      // ASSET MONITORING V2
+      // ════════════════════════════════════════════════════════
+      let assetAreaFilter = "ALL";
+      let assetTabActive = "asset";
+      let assetStatusFilter2 = "semua";
+      let assetKatFilter = "";
+      let assetDynFilters = {};
+      let sertFilter = "semua";
+      let specKatFilter = "";
+      let specDynFilters = {};
+      let activeSertAssetId = null;
+      let masterKategoriCache = [];
+
       async function loadAdminAsset() {
+        showLoad("Memuat data asset...");
         try {
-          const res = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({
-              action: "crudMaster",
-              action_type: "READ_ASSET",
-              caller_nik: SESSION.nik || "SYSTEM",
+          // Load asset + master kategori paralel
+          const [resAsset, resMaster] = await Promise.all([
+            fetch(APPS_SCRIPT_URL, {
+              method: "POST",
+              body: JSON.stringify({
+                action: "crudMaster",
+                action_type: "READ_ASSET",
+                caller_nik: SESSION.nik || "SYSTEM",
+              }),
             }),
-          });
-          const json = await res.json();
-          if (json.status === "ok") {
-            assetsRaw = json.data.assets || [];
-            renderAssetStats(json.data);
+            fetch(APPS_SCRIPT_URL + "?action=getMasterData&type=all"),
+          ]);
+          const [jAsset, jMaster] = await Promise.all([
+            resAsset.json(),
+            resMaster.json(),
+          ]);
+
+          if (jAsset.status === "ok") {
+            assetsRaw = jAsset.data.assets || [];
+            // Inject nama kategori + spec_fields dari master
+            if (jMaster.status === "ok" && jMaster.data.kategori) {
+              masterKategoriCache = jMaster.data.kategori;
+              const katMap = {};
+              jMaster.data.kategori.forEach(function (k) {
+                katMap[k.kategori_id] = k;
+              });
+              assetsRaw = assetsRaw.map(function (a) {
+                const kat = katMap[a.kategori_id];
+                if (kat) {
+                  a.spec_fields = kat.spec_fields || "";
+                  if (!a.nama_kategori) a.nama_kategori = kat.nama_kategori;
+                }
+                return a;
+              });
+            }
           } else {
             assetsRaw = getDemoAssets();
-            renderAssetStats({
-              total: assetsRaw.length,
-              layak: assetsRaw.filter((a) => a.status_aset_terakhir === "LAYAK")
-                .length,
-              tidak_layak: assetsRaw.filter(
-                (a) => a.status_aset_terakhir === "TIDAK LAYAK",
-              ).length,
-            });
           }
         } catch (e) {
           assetsRaw = getDemoAssets();
-          renderAssetStats({
-            total: assetsRaw.length,
-            layak: assetsRaw.filter((a) => a.status_aset_terakhir === "LAYAK")
-              .length,
-            tidak_layak: assetsRaw.filter(
-              (a) => a.status_aset_terakhir === "TIDAK LAYAK",
-            ).length,
-          });
         }
-        assetStatusFilter = "semua";
-        assetNamaFilter = "";
-        renderAssetNamaChips();
-        applyAssetFilter();
+        hideLoad();
+        renderAssetV2();
+        populatePICFilter();
+        buildKategoriCards();
+        buildSpecKatChips();
       }
 
-      function renderAssetStats(d) {
+      function renderAssetV2() {
         const today = new Date().toISOString().split("T")[0];
+        const filtered = getFilteredAssets();
+        const layak = assetsRaw.filter(
+          (a) => a.status_aset_terakhir === "LAYAK",
+        ).length;
+        const tidak = assetsRaw.filter(
+          (a) => a.status_aset_terakhir !== "LAYAK",
+        ).length;
         const overdue = assetsRaw.filter(
           (a) => a.tgl_inspeksi_due && a.tgl_inspeksi_due < today,
         ).length;
-        document.getElementById("assetTotal").textContent = d.total || 0;
-        document.getElementById("assetLayak").textContent = d.layak || 0;
-        document.getElementById("assetTidakLayak").textContent =
-          d.tidak_layak || 0;
-        document.getElementById("assetOverdue").textContent = overdue;
-        renderKategoriBreakdown(); // ← tambah ini
+
+        // Stat cards
+        const el = (id) => document.getElementById(id);
+        if (el("assetTotal2")) el("assetTotal2").textContent = assetsRaw.length;
+        if (el("assetLayak2")) el("assetLayak2").textContent = layak;
+        if (el("assetTidakLayak2")) el("assetTidakLayak2").textContent = tidak;
+        if (el("assetOverdue2")) el("assetOverdue2").textContent = overdue;
+        if (el("assetViewSub"))
+          el("assetViewSub").textContent =
+            assetsRaw.length + " unit terdaftar · ISAM CK BIB";
+
+        // Chip counts
+        if (el("assetFilterCount2"))
+          el("assetFilterCount2").textContent = filtered.length;
+        if (el("chipAll2"))
+          el("chipAll2").textContent = "(" + assetsRaw.length + ")";
+        if (el("chipLayak2")) el("chipLayak2").textContent = "(" + layak + ")";
+        if (el("chipTidak2")) el("chipTidak2").textContent = "(" + tidak + ")";
+        if (el("chipInspeksi2"))
+          el("chipInspeksi2").textContent = "(" + overdue + ")";
+
+        renderAssetListV2(filtered);
+        renderSertifikasiTab();
       }
-      function renderKategoriBreakdown() {
-        const el = document.getElementById("assetKategoriBreakdown");
-        if (!el || !assetsRaw.length) return;
 
-        // Group by nama_kategori
-        const byKat = {};
-        assetsRaw.forEach((a) => {
-          const k = String(a.nama_kategori || "Lainnya").trim();
-          if (!byKat[k]) byKat[k] = { total: 0, layak: 0, tidak: 0 };
-          byKat[k].total++;
-          if (a.status_aset_terakhir === "LAYAK") byKat[k].layak++;
-          else byKat[k].tidak++;
+      function getFilteredAssets() {
+        const today = new Date().toISOString().split("T")[0];
+        const q = (document.getElementById("searchAsset2")?.value || "")
+          .toLowerCase()
+          .trim();
+        const picFilter = document.getElementById("filterPIC")?.value || "";
+        let data = [...assetsRaw];
+
+        // Area filter
+        if (assetAreaFilter !== "ALL") {
+          data = data.filter(
+            (a) => String(a.area_id) === String(assetAreaFilter),
+          );
+        }
+        // Kategori filter
+        if (assetKatFilter) {
+          data = data.filter(
+            (a) => String(a.kategori_id) === String(assetKatFilter),
+          );
+        }
+        // Status filter
+        if (assetStatusFilter2 === "layak")
+          data = data.filter((a) => a.status_aset_terakhir === "LAYAK");
+        else if (assetStatusFilter2 === "tidak_layak")
+          data = data.filter((a) => a.status_aset_terakhir !== "LAYAK");
+        else if (assetStatusFilter2 === "perlu_inspeksi")
+          data = data.filter(
+            (a) => a.tgl_inspeksi_due && a.tgl_inspeksi_due < today,
+          );
+        // PIC filter
+        if (picFilter) data = data.filter((a) => a.pic_nik === picFilter);
+        // Dynamic spec filter
+        Object.entries(assetDynFilters).forEach(([key, val]) => {
+          if (!val || val === "all") return;
+          data = data.filter((a) => {
+            if (!a.spesifikasi_detail) return false;
+            try {
+              const spek = JSON.parse(a.spesifikasi_detail);
+              return (
+                String(spek[key] || "").toLowerCase() ===
+                String(val).toLowerCase()
+              );
+            } catch (e) {
+              return false;
+            }
+          });
         });
+        // Search
+        if (q) {
+          data = data.filter(
+            (a) =>
+              (a.nama_alat || "").toLowerCase().includes(q) ||
+              (a.no_id || "").toLowerCase().includes(q) ||
+              (a.no_toolbox || "").toLowerCase().includes(q) ||
+              (a.nama_subarea || "").toLowerCase().includes(q) ||
+              (a.merk || "").toLowerCase().includes(q) ||
+              (a.asset_id || "").toLowerCase().includes(q) ||
+              (a.marking || "").toLowerCase().includes(q),
+          );
+        }
+        return data;
+      }
 
-        // Icon mapping
-        const iconMap = [
-          ["toolbox", "🧰"],
-          ["apar", "🧯"],
-          ["jack", "🔩"],
-          ["stand", "🔩"],
-          ["compressor", "💨"],
-          ["crane", "🏗️"],
-          ["listrik", "⚡"],
-          ["angin", "💨"],
-          ["sling", "🪝"],
-          ["tangga", "🪜"],
-          ["hook", "🪝"],
-        ];
+      function renderAssetListV2(assets) {
+        const el = document.getElementById("assetList2");
+        if (!el) return;
+        if (!assets.length) {
+          el.innerHTML =
+            '<div class="empty"><div class="empty-icon">🔧</div><div class="empty-title">Tidak ada asset</div><div class="empty-sub">Coba ubah filter atau area.</div></div>';
+          return;
+        }
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
 
-        function getIcon(nama) {
-          const n = nama.toLowerCase();
-          const found = iconMap.find(([k]) => n.includes(k));
-          return found ? found[1] : "🔧";
+        el.innerHTML = assets
+          .map((a) => {
+            const isLayak = a.status_aset_terakhir === "LAYAK";
+            const isTb = !!(a.no_toolbox && String(a.no_toolbox).trim());
+
+            // Sertifikasi
+            let sertBadge = "",
+              borderClass = "";
+            if (a.tanggal_expired) {
+              const exp = new Date(a.tanggal_expired);
+              exp.setHours(0, 0, 0, 0);
+              const diff = Math.ceil((exp - now) / 86400000);
+              if (diff < 0) {
+                sertBadge = `<span style="background:var(--red-bg);color:var(--red);padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700">🔴 Expired</span>`;
+                borderClass =
+                  "border-left:3px solid var(--red);border-radius:0 12px 12px 0";
+              } else if (diff <= 30) {
+                sertBadge = `<span style="background:var(--yellow-bg);color:var(--yellow);padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700">⚠️ ${diff} hari</span>`;
+                borderClass =
+                  "border-left:3px solid var(--yellow);border-radius:0 12px 12px 0";
+              } else {
+                sertBadge = `<span style="background:var(--green-bg);color:var(--green);padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700">✅ Valid</span>`;
+              }
+            }
+
+            // Spec tags dari spesifikasi_detail + spec_fields
+            let specTags = "";
+            if (a.spesifikasi_detail && a.spec_fields) {
+              try {
+                const spek = JSON.parse(a.spesifikasi_detail);
+                const fields = JSON.parse(a.spec_fields).fields || [];
+                specTags = fields
+                  .map((f) => {
+                    const val = spek[f.key];
+                    return val
+                      ? `<span style="font-size:10px;background:var(--primary-light,#eef3ff);color:var(--primary);border-radius:4px;padding:2px 7px;font-weight:600;border:0.5px solid var(--blue-bd,#bfdbfe)">${f.label}: ${val}</span>`
+                      : "";
+                  })
+                  .filter(Boolean)
+                  .join("");
+              } catch (e) {}
+            }
+
+            // PIC row
+            const picColor =
+              a.tanggal_expired && new Date(a.tanggal_expired) < now
+                ? "var(--red-bg);border-color:var(--red-bd)"
+                : "var(--surface2);border-color:var(--border)";
+            const picTextColor =
+              a.tanggal_expired && new Date(a.tanggal_expired) < now
+                ? "var(--red)"
+                : "var(--text)";
+            const picInitials = (a.pic_nama || "?")
+              .split(" ")
+              .map((w) => w[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase();
+            const picRow = a.pic_nama
+              ? `
+      <div style="display:flex;align-items:center;gap:8px;background:${picColor};border:0.5px solid;border-radius:8px;padding:7px 10px;margin-top:8px">
+        <div style="width:26px;height:26px;border-radius:50%;background:var(--primary-light,#eef3ff);color:var(--primary);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${picInitials}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600;color:${picTextColor}">${a.pic_nama}${a.pic_is_delegate ? ' <span style="font-size:10px;color:var(--yellow)">(menggantikan ' + a.pic_original_nama + ")</span>" : ""}</div>
+          <div style="font-size:10px;color:var(--muted)">PIC · ${a.nama_subarea || "-"}</div>
+        </div>
+        <span style="font-size:10px;color:var(--muted2)">${a.pic_nik || ""}</span>
+      </div>`
+              : "";
+
+            return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:.15s;${borderClass}" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='${borderClass ? "inherit" : "var(--border)"}'">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
+        <div style="width:38px;height:38px;border-radius:10px;background:${isLayak ? "var(--green-bg)" : "var(--red-bg)"};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">
+          ${isTb ? "🧰" : "🔧"}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;margin-bottom:2px">${a.nama_alat || "-"}</div>
+          <div style="font-size:11px;color:var(--muted)">${a.asset_id || "-"} · ${a.no_id || a.no_toolbox || "-"}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          <span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;${isLayak ? "background:var(--green-bg);color:var(--green)" : "background:var(--red-bg);color:var(--red)"}">${isLayak ? "✅ Layak" : "❌ Tidak Layak"}</span>
+          ${sertBadge}
+          ${a.tanggal_expired ? `<span style="font-size:10px;color:var(--muted2)">Exp: ${a.tanggal_expired}</span>` : ""}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${specTags ? "6px" : "0"}">
+        <span style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:3px">📍 ${a.nama_subarea || "-"}</span>
+        <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--muted);border:0.5px solid var(--border)">${a.nama_kategori || "-"}</span>
+        ${a.merk ? `<span style="font-size:11px;color:var(--muted2)">${a.merk}</span>` : ""}
+      </div>
+      ${specTags ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">${specTags}</div>` : ""}
+      ${picRow}
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button onclick="event.stopPropagation();openHistoryDrawer('${a.asset_id}','${a.no_id || a.no_toolbox || ""}','${a.nama_alat || ""}')"
+          style="flex:1;padding:6px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:var(--primary);font-family:'Inter',sans-serif">
+          📋 Riwayat Inspeksi
+        </button>
+        ${
+          a.tanggal_expired
+            ? `<button onclick="event.stopPropagation();openSertModal('${a.asset_id}')"
+          style="flex:1;padding:6px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:var(--primary);font-family:'Inter',sans-serif">
+          📝 Update Sertifikasi
+        </button>`
+            : ""
+        }
+      </div>
+    </div>`;
+          })
+          .join("");
+      }
+
+      // ── Sertifikasi Tab ──
+      function renderSertifikasiTab() {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        let data = assetsRaw.filter(
+          (a) => a.tanggal_expired && String(a.tanggal_expired).trim(),
+        );
+        if (assetAreaFilter !== "ALL")
+          data = data.filter(
+            (a) => String(a.area_id) === String(assetAreaFilter),
+          );
+
+        const expired = data.filter(
+          (a) => new Date(a.tanggal_expired) < now,
+        ).length;
+        const warning = data.filter((a) => {
+          const d = new Date(a.tanggal_expired);
+          const diff = Math.ceil((d - now) / 86400000);
+          return diff >= 0 && diff <= 60;
+        }).length;
+        const valid = data.filter(
+          (a) => Math.ceil((new Date(a.tanggal_expired) - now) / 86400000) > 60,
+        ).length;
+
+        const el = (id) => document.getElementById(id);
+        if (el("sertExpired2")) el("sertExpired2").textContent = expired;
+        if (el("sertWarning2")) el("sertWarning2").textContent = warning;
+        if (el("sertValid2")) el("sertValid2").textContent = valid;
+
+        // Apply sert filter
+        let filtered = data;
+        if (sertFilter === "expired")
+          filtered = data.filter((a) => new Date(a.tanggal_expired) < now);
+        else if (sertFilter === "warning")
+          filtered = data.filter((a) => {
+            const d = Math.ceil((new Date(a.tanggal_expired) - now) / 86400000);
+            return d >= 0 && d <= 60;
+          });
+        else if (sertFilter === "valid")
+          filtered = data.filter(
+            (a) =>
+              Math.ceil((new Date(a.tanggal_expired) - now) / 86400000) > 60,
+          );
+
+        // Sort expired dulu
+        filtered.sort(
+          (a, b) => new Date(a.tanggal_expired) - new Date(b.tanggal_expired),
+        );
+
+        const listEl = document.getElementById("sertifikasiList2");
+        if (!listEl) return;
+        if (!filtered.length) {
+          listEl.innerHTML =
+            '<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Tidak ada data sertifikasi</div></div>';
+          return;
         }
 
-        el.innerHTML = Object.entries(byKat)
-          .sort((a, b) => b[1].total - a[1].total)
-          .map(([nama, stat]) => {
-            const icon = getIcon(nama);
-            const pct =
-              stat.total > 0 ? Math.round((stat.layak / stat.total) * 100) : 0;
-            const color =
+        listEl.innerHTML = filtered
+          .map((a) => {
+            const exp = new Date(a.tanggal_expired);
+            exp.setHours(0, 0, 0, 0);
+            const diff = Math.ceil((exp - now) / 86400000);
+            const isExpired = diff < 0;
+            const isWarning = diff >= 0 && diff <= 60;
+            const borderStyle = isExpired
+              ? "border-left:3px solid var(--red);border-radius:0 12px 12px 0"
+              : isWarning
+                ? "border-left:3px solid var(--yellow);border-radius:0 12px 12px 0"
+                : "";
+            const statusBadge = isExpired
+              ? `<span style="background:var(--red-bg);color:var(--red);padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700">🔴 Expired ${Math.abs(diff)} hari lalu</span>`
+              : isWarning
+                ? `<span style="background:var(--yellow-bg);color:var(--yellow);padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700">⚠️ ${diff} hari lagi</span>`
+                : `<span style="background:var(--green-bg);color:var(--green);padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700">✅ Valid</span>`;
+
+            const picInitials = (a.pic_nama || "?")
+              .split(" ")
+              .map((w) => w[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase();
+            const tindakPanel =
+              isExpired || isWarning
+                ? `
+      <div style="background:${isExpired ? "var(--red-bg)" : "var(--yellow-bg)"};border-top:1px solid ${isExpired ? "var(--red-bd)" : "var(--yellow-bd)"};padding:12px 14px">
+        <div style="font-size:11px;font-weight:700;color:${isExpired ? "var(--red)" : "var(--yellow)"};margin-bottom:8px">${isExpired ? "🚨 Perlu perpanjangan segera!" : "⏰ Segera siapkan perpanjangan"}</div>
+        <div style="display:flex;gap:5px;margin-bottom:10px">
+          ${["Belum diajukan", "Sudah diajukan", "Selesai"]
+            .map(
+              (
+                s,
+                i,
+              ) => `<div onclick="setPengajuan(this,'${a.asset_id}',${i})" data-asset="${a.asset_id}" data-idx="${i}"
+            style="flex:1;padding:6px 4px;border-radius:7px;font-size:10px;border:0.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;text-align:center;line-height:1.4">${s}</div>`,
+            )
+            .join("")}
+        </div>
+        <button onclick="openSertModal('${a.asset_id}')"
+          style="width:100%;padding:8px;border-radius:8px;background:${isExpired ? "var(--red)" : "#d97706"};color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px">
+          ✏️ Update Sertifikasi
+        </button>
+      </div>`
+                : "";
+
+            return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;${borderStyle}">
+      <div style="padding:12px 14px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+          <div>
+            <div style="font-size:13px;font-weight:600">${a.nama_alat || "-"} · ${a.no_id || a.no_toolbox || "-"}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${a.nama_subarea || "-"} · ${a.nama_kategori || "-"}</div>
+          </div>
+          ${statusBadge}
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:${a.pic_nama ? "8px" : "0"}">
+          <span style="font-size:11px;font-family:monospace;color:var(--muted)">${a.no_sertifikasi || "No sertifikat belum diisi"}</span>
+          <span style="font-size:11px;font-weight:600;color:${isExpired ? "var(--red)" : isWarning ? "var(--yellow)" : "var(--green)"}">Exp: ${a.tanggal_expired}</span>
+        </div>
+        ${
+          a.pic_nama
+            ? `<div style="display:flex;align-items:center;gap:8px;background:${isExpired ? "var(--red-bg)" : isWarning ? "var(--yellow-bg)" : "var(--surface2)"};border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--primary-light,#eef3ff);color:var(--primary);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">${picInitials}</div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:${isExpired ? "var(--red)" : "var(--text)"}">${a.pic_nama}</div>
+            <div style="font-size:10px;color:var(--muted)">PIC penanggung jawab</div>
+          </div>
+        </div>`
+            : ""
+        }
+      </div>
+      ${tindakPanel}
+    </div>`;
+          })
+          .join("");
+      }
+
+      // ── Kategori Cards ──
+      function buildKategoriCards() {
+        const el = document.getElementById("assetKategoriCards");
+        if (!el) return;
+        const iconMap = {
+          jackstand: "🔩",
+          stand: "🔩",
+          apar: "🧯",
+          sling: "🪝",
+          crane: "🏗️",
+          listrik: "⚡",
+          angin: "💨",
+          tangga: "🪜",
+          hook: "🪝",
+          harness: "🦺",
+          eyewash: "👁️",
+          toolbox: "🧰",
+        };
+        function getIcon(n) {
+          n = n.toLowerCase();
+          for (const [k, v] of Object.entries(iconMap))
+            if (n.includes(k)) return v;
+          return "🔧";
+        }
+        const byKat = {};
+        assetsRaw.forEach((a) => {
+          const k = a.kategori_id || "lain";
+          if (!byKat[k])
+            byKat[k] = {
+              id: k,
+              nama: a.nama_kategori || k,
+              total: 0,
+              layak: 0,
+            };
+          byKat[k].total++;
+          if (a.status_aset_terakhir === "LAYAK") byKat[k].layak++;
+        });
+        el.innerHTML = Object.values(byKat)
+          .sort((a, b) => b.total - a.total)
+          .map((k) => {
+            const pct = k.total > 0 ? Math.round((k.layak / k.total) * 100) : 0;
+            const c =
               pct >= 90
                 ? "var(--green)"
                 : pct >= 70
                   ? "var(--yellow)"
                   : "var(--red)";
-            const bg =
-              pct >= 90
-                ? "var(--green-bg)"
-                : pct >= 70
-                  ? "var(--yellow-bg)"
-                  : "var(--red-bg)";
-            const filterKey = nama.toLowerCase();
-            return `<div onclick="setAssetNamaFilter('${filterKey}',null);highlightKategoriCard(this)"
-        style="flex-shrink:0;background:var(--surface);border:1.5px solid var(--border);
-        border-radius:12px;padding:12px 14px;cursor:pointer;min-width:90px;
-        text-align:center;transition:all .2s;user-select:none"
-        onmouseover="this.style.borderColor='var(--primary)';this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(27,79,216,.12)'"
-        onmouseout="if(!this.classList.contains('kat-active')){this.style.borderColor='var(--border)';this.style.transform='';this.style.boxShadow=''}">
-        <div style="font-size:22px;margin-bottom:6px">${icon}</div>
-        <div style="font-size:18px;font-weight:700;line-height:1">${stat.total}</div>
-        <div style="font-size:10px;color:var(--muted);margin:3px 0 6px;
-          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:76px;
-          font-weight:500">${nama}</div>
-        <div style="background:${bg};border-radius:20px;padding:2px 6px;
-          font-size:10px;font-weight:700;color:${color};display:inline-block">
-          ${pct}% layak
-        </div>
-      </div>`;
+            const isActive = assetKatFilter === k.id;
+            return `<div onclick="setAssetKat('${k.id}',this)" style="flex-shrink:0;background:${isActive ? "var(--primary-light,#eef3ff)" : "#fff"};border:${isActive ? "2px solid var(--primary)" : "1.5px solid var(--border)"};border-radius:12px;padding:10px 12px;text-align:center;min-width:76px;cursor:pointer;transition:.15s">
+      <div style="font-size:20px;margin-bottom:4px">${getIcon(k.nama)}</div>
+      <div style="font-size:16px;font-weight:600;color:${isActive ? "var(--primary)" : "var(--text)"}">${k.total}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap">${k.nama}</div>
+      <div style="font-size:10px;font-weight:600;color:${c};margin-top:2px">${pct}% layak</div>
+    </div>`;
           })
           .join("");
       }
-      function highlightKategoriCard(el) {
-        document
-          .querySelectorAll("#assetKategoriBreakdown > div")
-          .forEach((d) => {
-            d.style.borderColor = "var(--border)";
-            d.style.background = "var(--surface)";
-            d.classList.remove("kat-active");
-          });
-        if (el) {
-          el.style.borderColor = "var(--primary)";
-          el.style.background = "var(--primary-light)";
-          el.classList.add("kat-active");
+
+      function setAssetKat(katId, el) {
+        // Toggle off kalau klik yang sama
+        if (assetKatFilter === katId) {
+          assetKatFilter = "";
+        } else {
+          assetKatFilter = katId;
         }
-      }
-
-      let assetNamaFilter = "";
-
-      function renderAssetNamaChips() {
-        const el = document.getElementById("assetNamaChips");
-        if (!el) return;
-
-        // Gunakan kata pertama nama_alat sebagai jenis (bor, compressor, toolbox, dll)
-        const countMap = {};
-        assetsRaw.forEach((a) => {
-          const jenisRaw = String(a.nama_alat || "")
-            .trim()
-            .split(" ")[0];
-          if (!jenisRaw) return;
-          const key = jenisRaw.toLowerCase();
-          if (!countMap[key]) countMap[key] = { label: jenisRaw, count: 0 };
-          countMap[key].count++;
-        });
-
-        const sorted = Object.values(countMap).sort(
-          (a, b) => b.count - a.count,
-        );
-
-        el.innerHTML =
-          `<div class="chip ${assetNamaFilter === "" ? "active" : ""}" onclick="setAssetNamaFilter('',this)">Semua Jenis</div>` +
-          sorted
-            .map(
-              (c) =>
-                `<div class="chip ${assetNamaFilter === c.label.toLowerCase() ? "active" : ""}" onclick="setAssetNamaFilter('${c.label.toLowerCase()}',this)">
-        ${c.label} <span style="opacity:.65">(${c.count})</span>
-      </div>`,
-            )
-            .join("");
+        assetDynFilters = {};
+        buildKategoriCards();
+        renderDynSpecFilter();
         applyAssetFilter();
       }
 
-      function setAssetNamaFilter(val, chipEl) {
-        assetNamaFilter = val;
-        document
-          .querySelectorAll("#assetNamaChips .chip")
-          .forEach((c) => c.classList.remove("active"));
-        if (chipEl) chipEl.classList.add("active");
-        applyAssetFilter();
-      }
-
-      function renderAssetList(assets) {
-        const el = document.getElementById("assetList");
-        if (!el) return;
-
-        if (!assets.length) {
-          el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Tidak ada data sertifikasi</div></div>`;
+      function renderDynSpecFilter() {
+        const el = document.getElementById("dynSpecFilter");
+        const body = document.getElementById("dynSpecFilterBody");
+        const title = document.getElementById("dynSpecFilterTitle");
+        if (!el || !body) return;
+        if (!assetKatFilter) {
+          el.style.display = "none";
           return;
         }
 
-        const now = new Date();
-        now.setHours(0, 0, 0, 0);
-        const isSertFilter = assetStatusFilter === "sertifikasi";
+        const kat = masterKategoriCache.find(
+          (k) => k.kategori_id === assetKatFilter,
+        );
+        if (!kat || !kat.spec_fields) {
+          el.style.display = "none";
+          return;
+        }
 
-        el.innerHTML = assets
-          .map((a) => {
-            const isLayak = a.status_aset_terakhir === "LAYAK";
-            const isTb = !!(a.no_toolbox && String(a.no_toolbox).trim() !== "");
+        let fields = [];
+        try {
+          fields = JSON.parse(kat.spec_fields).fields || [];
+        } catch (e) {}
+        if (!fields.length) {
+          el.style.display = "none";
+          return;
+        }
 
-            let sertHtml = "";
+        if (title) title.textContent = "Filter " + (kat.nama_kategori || "");
+        el.style.display = "block";
 
-            if (isSertFilter && a.tanggal_expired) {
-              const exp = new Date(a.tanggal_expired);
-              if (!isNaN(exp.getTime())) {
-                const diffDays = Math.ceil((exp - now) / 86400000);
+        // Kumpulkan nilai unik per field dari data aktual
+        const assetInKat = assetsRaw.filter(
+          (a) => a.kategori_id === assetKatFilter && a.spesifikasi_detail,
+        );
+        const uniqueVals = {};
+        assetInKat.forEach((a) => {
+          try {
+            const spek = JSON.parse(a.spesifikasi_detail);
+            fields.forEach((f) => {
+              if (!uniqueVals[f.key]) uniqueVals[f.key] = new Set();
+              if (spek[f.key]) uniqueVals[f.key].add(spek[f.key]);
+            });
+          } catch (e) {}
+        });
 
-                // Highlight logic
-                let borderColor = "var(--green-bd)";
-                let bgColor = "var(--green-bg)";
-                let textColor = "var(--green)";
-                let label = "🟢 VALID";
-
-                if (diffDays < 0) {
-                  borderColor = "var(--red-bd)";
-                  bgColor = "var(--red-bg)";
-                  textColor = "var(--red)";
-                  label = "🔴 EXPIRED";
-                } else if (diffDays <= 30) {
-                  borderColor = "var(--yellow-bd)";
-                  bgColor = "var(--yellow-bg)";
-                  textColor = "var(--yellow)";
-                  label = `🟡 ${diffDays} hari lagi`;
-                } else if (diffDays <= 60) {
-                  borderColor = "var(--yellow-bd)";
-                  bgColor = "var(--yellow-bg)";
-                  textColor = "#f59e0b";
-                  label = `🟡 ${diffDays} hari lagi`;
-                }
-
-                sertHtml = `
-          <div style="margin-top:12px; padding:12px; background:${bgColor}; border:2px solid ${borderColor}; border-radius:10px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <span style="font-size:12px; font-weight:700; color:var(--muted)">📋 SERTIFIKASI</span>
-              <span style="font-size:13px; font-weight:700; color:${textColor}">${label}</span>
-            </div>
-            <div style="font-size:13px; font-weight:600; color:${textColor}; margin-bottom:4px;">
-              Expired: ${exp.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
-            </div>
-            <div style="font-size:12px; color:var(--muted)">
-              No: ${a.no_sertifikasi || "-"} • ${a.nama_penguji || "-"}
-            </div>
-          </div>`;
-              }
-            }
-
-            return `
-      <div style="background:var(--surface); border-radius:12px; border:1px solid var(--border); padding:14px; margin-bottom:12px;">
-        <div style="display:flex; gap:12px;">
-          <div style="flex:1; min-width:0;">
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-              <div style="font-weight:600; font-size:15px;">${a.nama_alat || "-"}</div>
-              ${isTb ? `<span style="background:var(--yellow-bg); color:var(--yellow); font-size:10px; padding:2px 8px; border-radius:12px; font-weight:700;">🧰 TOOLBOX</span>` : ""}
-            </div>
-            
-            <div style="font-size:13px; color:var(--primary); margin-bottom:8px;">🪪 ${a.asset_id || "-"}</div>
-            
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12px; color:var(--muted);">
-              <div>📍 ${a.nama_subarea || "-"}</div>
-              <div>🗂️ ${a.nama_kategori || "-"}</div>
-            </div>
-
-            ${sertHtml}
-          </div>
-
-          <div style="text-align:right; flex-shrink:0;">
-            <div style="padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; 
-                        ${isLayak ? "background:var(--green-bg); color:var(--green)" : "background:var(--red-bg); color:var(--red)"}">
-              ${isLayak ? "✅ LAYAK" : "❌ TIDAK LAYAK"}
-            </div>
-          </div>
-        </div>
-      </div>`;
+        body.innerHTML = fields
+          .map((f) => {
+            const vals = [...(uniqueVals[f.key] || [])].sort();
+            const opts = [
+              "<div onclick=\"setDynFilter(this,'" +
+                f.key +
+                "','all')\" style=\"padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--primary);background:var(--primary-light,#eef3ff);color:var(--primary);cursor:pointer;font-weight:600\">Semua</div>",
+              ...vals.map(
+                (v) =>
+                  `<div onclick="setDynFilter(this,'${f.key}','${v}')" style="padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer">${v}</div>`,
+              ),
+            ].join("");
+            return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-size:12px;color:var(--muted);width:60px;flex-shrink:0;font-weight:500">${f.label}</span>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">${opts}</div>
+    </div>`;
           })
           .join("");
       }
-      let assetStatusFilter = "semua";
-      function setAssetFilter(status, chipEl) {
-        assetStatusFilter = status;
 
-        // Reset semua chip jadi tidak aktif
-        document
-          .querySelectorAll("#viewAdminAsset .chips .chip")
-          .forEach((c) => c.classList.remove("active"));
-        if (chipEl) chipEl.classList.add("active");
-
-        // Reset filter nama kategori
-        document
-          .querySelectorAll("#assetKategoriBreakdown > div")
-          .forEach((d) => {
+      function setDynFilter(el, key, val) {
+        assetDynFilters[key] = val === "all" ? null : val;
+        // Update active style
+        const parent = el.closest('div[style*="display:flex"]');
+        if (parent) {
+          parent.querySelectorAll("div[onclick]").forEach((d) => {
+            d.style.background = "#fff";
             d.style.borderColor = "var(--border)";
-            d.style.background = "var(--surface)";
+            d.style.color = "var(--muted)";
+            d.style.fontWeight = "400";
           });
-
-        assetNamaFilter = "";
-
-        // === SHOW / HIDE SERTIFIKASI STATS ===
-        const sertStats = document.getElementById("sertifikasiStats");
-        if (sertStats) {
-          sertStats.style.display = status === "sertifikasi" ? "block" : "none";
         }
-
+        el.style.background = "var(--primary-light,#eef3ff)";
+        el.style.borderColor = "var(--primary)";
+        el.style.color = "var(--primary)";
+        el.style.fontWeight = "600";
         applyAssetFilter();
       }
 
       function applyAssetFilter() {
-        const q = (document.getElementById("searchAsset")?.value || "")
-          .toLowerCase()
-          .trim();
-
-        const today = new Date().toISOString().split("T")[0];
-        let filtered = [...assetsRaw];
-
-        // Status filter
-        if (assetStatusFilter === "layak") {
-          filtered = filtered.filter((a) => a.status_aset_terakhir === "LAYAK");
-        } else if (assetStatusFilter === "tidak_layak") {
-          filtered = filtered.filter(
-            (a) => a.status_aset_terakhir === "TIDAK LAYAK",
-          );
-        } else if (assetStatusFilter === "perlu_inspeksi") {
-          filtered = filtered.filter(
-            (a) => a.tgl_inspeksi_due && a.tgl_inspeksi_due < today,
-          );
-
-          // ==================== TAMBAHKAN DI SINI ====================
-        } else if (assetStatusFilter === "sertifikasi") {
-          // Filter asset yang punya tanggal expired
-          filtered = filtered.filter(
-            (a) => a.tanggal_expired && String(a.tanggal_expired).trim() !== "",
-          );
-
-          const now = new Date();
-          now.setHours(0, 0, 0, 0);
-
-          // Hitung statistik
-          let expiredCount = 0;
-          let warningCount = 0;
-          let validCount = 0;
-
-          filtered.forEach((a) => {
-            const expDate = new Date(a.tanggal_expired);
-            if (isNaN(expDate.getTime())) return;
-
-            const diffTime = expDate.getTime() - now.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
-
-            if (diffDays < 0) expiredCount++;
-            else if (diffDays <= 60) warningCount++;
-            else validCount++;
-          });
-
-          // Update stats box
-          document.getElementById("sertExpiredCount").textContent =
-            expiredCount;
-          document.getElementById("sertWarningCount").textContent =
-            warningCount;
-          document.getElementById("sertValidCount").textContent = validCount;
-
-          // Update chip count
-          const chipSert = document.getElementById("chipCountSertifikasi");
-          if (chipSert) chipSert.textContent = `(${filtered.length})`;
-
-          // SORTING: Expired paling atas
-          filtered.sort((a, b) => {
-            const dateA = new Date(a.tanggal_expired);
-            const dateB = new Date(b.tanggal_expired);
-            if (isNaN(dateA.getTime())) return 1;
-            if (isNaN(dateB.getTime())) return -1;
-            return dateA - dateB;
-          });
-        }
-        // =========================================================
-
-        // Jenis alat chip filter (kata pertama nama_alat)
-        if (assetNamaFilter) {
-          filtered = filtered.filter((a) => {
-            const kat = (a.nama_kategori || "").toLowerCase();
-            const jenis = String(a.nama_alat || "")
-              .trim()
-              .split(" ")[0]
-              .toLowerCase();
-            return kat === assetNamaFilter || jenis === assetNamaFilter;
-          });
-        }
-
-        // Search filter
-        if (q) {
-          filtered = filtered.filter(
-            (a) =>
-              (a.nama_alat || "").toLowerCase().includes(q) ||
-              (a.no_id || "").toLowerCase().includes(q) ||
-              (a.no_toolbox || "").toLowerCase().includes(q) ||
-              (a.nama_subarea || "").toLowerCase().includes(q) ||
-              (a.merk || "").toLowerCase().includes(q) ||
-              (a.asset_id || "").toLowerCase().includes(q),
-          );
-        }
-
-        // Update count badge
-        const countEl = document.getElementById("assetFilterCount");
-        if (countEl) countEl.textContent = filtered.length;
-
-        // Update chip counts (lainnya)
-        const updateChipCount = (id, arr) => {
-          const el = document.getElementById(id);
-          if (el) el.textContent = arr.length ? `(${arr.length})` : "";
-        };
-
-        const baseFiltered = q
-          ? assetsRaw.filter(
-              (a) =>
-                (a.nama_alat || "").toLowerCase().includes(q) ||
-                (a.no_id || "").toLowerCase().includes(q) ||
-                (a.no_toolbox || "").toLowerCase().includes(q) ||
-                (a.nama_subarea || "").toLowerCase().includes(q) ||
-                (a.merk || "").toLowerCase().includes(q) ||
-                (a.asset_id || "").toLowerCase().includes(q),
-            )
-          : assetsRaw;
-
-        updateChipCount("chipCountSemua", baseFiltered);
-        updateChipCount(
-          "chipCountLayak",
-          baseFiltered.filter((a) => a.status_aset_terakhir === "LAYAK"),
-        );
-        updateChipCount(
-          "chipCountTidakLayak",
-          baseFiltered.filter((a) => a.status_aset_terakhir === "TIDAK LAYAK"),
-        );
-        updateChipCount(
-          "chipCountPerluInspeksi",
-          baseFiltered.filter(
-            (a) => a.tgl_inspeksi_due && a.tgl_inspeksi_due < today,
-          ),
-        );
-
-        renderAssetList(filtered);
-      }
-      // ════════════════════════════════════════════════════════════
-      //  EXPORT ASSET PDF
-      // ════════════════════════════════════════════════════════════
-      function exportAssetPDF() {
-        // Ambil data yang sedang ditampilkan (hasil filter aktif)
-        const q = (document.getElementById("searchAsset")?.value || "")
-          .toLowerCase()
-          .trim();
-        const today = new Date().toISOString().split("T")[0];
-        let data = [...assetsRaw];
-
-        if (assetStatusFilter === "layak")
-          data = data.filter((a) => a.status_aset_terakhir === "LAYAK");
-        else if (assetStatusFilter === "tidak_layak")
-          data = data.filter((a) => a.status_aset_terakhir === "TIDAK LAYAK");
-        else if (assetStatusFilter === "perlu_inspeksi")
-          data = data.filter(
-            (a) => a.tgl_inspeksi_due && a.tgl_inspeksi_due < today,
-          );
-
-        if (assetNamaFilter) {
-          data = data.filter(
-            (a) =>
-              (a.nama_alat || "").trim().split(" ")[0].toLowerCase() ===
-              assetNamaFilter,
-          );
-        }
-        if (q) {
-          data = data.filter(
-            (a) =>
-              (a.nama_alat || "").toLowerCase().includes(q) ||
-              (a.no_id || "").toLowerCase().includes(q) ||
-              (a.no_toolbox || "").toLowerCase().includes(q) ||
-              (a.nama_subarea || "").toLowerCase().includes(q) ||
-              (a.merk || "").toLowerCase().includes(q) ||
-              (a.asset_id || "").toLowerCase().includes(q),
-          );
-        }
-
-        if (!data.length) {
-          showToast("Tidak ada data untuk di-export", "warn");
-          return;
-        }
-
-        // Label filter untuk judul PDF
-        const filterLabels = [];
-        if (assetStatusFilter !== "semua")
-          filterLabels.push(
-            {
-              semua: "",
-              layak: "Layak",
-              tidak_layak: "Tidak Layak",
-              perlu_inspeksi: "Perlu Inspeksi",
-            }[assetStatusFilter],
-          );
-        if (assetNamaFilter)
-          filterLabels.push(
-            assetNamaFilter.charAt(0).toUpperCase() + assetNamaFilter.slice(1),
-          );
-        if (q) filterLabels.push('Pencarian: "' + q + '"');
-        const filterTitle = filterLabels.length
-          ? " — Filter: " + filterLabels.join(", ")
-          : " — Semua Asset";
-
-        const now = new Date().toLocaleString("id-ID", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        const totalLayak = data.filter(
-          (a) => a.status_aset_terakhir === "LAYAK",
-        ).length;
-        const totalTidakLayak = data.filter(
-          (a) => a.status_aset_terakhir === "TIDAK LAYAK",
-        ).length;
-
-        const rows = data
-          .map((a, i) => {
-            const isLayak = a.status_aset_terakhir === "LAYAK";
-            const statusColor = isLayak ? "#16A34A" : "#DC2626";
-            const statusBg = isLayak ? "#F0FDF4" : "#FEF2F2";
-            const statusLabel = isLayak ? "✅ LAYAK" : "❌ TDK LAYAK";
-            return `<tr style="background:${i % 2 === 0 ? "#fff" : "#F7F9FF"}">
-      <td style="padding:8px 10px;border:1px solid #D4DCEF;text-align:center;font-size:12px;color:#5A6A8A">${i + 1}</td>
-      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:11px;font-weight:700;color:#1B4FD8;white-space:nowrap">${a.asset_id || "-"}</td>
-      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px;font-weight:600">${a.nama_alat || "-"}</td>
-      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.no_id || a.no_toolbox || "-"}</td>
-      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.nama_subarea || "-"}</td>
-      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.nama_kategori || "-"}</td>
-      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.merk || "-"}</td>
-      <td style="padding:8px 10px;border:1px solid #D4DCEF;font-size:12px">${a.tgl_inspeksi_terakhir ? formatTgl(a.tgl_inspeksi_terakhir, true) : "Belum pernah"}</td>
-      <td style="padding:8px 10px;border:1px solid #D4DCEF;text-align:center">
-        <span style="background:${statusBg};color:${statusColor};font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap">${statusLabel}</span>
-      </td>
-    </tr>`;
-          })
-          .join("");
-
-        const html = `<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<title>Export Asset — ISAM CK BIB</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; padding: 24px; color: #0F1A3C; }
-  @media print {
-    body { padding: 0; }
-    .no-print { display: none !important; }
-    table { page-break-inside: auto; }
-    tr { page-break-inside: avoid; }
-  }
-</style>
-</head>
-<body>
-  <!-- Header -->
-  <div style="background:linear-gradient(135deg,#1338B0,#1B4FD8);padding:20px 24px;border-radius:10px;margin-bottom:20px;color:#fff">
-    <div style="display:flex;align-items:center;gap:14px">
-      <div style="font-size:32px">⛏️</div>
-      <div>
-        <div style="font-size:18px;font-weight:700">ISAM CK BIB — Laporan Asset</div>
-        <div style="font-size:12px;opacity:.8;margin-top:3px">Inspeksi K3 System</div>
-      </div>
-      <div style="margin-left:auto;text-align:right;font-size:11px;opacity:.8">
-        <div>Dicetak: ${now}</div>
-        <div>Total data: ${data.length} asset</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Filter info -->
-  <div style="background:#EEF3FF;border:1px solid #D4DCEF;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:#1B4FD8;font-weight:600">
-    📋 ${filterTitle.replace(" — ", "")}
-  </div>
-
-  <!-- Summary badges -->
-  <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-    <div style="background:#EEF3FF;border:1px solid #D4DCEF;border-radius:8px;padding:10px 16px;text-align:center;min-width:100px">
-      <div style="font-size:22px;font-weight:700;color:#1B4FD8">${data.length}</div>
-      <div style="font-size:10px;color:#5A6A8A;font-weight:600;text-transform:uppercase">Total</div>
-    </div>
-    <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:10px 16px;text-align:center;min-width:100px">
-      <div style="font-size:22px;font-weight:700;color:#16A34A">${totalLayak}</div>
-      <div style="font-size:10px;color:#16A34A;font-weight:600;text-transform:uppercase">Layak</div>
-    </div>
-    <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px 16px;text-align:center;min-width:100px">
-      <div style="font-size:22px;font-weight:700;color:#DC2626">${totalTidakLayak}</div>
-      <div style="font-size:10px;color:#DC2626;font-weight:600;text-transform:uppercase">Tidak Layak</div>
-    </div>
-  </div>
-
-  <!-- Table -->
-  <table style="width:100%;border-collapse:collapse;font-size:12px">
-    <thead>
-      <tr style="background:#1B4FD8;color:#fff">
-        <th style="padding:10px;border:1px solid #1338B0;width:36px">#</th>
-        <th style="padding:10px;border:1px solid #1338B0;text-align:left;white-space:nowrap">No Asset</th>
-        <th style="padding:10px;border:1px solid #1338B0;text-align:left">Nama Alat</th>
-        <th style="padding:10px;border:1px solid #1338B0;text-align:left">No ID</th>
-        <th style="padding:10px;border:1px solid #1338B0;text-align:left">Area</th>
-        <th style="padding:10px;border:1px solid #1338B0;text-align:left">Kategori</th>
-        <th style="padding:10px;border:1px solid #1338B0;text-align:left">Merk</th>
-        <th style="padding:10px;border:1px solid #1338B0;text-align:left">Inspeksi Terakhir</th>
-        <th style="padding:10px;border:1px solid #1338B0;text-align:center">Status</th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>
-
-  <!-- Footer -->
-  <div style="margin-top:20px;padding-top:12px;border-top:1px solid #D4DCEF;display:flex;justify-content:space-between;font-size:11px;color:#8FA0BE">
-    <span>ISAM CK BIB — Inspeksi K3 System</span>
-    <span>Digenerate otomatis oleh sistem</span>
-  </div>
-
-  <!-- Print trigger -->
-  <script>window.onload = function() { window.print(); }<\/script>
-</body>
-</html>`;
-
-        const win = window.open("", "_blank");
-        win.document.write(html);
-        win.document.close();
+        const filtered = getFilteredAssets();
+        const el = document.getElementById("assetFilterCount2");
+        if (el) el.textContent = filtered.length;
+        renderAssetListV2(filtered);
       }
 
-      // ════════════════════════════════════════════════════════════
-      //  ASSET SEARCH SUGGESTIONS
-      // ════════════════════════════════════════════════════════════
-      let assetSuggestionIndex = -1;
-
-      function showAssetSuggestions(q) {
-        const box = document.getElementById("assetSuggestions");
-        if (!box) return;
-        const val = (q || "").toLowerCase().trim();
-
-        if (!val) {
-          box.style.display = "none";
-          return;
-        }
-
-        // Kumpulin kandidat: nama_alat, merk, nama_subarea, asset_id, no_id
-        const seen = new Set();
-        const results = [];
+      function populatePICFilter() {
+        const sel = document.getElementById("filterPIC");
+        if (!sel) return;
+        const pics = {};
         assetsRaw.forEach((a) => {
-          const fields = [
-            { text: a.nama_alat, icon: "🔧", sub: a.nama_subarea },
-            { text: a.merk, icon: "🏷️", sub: "Merk" },
-            { text: a.no_id, icon: "🔢", sub: "No ID" },
-            { text: a.nama_subarea, icon: "📍", sub: "Area" },
-          ];
-          fields.forEach((f) => {
-            if (!f.text) return;
-            const t = f.text.trim();
-            const key = t.toLowerCase();
-            if (!key.includes(val) || seen.has(key)) return;
-            seen.add(key);
-            // Highlight matched part
-            const idx = key.indexOf(val);
-            const highlighted =
-              t.slice(0, idx) +
-              '<strong style="color:var(--primary)">' +
-              t.slice(idx, idx + val.length) +
-              "</strong>" +
-              t.slice(idx + val.length);
-            results.push({ icon: f.icon, highlighted, plain: t, sub: f.sub });
-          });
+          if (a.pic_nik && a.pic_nama) pics[a.pic_nik] = a.pic_nama;
         });
+        sel.innerHTML =
+          '<option value="">Semua PIC</option>' +
+          Object.entries(pics)
+            .map(([nik, nama]) => `<option value="${nik}">${nama}</option>`)
+            .join("");
+      }
 
-        if (!results.length) {
-          box.style.display = "none";
-          return;
-        }
+      function setAssetArea(areaId, el) {
+        assetAreaFilter = areaId;
+        document.querySelectorAll('[id^="areaBtn"]').forEach((b) => {
+          b.style.background = "transparent";
+          b.style.color = "var(--muted)";
+        });
+        el.style.background = "var(--primary)";
+        el.style.color = "#fff";
+        renderAssetV2();
+      }
 
-        assetSuggestionIndex = -1;
-        box.innerHTML = results
-          .slice(0, 8)
+      function setAssetTab(tab, el) {
+        assetTabActive = tab;
+        ["asset", "sertifikasi", "spesifikasi"].forEach((t) => {
+          const c = document.getElementById("assetTabContent-" + t);
+          const b = document.getElementById("assetTab-" + t);
+          if (c) c.style.display = t === tab ? "block" : "none";
+          if (b) {
+            b.style.background = t === tab ? "var(--primary)" : "transparent";
+            b.style.color = t === tab ? "#fff" : "var(--muted)";
+          }
+        });
+        if (tab === "spesifikasi") renderSpecTab();
+      }
+
+      function setAssetStatusFilter(status, el) {
+        assetStatusFilter2 = status;
+        document
+          .querySelectorAll("#assetTabContent-asset .chip")
+          .forEach((c) => c.classList.remove("active"));
+        if (el) el.classList.add("active");
+        applyAssetFilter();
+      }
+
+      function setSertFilter(filter, el) {
+        sertFilter = filter;
+        document
+          .querySelectorAll("#assetTabContent-sertifikasi .chip")
+          .forEach((c) => c.classList.remove("active"));
+        if (el) el.classList.add("active");
+        renderSertifikasiTab();
+      }
+
+      // ── Tab Spesifikasi ──
+      function buildSpecKatChips() {
+        const el = document.getElementById("specKatChips");
+        if (!el) return;
+        const kats = masterKategoriCache.filter((k) => k.spec_fields);
+        el.innerHTML = kats
           .map(
-            (r, i) =>
-              `<div class="asset-sug-item" data-idx="${i}" data-val="${r.plain.replace(/"/g, "&quot;")}"
-      onmousedown="pickAssetSuggestion('${r.plain.replace(/'/g, "\'")}')"
-      onmouseover="highlightSugItem(${i})"
-      style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);font-size:13px">
-      <span style="font-size:15px">${r.icon}</span>
-      <div style="flex:1;min-width:0">
-        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.highlighted}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:1px">${r.sub || ""}</div>
-      </div>
-    </div>`,
+            (k) =>
+              `<div onclick="setSpecKat('${k.kategori_id}',this)" class="chip">${k.nama_kategori}</div>`,
           )
           .join("");
-
-        // Remove border from last item
-        const items = box.querySelectorAll(".asset-sug-item");
-        if (items.length) items[items.length - 1].style.borderBottom = "none";
-
-        box.style.display = "block";
-      }
-
-      function highlightSugItem(idx) {
-        assetSuggestionIndex = idx;
-        document.querySelectorAll(".asset-sug-item").forEach((el, i) => {
-          el.style.background = i === idx ? "var(--primary-light)" : "";
-        });
-      }
-
-      function pickAssetSuggestion(val) {
-        const input = document.getElementById("searchAsset");
-        if (input) {
-          input.value = val;
-        }
-        document.getElementById("assetSuggestions").style.display = "none";
-        applyAssetFilter();
-      }
-
-      function handleAssetSearchKey(e) {
-        const box = document.getElementById("assetSuggestions");
-        const items = document.querySelectorAll(".asset-sug-item");
-        if (!items.length) return;
-        if (e.key === "ArrowDown") {
-          e.preventDefault();
-          assetSuggestionIndex = Math.min(
-            assetSuggestionIndex + 1,
-            items.length - 1,
-          );
-          highlightSugItem(assetSuggestionIndex);
-        } else if (e.key === "ArrowUp") {
-          e.preventDefault();
-          assetSuggestionIndex = Math.max(assetSuggestionIndex - 1, 0);
-          highlightSugItem(assetSuggestionIndex);
-        } else if (e.key === "Enter") {
-          e.preventDefault();
-          if (assetSuggestionIndex >= 0 && items[assetSuggestionIndex]) {
-            pickAssetSuggestion(items[assetSuggestionIndex].dataset.val);
-          } else {
-            box.style.display = "none";
-            applyAssetFilter();
+        if (kats.length) {
+          const first = el.querySelector(".chip");
+          if (first) {
+            setSpecKat(kats[0].kategori_id, first);
           }
-        } else if (e.key === "Escape") {
-          box.style.display = "none";
         }
       }
 
-      // Tutup suggestions kalau klik di luar
-      document.addEventListener("click", function (e) {
-        const box = document.getElementById("assetSuggestions");
-        const input = document.getElementById("searchAsset");
-        if (box && input && !box.contains(e.target) && e.target !== input) {
-          box.style.display = "none";
-        }
-      });
-
-      function searchAssets(q) {
-        applyAssetFilter();
+      function setSpecKat(katId, el) {
+        specKatFilter = katId;
+        specDynFilters = {};
+        document
+          .querySelectorAll("#specKatChips .chip")
+          .forEach((c) => c.classList.remove("active"));
+        if (el) el.classList.add("active");
+        renderSpecDynFilter();
+        renderSpecTab();
       }
 
+      function renderSpecDynFilter() {
+        const el = document.getElementById("dynSpecFilter2");
+        const body = document.getElementById("dynSpecFilter2Body");
+        const title = document.getElementById("dynSpecFilter2Title");
+        if (!el || !body || !specKatFilter) {
+          if (el) el.style.display = "none";
+          return;
+        }
+        const kat = masterKategoriCache.find(
+          (k) => k.kategori_id === specKatFilter,
+        );
+        if (!kat || !kat.spec_fields) {
+          el.style.display = "none";
+          return;
+        }
+        let fields = [];
+        try {
+          fields = JSON.parse(kat.spec_fields).fields || [];
+        } catch (e) {}
+        if (!fields.length) {
+          el.style.display = "none";
+          return;
+        }
+        if (title) title.textContent = "⚙️ Filter " + (kat.nama_kategori || "");
+        el.style.display = "block";
+        const assetInKat = assetsRaw.filter(
+          (a) => a.kategori_id === specKatFilter && a.spesifikasi_detail,
+        );
+        const uniqueVals = {};
+        assetInKat.forEach((a) => {
+          try {
+            const spek = JSON.parse(a.spesifikasi_detail);
+            fields.forEach((f) => {
+              if (!uniqueVals[f.key]) uniqueVals[f.key] = new Set();
+              if (spek[f.key]) uniqueVals[f.key].add(spek[f.key]);
+            });
+          } catch (e) {}
+        });
+        body.innerHTML = fields
+          .map((f) => {
+            const vals = [...(uniqueVals[f.key] || [])].sort();
+            const opts = [
+              "<div onclick=\"setSpecDynFilter(this,'" +
+                f.key +
+                "','all')\" style=\"padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--primary);background:var(--primary-light,#eef3ff);color:var(--primary);cursor:pointer;font-weight:600\">Semua</div>",
+              ...vals.map(
+                (v) =>
+                  `<div onclick="setSpecDynFilter(this,'${f.key}','${v}')" style="padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer">${v}</div>`,
+              ),
+            ].join("");
+            return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-size:12px;color:var(--muted);width:60px;flex-shrink:0;font-weight:500">${f.label}</span>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">${opts}</div>
+    </div>`;
+          })
+          .join("");
+      }
+
+      function setSpecDynFilter(el, key, val) {
+        specDynFilters[key] = val === "all" ? null : val;
+        const parent = el.closest('div[style*="display:flex"]');
+        if (parent)
+          parent.querySelectorAll("div[onclick]").forEach((d) => {
+            d.style.background = "#fff";
+            d.style.borderColor = "var(--border)";
+            d.style.color = "var(--muted)";
+            d.style.fontWeight = "400";
+          });
+        el.style.background = "var(--primary-light,#eef3ff)";
+        el.style.borderColor = "var(--primary)";
+        el.style.color = "var(--primary)";
+        el.style.fontWeight = "600";
+        renderSpecTab();
+      }
+
+      function renderSpecTab() {
+        const cnt = document.getElementById("specFilterCount");
+        const list = document.getElementById("specAssetList");
+        if (!list) return;
+        let data = assetsRaw.filter((a) => a.kategori_id === specKatFilter);
+        if (assetAreaFilter !== "ALL")
+          data = data.filter(
+            (a) => String(a.area_id) === String(assetAreaFilter),
+          );
+        Object.entries(specDynFilters).forEach(([key, val]) => {
+          if (!val) return;
+          data = data.filter((a) => {
+            if (!a.spesifikasi_detail) return false;
+            try {
+              const spek = JSON.parse(a.spesifikasi_detail);
+              return (
+                String(spek[key] || "").toLowerCase() ===
+                String(val).toLowerCase()
+              );
+            } catch (e) {
+              return false;
+            }
+          });
+        });
+        if (cnt) cnt.textContent = data.length;
+        const kat = masterKategoriCache.find(
+          (k) => k.kategori_id === specKatFilter,
+        );
+        let fields = [];
+        try {
+          if (kat?.spec_fields)
+            fields = JSON.parse(kat.spec_fields).fields || [];
+        } catch (e) {}
+        if (!data.length) {
+          list.innerHTML =
+            '<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-title">Tidak ada asset</div></div>';
+          return;
+        }
+        list.innerHTML = data
+          .map((a) => {
+            let spek = {};
+            try {
+              if (a.spesifikasi_detail) spek = JSON.parse(a.spesifikasi_detail);
+            } catch (e) {}
+            const specGrid = fields
+              .map(
+                (
+                  f,
+                ) => `<div style="background:#fff;border-radius:6px;padding:8px 10px;border:0.5px solid var(--border)">
+      <div style="font-size:10px;color:var(--muted)">${f.label}</div>
+      <div style="font-size:14px;font-weight:600;color:${spek[f.key] ? "var(--primary)" : "var(--muted2)"}">${spek[f.key] || "—"}</div>
+    </div>`,
+              )
+              .join("");
+            const picInitials = (a.pic_nama || "?")
+              .split(" ")
+              .map((w) => w[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase();
+            return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <div style="font-size:14px;font-weight:600">${a.nama_alat || "-"} · ${a.no_id || a.no_toolbox || "-"}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${a.asset_id || "-"} · ${a.nama_subarea || "-"}</div>
+        </div>
+        <span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;${a.status_aset_terakhir === "LAYAK" ? "background:var(--green-bg);color:var(--green)" : "background:var(--red-bg);color:var(--red)"}">${a.status_aset_terakhir === "LAYAK" ? "✅ Layak" : "❌ Tidak Layak"}</span>
+      </div>
+      <div style="background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px">Spesifikasi teknis</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:6px">${specGrid}</div>
+      </div>
+      ${
+        a.pic_nama
+          ? `<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--primary-light,#eef3ff);color:var(--primary);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">${picInitials}</div>
+        <div><div style="font-size:12px;font-weight:600">${a.pic_nama}</div><div style="font-size:10px;color:var(--muted)">PIC · ${a.nama_subarea || "-"}</div></div>
+      </div>`
+          : ""
+      }
+    </div>`;
+          })
+          .join("");
+      }
+
+      // ── Modal Sertifikasi ──
+      function openSertModal(assetId) {
+        activeSertAssetId = assetId;
+        const a = assetsRaw.find((x) => x.asset_id === assetId);
+        if (!a) return;
+        document.getElementById("sertModalTitle").textContent =
+          "Update Sertifikasi — " + (a.nama_alat || "");
+        document.getElementById("sertModalBody").innerHTML = `
+    <div style="background:var(--red-bg);border:0.5px solid var(--red-bd);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--red);font-weight:600;margin-bottom:14px">
+      🔩 ${a.nama_alat || "-"} · ${a.no_id || a.no_toolbox || "-"} · ${a.nama_subarea || "-"}
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.3px">Status Pengajuan</label>
+      <div style="display:flex;gap:6px">
+        ${["Belum diajukan", "Sudah diajukan", "Selesai ✓"]
+          .map(
+            (
+              s,
+              i,
+            ) => `<div onclick="setSertModalStatus(this,${i})" id="sertSt${i}"
+          style="flex:1;padding:8px 4px;border-radius:8px;border:0.5px solid var(--border);background:var(--surface2);text-align:center;cursor:pointer;font-size:11px;color:var(--muted);line-height:1.4;transition:.1s">${s}</div>`,
+          )
+          .join("")}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">No Sertifikat Baru</label>
+        <input type="text" id="sertNoNew" placeholder="363-XX/CER-SJ/JKTI-CK/..." value="${a.no_sertifikasi || ""}"
+          style="width:100%;font-size:13px;border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface2);color:var(--text);outline:none;font-family:'Inter',sans-serif"></div>
+      <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">Nama Penguji</label>
+        <input type="text" id="sertPenguji" placeholder="PT. JKTI" value="${a.nama_penguji || ""}"
+          style="width:100%;font-size:13px;border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface2);color:var(--text);outline:none;font-family:'Inter',sans-serif"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">Tgl Expired Baru</label>
+        <input type="date" id="sertTglExp" value="${a.tanggal_expired || ""}"
+          style="width:100%;font-size:13px;border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface2);color:var(--text);outline:none;font-family:'Inter',sans-serif"></div>
+      <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">Status Sertifikasi</label>
+        <select id="sertStatus" style="width:100%;font-size:13px;border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface2);color:var(--text);outline:none;font-family:'Inter',sans-serif">
+          <option value="VALID" ${a.status_sertifikasi === "VALID" ? "selected" : ""}>VALID</option>
+          <option value="PENDING" ${a.status_sertifikasi === "PENDING" ? "selected" : ""}>PENDING</option>
+          <option value="EXPIRED" ${a.status_sertifikasi === "EXPIRED" ? "selected" : ""}>EXPIRED</option>
+        </select></div>
+    </div>
+    <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">Catatan</label>
+      <input type="text" id="sertCatatan" placeholder="Catatan opsional..."
+        style="width:100%;font-size:13px;border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface2);color:var(--text);outline:none;font-family:'Inter',sans-serif"></div>`;
+        const bg = document.getElementById("sertModalBg");
+        const modal = document.getElementById("sertModal");
+        bg.style.display = "block";
+        modal.style.display = "block";
+        setTimeout(() => {
+          modal.style.opacity = "1";
+          modal.style.transform = "translate(-50%,-50%) scale(1)";
+        }, 10);
+      }
+
+      function setSertModalStatus(el, idx) {
+        [0, 1, 2].forEach((i) => {
+          const d = document.getElementById("sertSt" + i);
+          if (!d) return;
+          d.style.background = "var(--surface2)";
+          d.style.color = "var(--muted)";
+          d.style.borderColor = "var(--border)";
+          d.style.fontWeight = "400";
+        });
+        const colors = [
+          ["var(--red-bg)", "var(--red)", "var(--red-bd)"],
+          ["var(--yellow-bg)", "var(--yellow)", "var(--yellow-bd)"],
+          ["var(--green-bg)", "var(--green)", "var(--green-bd)"],
+        ];
+        el.style.background = colors[idx][0];
+        el.style.color = colors[idx][1];
+        el.style.borderColor = colors[idx][2];
+        el.style.fontWeight = "600";
+      }
+
+      function closeSertModal() {
+        const modal = document.getElementById("sertModal");
+        modal.style.opacity = "0";
+        modal.style.transform = "translate(-50%,-50%) scale(.95)";
+        setTimeout(() => {
+          modal.style.display = "none";
+          document.getElementById("sertModalBg").style.display = "none";
+        }, 250);
+        activeSertAssetId = null;
+      }
+
+      async function saveSertifikasi() {
+        if (!activeSertAssetId) return;
+        const record = {
+          no_sertifikasi:
+            document.getElementById("sertNoNew")?.value?.trim() || "",
+          nama_penguji:
+            document.getElementById("sertPenguji")?.value?.trim() || "",
+          tanggal_expired: document.getElementById("sertTglExp")?.value || "",
+          status_sertifikasi:
+            document.getElementById("sertStatus")?.value || "VALID",
+        };
+        showLoad("Menyimpan sertifikasi...");
+        try {
+          const res = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({
+              action: "crudMaster",
+              action_type: "UPDATE",
+              sheet_name: "MASTER_ASSET",
+              key_col: "asset_id",
+              key_val: activeSertAssetId,
+              record,
+              caller_nik: SESSION.nik || "SYSTEM",
+            }),
+          });
+          const json = await res.json();
+          hideLoad();
+          if (json.status === "ok") {
+            closeSertModal();
+            showToast("✅ Sertifikasi berhasil diupdate", "success");
+            // Update local cache
+            const idx = assetsRaw.findIndex(
+              (a) => a.asset_id === activeSertAssetId,
+            );
+            if (idx >= 0) Object.assign(assetsRaw[idx], record);
+            renderAssetV2();
+          } else {
+            showToast("❌ " + (json.message || "Error"), "error");
+          }
+        } catch (e) {
+          hideLoad();
+          showToast("❌ Koneksi gagal", "error");
+        }
+      }
+
+      // ── History Drawer ──
+      async function openHistoryDrawer(assetId, noId, namaAlat) {
+        const title = document.getElementById("historyDrawerTitle");
+        const body = document.getElementById("historyDrawerBody");
+        if (title) title.textContent = "Riwayat — " + namaAlat;
+        if (body)
+          body.innerHTML =
+            '<div style="text-align:center;padding:24px;color:var(--muted)">⏳ Memuat riwayat...</div>';
+        const bg = document.getElementById("historyDrawerBg");
+        const drawer = document.getElementById("historyDrawer");
+        bg.style.display = "block";
+        drawer.style.display = "block";
+        setTimeout(() => (drawer.style.transform = "translateY(0)"), 10);
+        try {
+          const res = await fetch(
+            APPS_SCRIPT_URL +
+              "?action=getInspeksi&no_id=" +
+              encodeURIComponent(noId) +
+              "&limit=10",
+          );
+          const json = await res.json();
+          if (json.status === "ok" && json.data?.length) {
+            body.innerHTML = json.data
+              .map((ins, i) => {
+                const isLayak =
+                  ins.status_hasil === "LAYAK" || ins.total_tidak === 0;
+                return `<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div style="font-size:13px;font-weight:600">${ins.tanggal_inspeksi || "-"}</div>
+            <span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;${isLayak ? "background:var(--green-bg);color:var(--green)" : "background:var(--red-bg);color:var(--red)"}">${isLayak ? "✅ Layak" : "❌ Tidak Layak"}</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:4px">👤 ${ins.nama_inspektor || "-"} · ${ins.nama_subarea || "-"}</div>
+          <div style="display:flex;gap:10px;font-size:11px;color:var(--muted)">
+            <span>✅ ${ins.total_ya || 0} OK</span>
+            <span>❌ ${ins.total_tidak || 0} Temuan</span>
+            <span>📊 ${ins.compliance_rate || 0}%</span>
+          </div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:4px;font-family:monospace">${ins.inspeksi_id || "-"}</div>
+        </div>`;
+              })
+              .join("");
+          } else {
+            body.innerHTML =
+              '<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Belum ada riwayat inspeksi</div><div class="empty-sub">Asset ini belum pernah diinspeksi.</div></div>';
+          }
+        } catch (e) {
+          body.innerHTML =
+            '<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Gagal memuat riwayat</div></div>';
+        }
+      }
+
+      function closeHistoryDrawer() {
+        const drawer = document.getElementById("historyDrawer");
+        const bg = document.getElementById("historyDrawerBg");
+        drawer.style.transform = "translateY(100%)";
+        setTimeout(() => {
+          drawer.style.display = "none";
+          bg.style.display = "none";
+        }, 320);
+      }
+
+      function setPengajuan(el, assetId, idx) {
+        const parent = el.closest('div[style*="display:flex"]');
+        if (parent)
+          parent.querySelectorAll("div[onclick]").forEach((d) => {
+            d.style.background = "#fff";
+            d.style.borderColor = "var(--border)";
+            d.style.color = "var(--muted)";
+            d.style.fontWeight = "400";
+          });
+        const colors = [
+          ["var(--red-bg)", "var(--red)", "var(--red-bd)"],
+          ["var(--yellow-bg)", "var(--yellow)", "var(--yellow-bd)"],
+          ["var(--green-bg)", "var(--green)", "var(--green-bd)"],
+        ];
+        el.style.background = colors[idx][0];
+        el.style.color = colors[idx][1];
+        el.style.borderColor = colors[idx][2];
+        el.style.fontWeight = "600";
+      }
       // ════════════════════════════════════════════════════════════
       //  ACTIVITY LOG
       // ════════════════════════════════════════════════════════════
@@ -6671,10 +7438,10 @@
                 });
               }
               if (f.source === "subarea") {
-  const selectedArea = record.area_id || "";
-  const filteredSub = (masterDropdowns.subarea || []).filter(
-    (s) => !selectedArea || s.area_id === selectedArea,
-  );
+                const selectedArea = record.area_id || "";
+                const filteredSub = (masterDropdowns.subarea || []).filter(
+                  (s) => !selectedArea || s.area_id === selectedArea,
+                );
                 filteredSub.forEach((s) => {
                   opts += `<option value="${s.subarea_id}" ${val === s.subarea_id ? "selected" : ""}>${s.nama_subarea}</option>`;
                 });
