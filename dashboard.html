@@ -6032,12 +6032,11 @@
             const isLayak = a.status_aset_terakhir === "LAYAK";
             const isTb = !!(a.no_toolbox && String(a.no_toolbox).trim());
 
-            // Sertifikasi
+// Sertifikasi
             let sertBadge = "",
               borderClass = "";
             if (a.tanggal_expired) {
-              const exp = new Date(a.tanggal_expired);
-              exp.setHours(0, 0, 0, 0);
+              const exp = parseExp(a.tanggal_expired);
               const diff = Math.ceil((exp - now) / 86400000);
               if (diff < 0) {
                 sertBadge = `<span style="background:var(--red-bg);color:var(--red);padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700">🔴 Expired</span>`;
@@ -6050,6 +6049,7 @@
               } else {
                 sertBadge = `<span style="background:var(--green-bg);color:var(--green);padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700">✅ Valid</span>`;
               }
+            }
             }
 
             // Spec tags dari spesifikasi_detail + spec_fields
@@ -6109,7 +6109,7 @@
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
           <span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;${isLayak ? "background:var(--green-bg);color:var(--green)" : "background:var(--red-bg);color:var(--red)"}">${isLayak ? "✅ Layak" : "❌ Tidak Layak"}</span>
           ${sertBadge}
-          ${a.tanggal_expired ? `<span style="font-size:10px;color:var(--muted2)">Exp: ${a.tanggal_expired}</span>` : ""}
+          ${a.tanggal_expired ? `<span style="font-size:10px;color:var(--muted2)">Exp: ${fmtExpDate(a.tanggal_expired)}</span>` : ''}
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${specTags ? "6px" : "0"}">
@@ -6142,6 +6142,7 @@
       function renderSertifikasiTab() {
         const now = new Date();
         now.setHours(0, 0, 0, 0);
+
         let data = assetsRaw.filter(
           (a) => a.tanggal_expired && String(a.tanggal_expired).trim(),
         );
@@ -6150,16 +6151,22 @@
             (a) => String(a.area_id) === String(assetAreaFilter),
           );
 
+        function parseExp(val) {
+          const str = String(val).split("T")[0];
+          const [y, m, d] = str.split("-");
+          return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+        }
+
         const expired = data.filter(
-          (a) => new Date(a.tanggal_expired) < now,
+          (a) => parseExp(a.tanggal_expired) < now,
         ).length;
         const warning = data.filter((a) => {
-          const d = new Date(a.tanggal_expired);
+          const d = parseExp(a.tanggal_expired);
           const diff = Math.ceil((d - now) / 86400000);
           return diff >= 0 && diff <= 60;
         }).length;
         const valid = data.filter(
-          (a) => Math.ceil((new Date(a.tanggal_expired) - now) / 86400000) > 60,
+          (a) => Math.ceil((parseExp(a.tanggal_expired) - now) / 86400000) > 60,
         ).length;
 
         const el = (id) => document.getElementById(id);
@@ -6168,23 +6175,21 @@
         if (el("sertValid2")) el("sertValid2").textContent = valid;
 
         // Apply sert filter
-        let filtered = data;
+let filtered = data;
         if (sertFilter === "expired")
-          filtered = data.filter((a) => new Date(a.tanggal_expired) < now);
+          filtered = data.filter((a) => parseExp(a.tanggal_expired) < now);
         else if (sertFilter === "warning")
           filtered = data.filter((a) => {
-            const d = Math.ceil((new Date(a.tanggal_expired) - now) / 86400000);
+            const d = Math.ceil((parseExp(a.tanggal_expired) - now) / 86400000);
             return d >= 0 && d <= 60;
           });
         else if (sertFilter === "valid")
           filtered = data.filter(
-            (a) =>
-              Math.ceil((new Date(a.tanggal_expired) - now) / 86400000) > 60,
+            (a) => Math.ceil((parseExp(a.tanggal_expired) - now) / 86400000) > 60,
           );
 
-        // Sort expired dulu
         filtered.sort(
-          (a, b) => new Date(a.tanggal_expired) - new Date(b.tanggal_expired),
+          (a, b) => parseExp(a.tanggal_expired) - parseExp(b.tanggal_expired),
         );
 
         const listEl = document.getElementById("sertifikasiList2");
@@ -6197,8 +6202,7 @@
 
         listEl.innerHTML = filtered
           .map((a) => {
-            const exp = new Date(a.tanggal_expired);
-            exp.setHours(0, 0, 0, 0);
+            const exp = parseExp(a.tanggal_expired);
             const diff = Math.ceil((exp - now) / 86400000);
             const isExpired = diff < 0;
             const isWarning = diff >= 0 && diff <= 60;
@@ -6227,10 +6231,7 @@
         <div style="display:flex;gap:5px;margin-bottom:10px">
           ${["Belum diajukan", "Sudah diajukan", "Selesai"]
             .map(
-              (
-                s,
-                i,
-              ) => `<div onclick="setPengajuan(this,'${a.asset_id}',${i})" data-asset="${a.asset_id}" data-idx="${i}"
+              (s, i) => `<div onclick="setPengajuan(this,'${a.asset_id}',${i})" data-asset="${a.asset_id}" data-idx="${i}"
             style="flex:1;padding:6px 4px;border-radius:7px;font-size:10px;border:0.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;text-align:center;line-height:1.4">${s}</div>`,
             )
             .join("")}
@@ -6253,7 +6254,7 @@
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:${a.pic_nama ? "8px" : "0"}">
           <span style="font-size:11px;font-family:monospace;color:var(--muted)">${a.no_sertifikasi || "No sertifikat belum diisi"}</span>
-          <span style="font-size:11px;font-weight:600;color:${isExpired ? "var(--red)" : isWarning ? "var(--yellow)" : "var(--green)"}">Exp: ${a.tanggal_expired}</span>
+          <span style="font-size:11px;font-weight:600;color:${isExpired ? "var(--red)" : isWarning ? "var(--yellow)" : "var(--green)"}">Exp: ${fmtExpDate(a.tanggal_expired)}</span>
         </div>
         ${
           a.pic_nama
