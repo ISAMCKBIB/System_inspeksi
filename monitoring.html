@@ -11,17 +11,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --primary:#1B4FD8;
-  --primary-dark:#1338B0;
-  --primary-light:#EEF3FF;
-  --secondary:#0EA5E9;
-  --bg:#F0F4FF;
-  --surface:#FFFFFF;
-  --surface2:#F7F9FF;
-  --border:#D4DCEF;
-  --text:#0F1A3C;
-  --muted:#5A6A8A;
-  --muted2:#8FA0BE;
+  --primary:#1B4FD8;--primary-dark:#1338B0;--primary-light:#EEF3FF;
+  --secondary:#0EA5E9;--bg:#F0F4FF;--surface:#FFFFFF;--surface2:#F7F9FF;
+  --border:#D4DCEF;--text:#0F1A3C;--muted:#5A6A8A;--muted2:#8FA0BE;
   --green:#16A34A;--green-bg:#F0FDF4;--green-bd:#BBF7D0;
   --red:#DC2626;--red-bg:#FEF2F2;--red-bd:#FECACA;
   --yellow:#D97706;--yellow-bg:#FFFBEB;--yellow-bd:#FDE68A;
@@ -32,52 +24,32 @@
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-left:var(--sidebar-w)}
 
 /* ── SIDEBAR ── */
-.sidebar{
-  position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);
-  background:linear-gradient(180deg,var(--primary-dark) 0%,var(--primary) 100%);
-  z-index:200;display:flex;flex-direction:column;overflow:hidden;
-}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:linear-gradient(180deg,var(--primary-dark) 0%,var(--primary) 100%);z-index:200;display:flex;flex-direction:column;overflow:hidden}
 .sidebar-brand{padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
 .sidebar-logo{display:flex;align-items:center;gap:10px}
-.sidebar-logo-icon{
-  width:42px;height:42px;
-  background:rgba(255,255,255,.18);
-  border:1.5px solid rgba(255,255,255,.3);
-  border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;
-}
+.sidebar-logo-icon{width:42px;height:42px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .slt-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:.3px}
 .slt-sub{font-size:9px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.8px;margin-top:1px}
-
 .sidebar-user{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
 .sidebar-user-inner{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.08);border-radius:10px}
 .su-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
 .su-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .su-role{font-size:10px;color:rgba(255,255,255,.55);margin-top:1px}
-
 .sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
 .sidebar-nav::-webkit-scrollbar{display:none}
 .snav-section{padding:10px 16px 4px;font-size:9px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1.2px}
-.snav-item{
-  display:flex;align-items:center;gap:10px;padding:11px 16px;
-  cursor:pointer;font-size:13px;font-weight:500;color:rgba(255,255,255,.65);
-  transition:all .15s;text-decoration:none;position:relative;
-}
+.snav-item{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;font-size:13px;font-weight:500;color:rgba(255,255,255,.65);transition:all .15s;text-decoration:none;position:relative}
 .snav-item:hover{background:rgba(255,255,255,.08);color:#fff}
 .snav-item.active{background:rgba(255,255,255,.16);color:#fff}
 .snav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#fff;border-radius:0 3px 3px 0}
 .snav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
-
 .sidebar-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,.1)}
 .sidebar-safe{background:rgba(255,255,255,.07);border-radius:10px;padding:10px 12px}
 .sf-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
 .sf-val{font-size:11px;font-weight:600;color:#4ADE80}
 
 /* ── TOPBAR ── */
-.topbar{
-  background:var(--surface);border-bottom:1px solid var(--border);
-  height:var(--topbar-h);display:flex;align-items:center;padding:0 24px;
-  position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.06);
-}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);height:var(--topbar-h);display:flex;align-items:center;padding:0 24px;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.06)}
 .topbar-back{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--primary);cursor:pointer;text-decoration:none;margin-right:20px;padding:6px 10px;border-radius:8px;transition:background .15s}
 .topbar-back:hover{background:var(--primary-light)}
 .topbar-title-block{flex:1}
@@ -108,11 +80,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 /* ── STAT CARDS ── */
 .stats-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
 @media(max-width:1200px){.stats-grid{grid-template-columns:repeat(3,1fr)}}
-.stat-card{
-  background:var(--surface);border-radius:var(--radius);padding:16px;
-  border:1px solid var(--border);cursor:default;transition:all .2s;
-  position:relative;overflow:hidden;
-}
+.stat-card{background:var(--surface);border-radius:var(--radius);padding:16px;border:1px solid var(--border);cursor:default;transition:all .2s;position:relative;overflow:hidden}
 .stat-card:hover{box-shadow:0 4px 20px rgba(27,79,216,.12);transform:translateY(-2px)}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--card-c,var(--primary))}
 .stat-card.c-blue{--card-c:var(--primary)}.stat-card.c-green{--card-c:var(--green)}.stat-card.c-yellow{--card-c:var(--yellow)}.stat-card.c-red{--card-c:var(--red)}.stat-card.c-purple{--card-c:var(--purple)}.stat-card.c-teal{--card-c:#0891B2}
@@ -124,7 +92,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .sc-trend{font-size:11px;font-weight:600;margin-top:4px}
 .trend-up{color:var(--green)}.trend-down{color:var(--red)}
 
-/* ── POWER BI SECTION ── */
+/* ── PBI SECTION ── */
 .pbi-section{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,.04)}
 .pbi-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
 .pbi-header-left{display:flex;align-items:center;gap:10px}
@@ -145,7 +113,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 /* ── BOTTOM GRIDS ── */
 .bottom-grid{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:16px;margin-bottom:20px}
 @media(max-width:1100px){.bottom-grid{grid-template-columns:1fr 1fr}}
-
 .section-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden}
 .sc-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
 .sc-head-title{font-size:14px;font-weight:700}
@@ -165,7 +132,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .pic-bar-inner{height:100%;background:var(--red);border-radius:3px;transition:width .5s ease}
 .pic-count{font-size:12px;font-weight:700;color:var(--red);text-align:right}
 
-/* Progress */
+/* Progress Ring */
 .prog-center{display:flex;flex-direction:column;align-items:center;padding:8px 0 12px}
 .prog-ring{position:relative;width:120px;height:120px;flex-shrink:0}
 .prog-ring svg{transform:rotate(-90deg)}
@@ -189,6 +156,150 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .ov-no{color:var(--muted2);text-align:center}
 .ov-days{font-weight:700;padding:3px 8px;border-radius:20px;background:var(--red-bg);color:var(--red);white-space:nowrap;font-size:11px}
 .ov-status{font-weight:700;padding:3px 10px;border-radius:20px;background:var(--red-bg);color:var(--red);font-size:11px;white-space:nowrap}
+
+/* ═══════════════════════════════════════
+   ASSET MONITORING SECTION (NEW)
+═══════════════════════════════════════ */
+.asset-section{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.asset-section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+}
+.asset-section-header-left{display:flex;align-items:center;gap:10px}
+.asset-header-icon{font-size:20px}
+.asset-header-title{font-size:15px;font-weight:700;color:#fff}
+.asset-header-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:1px}
+.asset-header-right{display:flex;align-items:center;gap:8px}
+
+/* Asset stat row */
+.asset-stat-row{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:0;border-bottom:1px solid var(--border);
+}
+.asset-stat-cell{
+  padding:14px 18px;border-right:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.asset-stat-cell:last-child{border-right:none}
+.asc-icon{font-size:22px;flex-shrink:0}
+.asc-info{}
+.asc-val{font-size:24px;font-weight:700;line-height:1;margin-bottom:1px}
+.asc-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.2px}
+
+/* Asset toolbar */
+.asset-toolbar{
+  display:flex;align-items:center;gap:10px;padding:12px 18px;
+  border-bottom:1px solid var(--border);background:var(--surface2);
+  flex-wrap:wrap;
+}
+.asset-area-btns{display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden}
+.asset-area-btn{
+  padding:6px 16px;font-size:12px;font-weight:600;border:none;
+  background:transparent;color:var(--muted);cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all .15s;
+}
+.asset-area-btn.active{background:var(--primary);color:#fff}
+.asset-search-wrap{position:relative;flex:1;min-width:200px}
+.asset-search-wrap input{
+  width:100%;border:1.5px solid var(--border);border-radius:10px;
+  padding:8px 14px 8px 34px;font-size:13px;font-family:'Inter',sans-serif;
+  background:#fff;outline:none;color:var(--text);transition:border-color .15s;
+}
+.asset-search-wrap input:focus{border-color:var(--primary)}
+.asset-search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted2);pointer-events:none}
+.asset-filter-sel{
+  border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;
+  font-size:12px;background:#fff;color:var(--text);font-family:'Inter',sans-serif;cursor:pointer;outline:none;
+}
+
+/* Status chips */
+.asset-chips{display:flex;gap:6px;padding:10px 18px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.asset-chips::-webkit-scrollbar{display:none}
+.asset-chip{
+  flex-shrink:0;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;
+  border:1.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;
+  white-space:nowrap;transition:all .15s;
+}
+.asset-chip.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.asset-chip:hover:not(.active){border-color:var(--primary);color:var(--primary)}
+
+/* Kategori scroll */
+.kat-scroll{display:flex;gap:8px;padding:12px 18px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.kat-scroll::-webkit-scrollbar{display:none}
+.kat-card{
+  flex-shrink:0;background:#fff;border:1.5px solid var(--border);
+  border-radius:12px;padding:10px 12px;text-align:center;min-width:80px;
+  cursor:pointer;transition:.15s;
+}
+.kat-card.active{background:var(--primary-light);border-color:var(--primary)}
+.kat-card-icon{font-size:20px;margin-bottom:4px}
+.kat-card-count{font-size:16px;font-weight:700;color:var(--text)}
+.kat-card.active .kat-card-count{color:var(--primary)}
+.kat-card-name{font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap}
+.kat-card-pct{font-size:10px;font-weight:600;margin-top:2px}
+
+/* Asset count bar */
+.asset-count-bar{padding:8px 18px;font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
+
+/* Asset list */
+.asset-list-wrap{padding:12px 18px;display:flex;flex-direction:column;gap:10px;min-height:100px}
+.asset-item{
+  background:#fff;border:1px solid var(--border);border-radius:12px;
+  padding:12px 14px;transition:.15s;
+}
+.asset-item:hover{border-color:var(--primary);box-shadow:0 2px 12px rgba(27,79,216,.08)}
+.asset-item-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.asset-item-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.asset-item-icon.layak{background:var(--green-bg)}
+.asset-item-icon.tidak{background:var(--red-bg)}
+.asset-item-main{flex:1;min-width:0}
+.asset-item-name{font-size:14px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.asset-item-id{font-size:11px;color:var(--muted)}
+.asset-item-badges{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.badge-status{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.badge-status.layak{background:var(--green-bg);color:var(--green)}
+.badge-status.tidak{background:var(--red-bg);color:var(--red)}
+.badge-sert{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.badge-sert.valid{background:var(--green-bg);color:var(--green)}
+.badge-sert.warning{background:var(--yellow-bg);color:var(--yellow)}
+.badge-sert.expired{background:var(--red-bg);color:var(--red)}
+.asset-item-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.asset-tag{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:3px}
+.asset-tag-kat{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--muted);border:.5px solid var(--border)}
+.asset-spec-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.spec-tag{font-size:10px;background:var(--primary-light);color:var(--primary);border-radius:4px;padding:2px 7px;font-weight:600;border:.5px solid #bfdbfe}
+.asset-pic-row{display:flex;align-items:center;gap:8px;background:var(--surface2);border:.5px solid var(--border);border-radius:8px;padding:7px 10px}
+.pic-avatar-sm{width:26px;height:26px;border-radius:50%;background:var(--primary-light);color:var(--primary);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pic-name-sm{font-size:12px;font-weight:600;color:var(--text)}
+.pic-sub-sm{font-size:10px;color:var(--muted)}
+.pic-nik-sm{font-size:10px;color:var(--muted2);margin-left:auto}
+
+/* Sertifikasi tab */
+.sert-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.sert-stat-box{border-radius:10px;padding:12px;text-align:center}
+.sert-stat-box.expired{background:var(--red-bg);border:1px solid var(--red-bd)}
+.sert-stat-box.warning{background:var(--yellow-bg);border:1px solid var(--yellow-bd)}
+.sert-stat-box.valid{background:var(--green-bg);border:1px solid var(--green-bd)}
+.sert-stat-num{font-size:24px;font-weight:700}
+.sert-stat-box.expired .sert-stat-num{color:var(--red)}
+.sert-stat-box.warning .sert-stat-num{color:var(--yellow)}
+.sert-stat-box.valid .sert-stat-num{color:var(--green)}
+.sert-stat-lbl{font-size:11px;font-weight:600;margin-top:3px}
+.sert-stat-box.expired .sert-stat-lbl{color:var(--red)}
+.sert-stat-box.warning .sert-stat-lbl{color:var(--yellow)}
+.sert-stat-box.valid .sert-stat-lbl{color:var(--green)}
+
+/* Tabs */
+.asset-tabs{display:flex;background:#fff;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin:0 18px 14px}
+.asset-tab{flex:1;padding:10px 8px;font-size:13px;font-weight:600;border:none;background:transparent;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
+.asset-tab.active{background:var(--primary);color:#fff}
+
+/* Empty */
+.asset-empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.asset-empty-icon{font-size:36px;margin-bottom:10px}
+.asset-empty-title{font-size:15px;font-weight:600;margin-bottom:4px}
+.asset-empty-sub{font-size:12px;color:var(--muted2)}
 
 /* Loading overlay */
 #lo{position:fixed;inset:0;background:rgba(15,26,60,.5);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -218,6 +329,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .topbar-right .topbar-avatar{display:none}
   .pbi-embed-wrap iframe{height:280px!important}
   .topbar{padding:0 14px}
+  .asset-stat-row{grid-template-columns:repeat(2,1fr)}
+  .asset-stat-cell{border-right:none;border-bottom:1px solid var(--border)}
+  .asset-stat-cell:nth-child(odd){border-right:1px solid var(--border)}
+  .asset-stat-cell:last-child,.asset-stat-cell:nth-last-child(2):nth-child(odd){border-bottom:none}
+  .bottom-grid .section-card:last-child{display:none}
+  .sert-stat-row{grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 12px}
+  .asset-toolbar{gap:8px}
+  .asset-search-wrap{min-width:140px}
 }
 </style>
 </head>
@@ -234,7 +353,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
     </div>
   </div>
-
   <div class="sidebar-user">
     <div class="sidebar-user-inner">
       <div class="su-avatar" id="suAvatar">V</div>
@@ -244,17 +362,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
     </div>
   </div>
-
   <nav class="sidebar-nav">
     <div class="snav-section">Menu Utama</div>
-    <a href="index.html" class="snav-item" id="snavDashboard">
-      <span class="snav-icon">🏠</span>Dashboard
-    </a>
-    <a href="monitoring.html" class="snav-item active" id="snavMonitoring">
-      <span class="snav-icon">📊</span>Monitoring (Power BI)
-    </a>
+    <a href="index.html" class="snav-item"><span class="snav-icon">🏠</span>Dashboard</a>
+    <a href="monitoring.html" class="snav-item active"><span class="snav-icon">📊</span>Monitoring</a>
   </nav>
-
   <div class="sidebar-footer">
     <div class="sidebar-safe">
       <div class="sf-label">🔐 Hak Akses Sistem</div>
@@ -265,12 +377,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <!-- TOPBAR -->
 <header class="topbar">
-  <a href="index.html" class="topbar-back">
-    ← <span>Kembali ke Home</span>
-  </a>
+  <a href="index.html" class="topbar-back">← <span>Kembali ke Home</span></a>
   <div class="topbar-title-block">
     <div class="topbar-title">Dashboard Monitoring</div>
-    <div class="topbar-sub">Live overview performa inspeksi seluruh PIC dan status temuan secara real-time.</div>
+    <div class="topbar-sub">Live overview performa inspeksi & status asset seluruh area.</div>
   </div>
   <div class="topbar-right">
     <div class="date-pill">
@@ -288,7 +398,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </header>
 
-<!-- MAIN CONTENT -->
+<!-- MAIN -->
 <main class="page-content">
 
   <!-- Data Status -->
@@ -301,61 +411,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
   <!-- STAT CARDS -->
   <div class="stats-grid">
-    <div class="stat-card c-blue">
-      <span class="sc-icon">📋</span>
-      <div class="sc-label">Total Inspeksi</div>
-      <div class="sc-value" id="scTotal">–</div>
-      <div class="sc-sub">Bulan Juni 2026</div>
-      <div class="sc-trend trend-up" id="scTotalTrend"></div>
-    </div>
-    <div class="stat-card c-green">
-      <span class="sc-icon">✅</span>
-      <div class="sc-label">Lulus Inspeksi</div>
-      <div class="sc-value" id="scLulus">–</div>
-      <div class="sc-sub" id="scPassRate">Pass Rate</div>
-      <div class="sc-trend trend-up" id="scLulusTrend"></div>
-    </div>
-    <div class="stat-card c-yellow">
-      <span class="sc-icon">⏰</span>
-      <div class="sc-label">Waiting Inspeksi</div>
-      <div class="sc-value" id="scWaiting">–</div>
-      <div class="sc-sub">Perlu segera diinspeksi</div>
-      <div class="sc-trend trend-down" id="scWaitingTrend"></div>
-    </div>
-    <div class="stat-card c-red">
-      <span class="sc-icon">🚨</span>
-      <div class="sc-label">Temuan Open</div>
-      <div class="sc-value" id="scOpen">–</div>
-      <div class="sc-sub">Perlu tindak lanjut</div>
-      <div class="sc-trend" id="scOpenTrend"></div>
-    </div>
-    <div class="stat-card c-purple">
-      <span class="sc-icon">📅</span>
-      <div class="sc-label">Overdue Temuan</div>
-      <div class="sc-value" id="scOverdue">–</div>
-      <div class="sc-sub">Sudah melewati due date</div>
-      <div class="sc-trend trend-up" id="scOverdueTrend"></div>
-    </div>
-    <div class="stat-card c-teal">
-      <span class="sc-icon">👥</span>
-      <div class="sc-label">Total PIC Aktif</div>
-      <div class="sc-value" id="scPIC">–</div>
-      <div class="sc-sub">PIC terlibat aktif</div>
-      <div class="sc-trend trend-up" id="scPICTrend"></div>
-    </div>
+    <div class="stat-card c-blue"><span class="sc-icon">📋</span><div class="sc-label">Total Inspeksi</div><div class="sc-value" id="scTotal">–</div><div class="sc-sub">Bulan Juni 2026</div><div class="sc-trend trend-up" id="scTotalTrend"></div></div>
+    <div class="stat-card c-green"><span class="sc-icon">✅</span><div class="sc-label">Lulus Inspeksi</div><div class="sc-value" id="scLulus">–</div><div class="sc-sub" id="scPassRate">Pass Rate</div><div class="sc-trend trend-up" id="scLulusTrend"></div></div>
+    <div class="stat-card c-yellow"><span class="sc-icon">⏰</span><div class="sc-label">Waiting Inspeksi</div><div class="sc-value" id="scWaiting">–</div><div class="sc-sub">Perlu segera diinspeksi</div><div class="sc-trend trend-down" id="scWaitingTrend"></div></div>
+    <div class="stat-card c-red"><span class="sc-icon">🚨</span><div class="sc-label">Temuan Open</div><div class="sc-value" id="scOpen">–</div><div class="sc-sub">Perlu tindak lanjut</div><div class="sc-trend" id="scOpenTrend"></div></div>
+    <div class="stat-card c-purple"><span class="sc-icon">📅</span><div class="sc-label">Overdue Temuan</div><div class="sc-value" id="scOverdue">–</div><div class="sc-sub">Sudah melewati due date</div><div class="sc-trend trend-up" id="scOverdueTrend"></div></div>
+    <div class="stat-card c-teal"><span class="sc-icon">👥</span><div class="sc-label">Total PIC Aktif</div><div class="sc-value" id="scPIC">–</div><div class="sc-sub">PIC terlibat aktif</div><div class="sc-trend trend-up" id="scPICTrend"></div></div>
   </div>
 
   <!-- POWER BI EMBED -->
   <div class="pbi-section">
     <div class="pbi-header">
       <div class="pbi-header-left">
-        <!-- Power BI logo SVG -->
-        <svg class="pbi-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="14" width="4" height="8" rx="1" fill="#F2C811"/>
-          <rect x="8" y="10" width="4" height="12" rx="1" fill="#F2C811"/>
-          <rect x="14" y="6" width="4" height="16" rx="1" fill="#F2C811"/>
-          <rect x="20" y="2" width="4" height="20" rx="1" fill="#F2C811" opacity=".5"/>
-        </svg>
+        <svg class="pbi-logo" viewBox="0 0 24 24" fill="none"><rect x="2" y="14" width="4" height="8" rx="1" fill="#F2C811"/><rect x="8" y="10" width="4" height="12" rx="1" fill="#F2C811"/><rect x="14" y="6" width="4" height="16" rx="1" fill="#F2C811"/><rect x="20" y="2" width="4" height="20" rx="1" fill="#F2C811" opacity=".5"/></svg>
         <div class="pbi-title-text">Microsoft Power BI &nbsp;·&nbsp;</div>
         <div class="pbi-report-name">6015&773 Performance</div>
       </div>
@@ -369,44 +437,29 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div class="pbi-spinner"></div>
         <div class="pbi-loading-text">Memuat laporan Power BI…</div>
       </div>
-      <iframe
-        id="pbiFrame"
-        title="6015&773 Performance"
+      <iframe id="pbiFrame" title="6015&773 Performance"
         src="https://app.powerbi.com/view?r=eyJrIjoiNTI2YzQ0ZmYtYmJmMy00YzNhLWExNmMtNGMzOWY4N2Y0YWNlIiwidCI6ImI3Y2YzZDc4LTZjYmQtNGFjMi05OTU2LWY2OGFiNjA5NjBiZiIsImMiOjEwfQ%3D%3D"
-        style="height:520px"
-        frameborder="0"
-        allowFullScreen="true"
-        onload="hidePBILoading()">
+        style="height:520px" frameborder="0" allowFullScreen="true" onload="hidePBILoading()">
       </iframe>
     </div>
   </div>
 
   <!-- BOTTOM SECTION -->
   <div class="bottom-grid">
-
-    <!-- Top 5 PIC Temuan Open -->
+    <!-- Top 5 PIC -->
     <div class="section-card">
       <div class="sc-head">
         <div class="sc-head-title">Top 5 PIC – Temuan Open</div>
-        <a href="#" class="sc-head-link">Lihat Semua PIC →</a>
+        <a href="#" class="sc-head-link">Lihat Semua →</a>
       </div>
       <div class="sc-body">
         <table class="pic-table">
-          <thead>
-            <tr>
-              <th>PIC</th>
-              <th></th>
-              <th style="text-align:right">Jumlah Temuan</th>
-            </tr>
-          </thead>
-          <tbody id="picTableBody">
-            <tr><td colspan="3" style="text-align:center;color:var(--muted2);padding:20px;font-size:12px">Memuat data…</td></tr>
-          </tbody>
+          <thead><tr><th>PIC</th><th></th><th style="text-align:right">Temuan</th></tr></thead>
+          <tbody id="picTableBody"><tr><td colspan="3" style="text-align:center;color:var(--muted2);padding:20px;font-size:12px">Memuat data…</td></tr></tbody>
         </table>
       </div>
     </div>
-
-    <!-- Progress Penyelesaian -->
+    <!-- Progress -->
     <div class="section-card">
       <div class="sc-head">
         <div class="sc-head-title">Progress Penyelesaian Temuan</div>
@@ -419,181 +472,285 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
               <circle class="prog-ring-bg" cx="60" cy="60" r="54"/>
               <circle class="prog-ring-fill" id="progCircle" cx="60" cy="60" r="54" stroke-dashoffset="339.292"/>
             </svg>
-            <div class="prog-pct">
-              <div class="prog-pct-num" id="progPct">–</div>
-              <div class="prog-pct-lbl">Selesai</div>
-            </div>
+            <div class="prog-pct"><div class="prog-pct-num" id="progPct">–</div><div class="prog-pct-lbl">Selesai</div></div>
           </div>
           <div class="prog-stats">
-            <div class="prog-row">
-              <div class="prog-row-label">Total Temuan</div>
-              <div class="prog-row-val v-blue" id="progTotal">–</div>
-            </div>
-            <div class="prog-row">
-              <div class="prog-row-label">✅ Selesai</div>
-              <div class="prog-row-val v-green" id="progSelesai">–</div>
-            </div>
-            <div class="prog-row">
-              <div class="prog-row-label">🔴 Belum Selesai</div>
-              <div class="prog-row-val v-red" id="progBelum">–</div>
-            </div>
+            <div class="prog-row"><div class="prog-row-label">Total Temuan</div><div class="prog-row-val v-blue" id="progTotal">–</div></div>
+            <div class="prog-row"><div class="prog-row-label">✅ Selesai</div><div class="prog-row-val v-green" id="progSelesai">–</div></div>
+            <div class="prog-row"><div class="prog-row-label">🔴 Belum Selesai</div><div class="prog-row-val v-red" id="progBelum">–</div></div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Temuan Overdue -->
+    <!-- Overdue Table -->
     <div class="section-card">
       <div class="sc-head">
         <div class="sc-head-title">Temuan Overdue</div>
-        <a href="#" class="sc-head-link">Lihat Semua Overdue →</a>
+        <a href="#" class="sc-head-link">Lihat Semua →</a>
       </div>
       <div class="sc-body" style="padding:0">
         <table class="ov-table">
-          <thead>
-            <tr>
-              <th style="padding-left:14px">No</th>
-              <th>Area</th>
-              <th>PIC</th>
-              <th>Temuan</th>
-              <th>Due Date</th>
-              <th>Hari Terlambat</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="overdueTableBody">
-            <tr><td colspan="7" style="text-align:center;color:var(--muted2);padding:20px;font-size:12px">Memuat data…</td></tr>
-          </tbody>
+          <thead><tr><th style="padding-left:14px">No</th><th>Area</th><th>PIC</th><th>Due Date</th><th>Terlambat</th><th>Status</th></tr></thead>
+          <tbody id="overdueTableBody"><tr><td colspan="6" style="text-align:center;color:var(--muted2);padding:20px;font-size:12px">Memuat data…</td></tr></tbody>
         </table>
       </div>
     </div>
-
   </div>
+
+  <!-- ═══════════════════════════════════════════════
+       ASSET MONITORING SECTION — NEW
+  ═══════════════════════════════════════════════ -->
+  <div class="asset-section">
+
+    <!-- Header -->
+    <div class="asset-section-header">
+      <div class="asset-section-header-left">
+        <div class="asset-header-icon">🔧</div>
+        <div>
+          <div class="asset-header-title">Asset Monitoring</div>
+          <div class="asset-header-sub" id="assetHeaderSub">Memuat data asset...</div>
+        </div>
+      </div>
+      <div class="asset-header-right">
+        <!-- Area toggle -->
+        <div class="asset-area-btns">
+          <button class="asset-area-btn active" id="areaBtnALL" onclick="setAssetArea('ALL',this)">Semua</button>
+          <button class="asset-area-btn" id="areaBtnAR001" onclick="setAssetArea('AR001',this)">KGB</button>
+          <button class="asset-area-btn" id="areaBtnAR002" onclick="setAssetArea('AR002',this)">GRB</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat Row -->
+    <div class="asset-stat-row">
+      <div class="asset-stat-cell">
+        <div class="asc-icon">🔧</div>
+        <div class="asc-info"><div class="asc-val" id="aTotal" style="color:var(--primary)">–</div><div class="asc-label">Total Asset</div></div>
+      </div>
+      <div class="asset-stat-cell">
+        <div class="asc-icon">✅</div>
+        <div class="asc-info"><div class="asc-val" id="aLayak" style="color:var(--green)">–</div><div class="asc-label">Layak Operasi</div></div>
+      </div>
+      <div class="asset-stat-cell">
+        <div class="asc-icon">❌</div>
+        <div class="asc-info"><div class="asc-val" id="aTidak" style="color:var(--red)">–</div><div class="asc-label">Tidak Layak</div></div>
+      </div>
+      <div class="asset-stat-cell">
+        <div class="asc-icon">⏰</div>
+        <div class="asc-info"><div class="asc-val" id="aInspeksi" style="color:var(--yellow)">–</div><div class="asc-label">Perlu Inspeksi</div></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="padding:12px 18px 0">
+      <div class="asset-tabs">
+        <button class="asset-tab active" id="atab-asset" onclick="setAssetTab('asset',this)">🔧 Asset</button>
+        <button class="asset-tab" id="atab-sertifikasi" onclick="setAssetTab('sertifikasi',this)">📋 Sertifikasi</button>
+      </div>
+    </div>
+
+    <!-- TAB: ASSET -->
+    <div id="atab-content-asset">
+      <!-- Kategori scroll -->
+      <div class="kat-scroll" id="katScroll">
+        <div style="font-size:12px;color:var(--muted2);display:flex;align-items:center;padding:0 4px">Memuat kategori...</div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="asset-toolbar">
+        <div class="asset-area-btns" style="display:none" id="areaBtns2">
+          <button class="asset-area-btn active" onclick="setAssetArea('ALL',this)">Semua</button>
+          <button class="asset-area-btn" onclick="setAssetArea('AR001',this)">KGB</button>
+          <button class="asset-area-btn" onclick="setAssetArea('AR002',this)">GRB</button>
+        </div>
+        <select id="filterPIC" onchange="applyAssetFilter()" class="asset-filter-sel">
+          <option value="">Semua PIC</option>
+        </select>
+        <div class="asset-search-wrap">
+          <span class="asset-search-icon">🔍</span>
+          <input type="text" id="assetSearch" placeholder="Cari nama, no ID, marking..." oninput="applyAssetFilter()">
+        </div>
+      </div>
+
+      <!-- Status chips -->
+      <div class="asset-chips">
+        <div class="asset-chip active" onclick="setAssetStatus('semua',this)">Semua <span id="chipAllCnt"></span></div>
+        <div class="asset-chip" onclick="setAssetStatus('layak',this)">✅ Layak <span id="chipLayakCnt"></span></div>
+        <div class="asset-chip" onclick="setAssetStatus('tidak_layak',this)">❌ Tidak Layak <span id="chipTidakCnt"></span></div>
+        <div class="asset-chip" onclick="setAssetStatus('perlu_inspeksi',this)">⏰ Perlu Inspeksi <span id="chipInspCnt"></span></div>
+      </div>
+
+      <!-- Count bar -->
+      <div class="asset-count-bar">
+        <span>Menampilkan <strong id="assetFilterCount" style="color:var(--primary)">0</strong> asset</span>
+        <span id="assetLastUpdate" style="font-size:11px;color:var(--muted2)"></span>
+      </div>
+
+      <!-- Asset list -->
+      <div class="asset-list-wrap" id="assetListWrap">
+        <div style="text-align:center;padding:30px;color:var(--muted2);font-size:13px">⏳ Memuat data asset...</div>
+      </div>
+    </div>
+
+    <!-- TAB: SERTIFIKASI -->
+    <div id="atab-content-sertifikasi" style="display:none">
+      <!-- Stat row sert -->
+      <div class="sert-stat-row">
+        <div class="sert-stat-box expired"><div class="sert-stat-num" id="sertExpiredCnt">0</div><div class="sert-stat-lbl">🔴 Expired</div></div>
+        <div class="sert-stat-box warning"><div class="sert-stat-num" id="sertWarningCnt">0</div><div class="sert-stat-lbl">⚠️ Akan Expired</div></div>
+        <div class="sert-stat-box valid"><div class="sert-stat-num" id="sertValidCnt">0</div><div class="sert-stat-lbl">✅ Valid</div></div>
+      </div>
+      <!-- Sert chips -->
+      <div class="asset-chips">
+        <div class="asset-chip active" onclick="setSertFilter('semua',this)">Semua</div>
+        <div class="asset-chip" style="background:var(--red-bg);color:var(--red);border-color:var(--red-bd)" onclick="setSertFilter('expired',this)">🔴 Expired</div>
+        <div class="asset-chip" style="background:var(--yellow-bg);color:var(--yellow);border-color:var(--yellow-bd)" onclick="setSertFilter('warning',this)">⚠️ Akan Expired</div>
+        <div class="asset-chip" style="background:var(--green-bg);color:var(--green);border-color:var(--green-bd)" onclick="setSertFilter('valid',this)">✅ Valid</div>
+      </div>
+      <!-- Sert list -->
+      <div class="asset-list-wrap" id="sertListWrap">
+        <div style="text-align:center;padding:30px;color:var(--muted2);font-size:13px">⏳ Memuat data sertifikasi...</div>
+      </div>
+    </div>
+
+  </div><!-- /.asset-section -->
 
   <div class="footer">© 2024 PT. BIB · ISAM Inspection System Asset Management · All Rights Reserved.</div>
 </main>
 
-<!-- Loading overlay -->
+<!-- Loading & Toast -->
 <div id="lo"><div class="lo-card"><div class="lo-spinner"></div><div class="lo-msg" id="loMsg">Memuat...</div></div></div>
-<!-- Toast -->
 <div id="toast"><span id="toastMsg"></span></div>
 
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXYIMZh1r63PBehuExXDXJ8NqAHrJ5AwhivLGh5XcFYD61TTNCo_YWS5j2HLIczJur0Q/exec';
+
+// ── STATE ──
 let allTemuan = [];
+let assetsRaw = [];
+let masterKatCache = [];
+let assetAreaFilter = 'ALL';
+let assetStatusFilter = 'semua';
+let assetKatFilter = '';
+let sertFilter = 'semua';
+let assetTabActive = 'asset';
 
 // ── INIT ──
 window.onload = async () => {
-  // Date range (current month)
   const now = new Date();
   const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
   const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
   document.getElementById('dateRange').textContent = `01 – ${lastDay} ${months[now.getMonth()]} ${now.getFullYear()}`;
-
-  await loadData();
+  await loadAll();
 };
 
-// ── LOAD DATA ──
-async function loadData() {
+async function loadAll() {
   showLoad('Memuat data monitoring...');
-  try {
-    const params = new URLSearchParams({ action: 'getTemuan' });
-    const res = await fetch(APPS_SCRIPT_URL + '?' + params);
-    const json = await res.json();
-    allTemuan = json.status === 'ok' ? (json.data || []) : getDemoTemuan();
-  } catch(e) {
-    allTemuan = getDemoTemuan();
-  }
+  await Promise.all([loadTemuan(), loadAssets()]);
   hideLoad();
   renderAll();
+  renderAssetSection();
   updateStatusTime();
 }
 
 async function refreshData() {
-  await loadData();
+  await loadAll();
   showToast('✅ Data berhasil diperbarui', 'success');
 }
 
-// ── RENDER ALL ──
-function renderAll() {
-  renderStatCards();
-  renderPICTable();
-  renderProgress();
-  renderOverdueTable();
+// ── LOAD TEMUAN ──
+async function loadTemuan() {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getTemuan');
+    const json = await res.json();
+    allTemuan = json.status === 'ok' ? (json.data || []) : getDemoTemuan();
+  } catch(e) { allTemuan = getDemoTemuan(); }
 }
 
-// ── STAT CARDS ──
-function renderStatCards() {
-  const open   = allTemuan.filter(t => t.status_temuan === 'OPEN').length;
-  const closed = allTemuan.filter(t => t.status_temuan === 'CLOSED').length;
-  const overdue= allTemuan.filter(t => t.status_temuan === 'OPEN' && t.sla_status === 'OVERDUE').length;
-  const total  = allTemuan.length;
-  const waiting= allTemuan.filter(t => !t.status_temuan || t.status_temuan === 'PENDING').length || open;
-  const passRate = total > 0 ? Math.round((closed / total) * 100) : 0;
+// ── LOAD ASSETS ──
+async function loadAssets() {
+  try {
+    const [resAsset, resMaster] = await Promise.all([
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'crudMaster', action_type: 'READ_ASSET', caller_nik: 'VIEWER' })
+      }),
+      fetch(APPS_SCRIPT_URL + '?action=getMasterData&type=all')
+    ]);
+    const [jA, jM] = await Promise.all([resAsset.json(), resMaster.json()]);
+    if (jA.status === 'ok') {
+      assetsRaw = jA.data.assets || [];
+      if (jM.status === 'ok' && jM.data.kategori) {
+        masterKatCache = jM.data.kategori;
+        const katMap = {};
+        jM.data.kategori.forEach(k => { katMap[k.kategori_id] = k; });
+        assetsRaw = assetsRaw.map(a => {
+          const k = katMap[a.kategori_id];
+          if (k) {
+            a.spec_fields = k.spec_fields || '';
+            if (!a.nama_kategori) a.nama_kategori = k.nama_kategori;
+          }
+          return a;
+        });
+      }
+    } else {
+      assetsRaw = getDemoAssets();
+    }
+  } catch(e) { assetsRaw = getDemoAssets(); }
+}
 
-  // Count unique PICs
-  const pics = new Set(allTemuan.map(t => t.pic_nik || t.nama_pic).filter(Boolean));
+// ── RENDER TEMUAN STATS ──
+function renderAll() {
+  const open    = allTemuan.filter(t => t.status_temuan === 'OPEN').length;
+  const closed  = allTemuan.filter(t => t.status_temuan === 'CLOSED').length;
+  const overdue = allTemuan.filter(t => t.status_temuan === 'OPEN' && t.sla_status === 'OVERDUE').length;
+  const total   = allTemuan.length;
+  const passRate= total > 0 ? Math.round((closed / total) * 100) : 0;
+  const pics    = new Set(allTemuan.map(t => t.pic_nik || t.nama_pic).filter(Boolean));
 
   setText('scTotal', total);
   setText('scLulus', closed);
   setText('scPassRate', passRate + '% Pass Rate');
-  setText('scWaiting', waiting);
+  setText('scWaiting', open);
   setText('scOpen', open);
   setText('scOverdue', overdue);
   setText('scPIC', pics.size || 18);
-
-  // Trends (mock relative to demo)
   setText('scTotalTrend', '▲ 12% dari bulan lalu');
   setText('scLulusTrend', '▲ 5% dari bulan lalu');
-  document.getElementById('scLulusTrend').className = 'sc-trend trend-up';
   setText('scWaitingTrend', '▼ 3% dari bulan lalu');
   document.getElementById('scWaitingTrend').className = 'sc-trend trend-down';
-
-  const openTrend = document.getElementById('scOpenTrend');
-  const overdueEl = document.getElementById('scOverdueTrend');
   setText('scOpenTrend', '▼ 1 dari bulan lalu');
-  openTrend.className = 'sc-trend trend-down';
+  document.getElementById('scOpenTrend').className = 'sc-trend trend-down';
   setText('scOverdueTrend', '▲ 2 dari bulan lalu');
-  overdueEl.className = 'sc-trend trend-down';
+  document.getElementById('scOverdueTrend').className = 'sc-trend trend-down';
   setText('scPICTrend', '▲ 2 dari bulan lalu');
   document.getElementById('scPICTrend').className = 'sc-trend trend-up';
+
+  renderPICTable();
+  renderProgress(closed, open, total);
+  renderOverdueTable();
 }
 
-// ── PIC TABLE ──
 function renderPICTable() {
   const byPIC = {};
   allTemuan.filter(t => t.status_temuan === 'OPEN').forEach(t => {
-    const key = t.nama_pic || t.pic_nik || '-';
-    byPIC[key] = (byPIC[key] || 0) + 1;
+    const k = t.nama_pic || t.pic_nik || '-';
+    byPIC[k] = (byPIC[k] || 0) + 1;
   });
   const sorted = Object.entries(byPIC).sort((a,b) => b[1]-a[1]).slice(0,5);
   const max = sorted[0]?.[1] || 1;
   const tbody = document.getElementById('picTableBody');
-  if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--green);padding:20px;font-size:12px">✅ Tidak ada temuan open!</td></tr>';
-    return;
-  }
+  if (!sorted.length) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--green);padding:20px;font-size:12px">✅ Tidak ada temuan open!</td></tr>'; return; }
   tbody.innerHTML = sorted.map(([name, count]) => `
     <tr>
       <td class="pic-name">${name}</td>
-      <td>
-        <div class="pic-bar-wrap">
-          <div class="pic-bar">
-            <div class="pic-bar-inner" style="width:${Math.round((count/max)*100)}%"></div>
-          </div>
-        </div>
-      </td>
+      <td><div class="pic-bar-wrap"><div class="pic-bar"><div class="pic-bar-inner" style="width:${Math.round((count/max)*100)}%"></div></div></div></td>
       <td class="pic-count">${count}</td>
     </tr>`).join('');
 }
 
-// ── PROGRESS RING ──
-function renderProgress() {
-  const total  = allTemuan.length;
-  const closed = allTemuan.filter(t => t.status_temuan === 'CLOSED').length;
-  const open   = total - closed;
-  const pct    = total > 0 ? Math.round((closed / total) * 100) : 0;
-  // circumference = 2 * π * 54 ≈ 339.292
+function renderProgress(closed, open, total) {
+  const pct = total > 0 ? Math.round((closed / total) * 100) : 0;
   const circ = 2 * Math.PI * 54;
   const offset = circ - (circ * pct / 100);
   document.getElementById('progCircle').style.strokeDashoffset = offset;
@@ -603,123 +760,375 @@ function renderProgress() {
   setText('progBelum', open);
 }
 
-// ── OVERDUE TABLE ──
 function renderOverdueTable() {
-  const overdue = allTemuan
-    .filter(t => t.status_temuan === 'OPEN' && t.sla_status === 'OVERDUE')
-    .sort((a,b) => (b.umur_hari||0) - (a.umur_hari||0))
-    .slice(0, 10);
-
+  const overdue = allTemuan.filter(t => t.status_temuan === 'OPEN' && t.sla_status === 'OVERDUE')
+    .sort((a,b) => (b.umur_hari||0) - (a.umur_hari||0)).slice(0, 10);
   const tbody = document.getElementById('overdueTableBody');
-  if (!overdue.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--green);padding:20px;font-size:12px">✅ Tidak ada temuan overdue!</td></tr>';
+  if (!overdue.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--green);padding:20px;font-size:12px">✅ Tidak ada temuan overdue!</td></tr>'; return; }
+  tbody.innerHTML = overdue.map((t, i) => `<tr>
+    <td class="ov-no" style="padding-left:14px">${i+1}</td>
+    <td>${t.nama_subarea || '-'}</td>
+    <td>${t.nama_pic || t.pic_nik || '-'}</td>
+    <td>${t.due_date ? fmtDateShort(t.due_date) : '-'}</td>
+    <td><span class="ov-days">${t.umur_hari || '-'} hari</span></td>
+    <td><span class="ov-status">Overdue</span></td>
+  </tr>`).join('');
+}
+
+// ════════════════════════════════════════
+//  ASSET MONITORING RENDER
+// ════════════════════════════════════════
+function renderAssetSection() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const filtered = getFilteredAssets();
+
+  // Update header sub
+  document.getElementById('assetHeaderSub').textContent = assetsRaw.length + ' unit terdaftar · ISAM CK BIB';
+
+  // Stats
+  const layak    = assetsRaw.filter(a => a.status_aset_terakhir === 'LAYAK').length;
+  const tidakLayak = assetsRaw.filter(a => a.status_aset_terakhir !== 'LAYAK').length;
+  const perluInsp= assetsRaw.filter(a => a.tgl_inspeksi_due && new Date(a.tgl_inspeksi_due) < today).length;
+
+  setText('aTotal', assetsRaw.length);
+  setText('aLayak', layak);
+  setText('aTidak', tidakLayak);
+  setText('aInspeksi', perluInsp);
+
+  // Chip counts
+  setText('chipAllCnt', '(' + assetsRaw.length + ')');
+  setText('chipLayakCnt', '(' + layak + ')');
+  setText('chipTidakCnt', '(' + tidakLayak + ')');
+  setText('chipInspCnt', '(' + perluInsp + ')');
+
+  // PIC filter
+  populatePICFilter();
+
+  // Kategori cards
+  buildKatCards();
+
+  // Asset list
+  renderAssetList(filtered);
+
+  // Sertifikasi tab
+  renderSertTab();
+
+  // Last update
+  const now = new Date();
+  document.getElementById('assetLastUpdate').textContent = 'Update: ' + now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + ' WIB';
+}
+
+function getFilteredAssets() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr = today.toISOString().split('T')[0];
+  const q = (document.getElementById('assetSearch')?.value || '').toLowerCase().trim();
+  const picF = document.getElementById('filterPIC')?.value || '';
+
+  let data = [...assetsRaw];
+  if (assetAreaFilter !== 'ALL') data = data.filter(a => String(a.area_id) === String(assetAreaFilter));
+  if (assetKatFilter) data = data.filter(a => String(a.kategori_id) === String(assetKatFilter));
+  if (assetStatusFilter === 'layak') data = data.filter(a => a.status_aset_terakhir === 'LAYAK');
+  else if (assetStatusFilter === 'tidak_layak') data = data.filter(a => a.status_aset_terakhir !== 'LAYAK');
+  else if (assetStatusFilter === 'perlu_inspeksi') data = data.filter(a => a.tgl_inspeksi_due && a.tgl_inspeksi_due < todayStr);
+  if (picF) data = data.filter(a => a.pic_nik === picF);
+  if (q) data = data.filter(a =>
+    (a.nama_alat||'').toLowerCase().includes(q) ||
+    (a.no_id||'').toLowerCase().includes(q) ||
+    (a.no_toolbox||'').toLowerCase().includes(q) ||
+    (a.marking||'').toLowerCase().includes(q) ||
+    (a.asset_id||'').toLowerCase().includes(q) ||
+    (a.merk||'').toLowerCase().includes(q) ||
+    (a.nama_subarea||'').toLowerCase().includes(q)
+  );
+  return data;
+}
+
+function renderAssetList(assets) {
+  const el = document.getElementById('assetListWrap');
+  setText('assetFilterCount', assets.length);
+  if (!assets.length) {
+    el.innerHTML = `<div class="asset-empty"><div class="asset-empty-icon">🔧</div><div class="asset-empty-title">Tidak ada asset ditemukan</div><div class="asset-empty-sub">Coba ubah filter atau kata pencarian</div></div>`;
     return;
   }
-  tbody.innerHTML = overdue.map((t, i) => {
-    const days = t.umur_hari || '-';
-    const area = t.nama_subarea || t.area_id || '-';
-    const pic  = t.nama_pic || t.pic_nik || '-';
-    const due  = t.due_date ? fmtDateShort(t.due_date) : '-';
-    return `<tr>
-      <td class="ov-no" style="padding-left:14px">${i+1}</td>
-      <td>${area}</td>
-      <td>${pic}</td>
-      <td style="font-weight:600">${i+1}</td>
-      <td>${due}</td>
-      <td><span class="ov-days">${days} hari</span></td>
-      <td><span class="ov-status">Overdue</span></td>
-    </tr>`;
+
+  const now = new Date(); now.setHours(0,0,0,0);
+
+  el.innerHTML = assets.map(a => {
+    const isLayak = a.status_aset_terakhir === 'LAYAK';
+
+    // Sertifikasi badge
+    let sertBadge = '', borderLeft = '';
+    if (a.tanggal_expired) {
+      const exp = parseExpDate(a.tanggal_expired);
+      const diff = Math.ceil((exp - now) / 86400000);
+      if (diff < 0) {
+        sertBadge = `<span class="badge-sert expired">🔴 Expired</span>`;
+        borderLeft = 'border-left:3px solid var(--red)';
+      } else if (diff <= 30) {
+        sertBadge = `<span class="badge-sert warning">⚠️ ${diff}h lagi</span>`;
+        borderLeft = 'border-left:3px solid var(--yellow)';
+      } else {
+        sertBadge = `<span class="badge-sert valid">✅ Valid</span>`;
+      }
+    }
+
+    // Spec tags
+    let specTags = '';
+    if (a.spesifikasi_detail && a.spec_fields) {
+      try {
+        const spek = JSON.parse(a.spesifikasi_detail);
+        const fields = JSON.parse(a.spec_fields).fields || [];
+        specTags = fields.map(f => spek[f.key] ? `<span class="spec-tag">${f.label}: ${spek[f.key]}</span>` : '').filter(Boolean).join('');
+      } catch(e) {}
+    }
+
+    // PIC row
+    const picInitials = (a.pic_nama || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+    const picRow = a.pic_nama ? `
+      <div class="asset-pic-row">
+        <div class="pic-avatar-sm">${picInitials}</div>
+        <div><div class="pic-name-sm">${a.pic_nama}</div><div class="pic-sub-sm">PIC · ${a.nama_subarea || '-'}</div></div>
+        <div class="pic-nik-sm">${a.pic_nik || ''}</div>
+      </div>` : '';
+
+    return `<div class="asset-item" style="${borderLeft}">
+      <div class="asset-item-head">
+        <div class="asset-item-icon ${isLayak ? 'layak' : 'tidak'}">${a.no_toolbox ? '🧰' : '🔧'}</div>
+        <div class="asset-item-main">
+          <div class="asset-item-name">${a.nama_alat || '-'}</div>
+          <div class="asset-item-id">${a.asset_id || '-'} · ${a.no_id || a.no_toolbox || '-'}</div>
+        </div>
+        <div class="asset-item-badges">
+          <span class="badge-status ${isLayak ? 'layak' : 'tidak'}">${isLayak ? '✅ Layak' : '❌ Tidak Layak'}</span>
+          ${sertBadge}
+          ${a.tanggal_expired ? `<span style="font-size:10px;color:var(--muted2)">Exp: ${fmtDateShort(a.tanggal_expired)}</span>` : ''}
+        </div>
+      </div>
+      <div class="asset-item-tags">
+        <span class="asset-tag">📍 ${a.nama_subarea || '-'}</span>
+        <span class="asset-tag-kat">${a.nama_kategori || '-'}</span>
+        ${a.merk ? `<span class="asset-tag" style="color:var(--muted2)">${a.merk}</span>` : ''}
+      </div>
+      ${specTags ? `<div class="asset-spec-tags">${specTags}</div>` : ''}
+      ${picRow}
+    </div>`;
   }).join('');
 }
 
-// ── POWER BI ──
-function hidePBILoading() {
-  const el = document.getElementById('pbiLoading');
-  if (el) el.classList.add('hidden');
+// Kategori cards
+function buildKatCards() {
+  const el = document.getElementById('katScroll');
+  const iconMap = {jackstand:'🔩',stand:'🔩',apar:'🧯',sling:'🪝',crane:'🏗️',listrik:'⚡',angin:'💨',tangga:'🪜',hook:'🪝',harness:'🦺',eyewash:'👁️',toolbox:'🧰'};
+  function getIcon(n) {
+    n = (n||'').toLowerCase();
+    for (const [k,v] of Object.entries(iconMap)) if (n.includes(k)) return v;
+    return '🔧';
+  }
+  const byKat = {};
+  assetsRaw.forEach(a => {
+    const k = a.kategori_id || 'lain';
+    if (!byKat[k]) byKat[k] = { id:k, nama:a.nama_kategori||k, total:0, layak:0 };
+    byKat[k].total++;
+    if (a.status_aset_terakhir === 'LAYAK') byKat[k].layak++;
+  });
+  const sorted = Object.values(byKat).sort((a,b) => b.total-a.total);
+  el.innerHTML = [
+    `<div class="kat-card ${!assetKatFilter ? 'active' : ''}" onclick="setAssetKat('',this)">
+      <div class="kat-card-icon">🔧</div>
+      <div class="kat-card-count">${assetsRaw.length}</div>
+      <div class="kat-card-name">Semua</div>
+      <div class="kat-card-pct" style="color:var(--primary)">Total</div>
+    </div>`,
+    ...sorted.map(k => {
+      const pct = k.total > 0 ? Math.round((k.layak/k.total)*100) : 0;
+      const c = pct>=90 ? 'var(--green)' : pct>=70 ? 'var(--yellow)' : 'var(--red)';
+      return `<div class="kat-card ${assetKatFilter===k.id ? 'active' : ''}" onclick="setAssetKat('${k.id}',this)">
+        <div class="kat-card-icon">${getIcon(k.nama)}</div>
+        <div class="kat-card-count">${k.total}</div>
+        <div class="kat-card-name">${k.nama}</div>
+        <div class="kat-card-pct" style="color:${c}">${pct}% layak</div>
+      </div>`;
+    })
+  ].join('');
 }
 
+function populatePICFilter() {
+  const sel = document.getElementById('filterPIC');
+  if (!sel) return;
+  const pics = {};
+  assetsRaw.forEach(a => { if (a.pic_nik && a.pic_nama) pics[a.pic_nik] = a.pic_nama; });
+  sel.innerHTML = '<option value="">Semua PIC</option>' +
+    Object.entries(pics).map(([nik,nama]) => `<option value="${nik}">${nama}</option>`).join('');
+}
+
+// Sertifikasi tab
+function renderSertTab() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  let data = assetsRaw.filter(a => a.tanggal_expired && String(a.tanggal_expired).trim());
+  if (assetAreaFilter !== 'ALL') data = data.filter(a => String(a.area_id) === String(assetAreaFilter));
+
+  const expired = data.filter(a => parseExpDate(a.tanggal_expired) < now).length;
+  const warning = data.filter(a => { const d = Math.ceil((parseExpDate(a.tanggal_expired)-now)/86400000); return d>=0&&d<=60; }).length;
+  const valid   = data.filter(a => Math.ceil((parseExpDate(a.tanggal_expired)-now)/86400000) > 60).length;
+
+  setText('sertExpiredCnt', expired);
+  setText('sertWarningCnt', warning);
+  setText('sertValidCnt', valid);
+
+  let filtered = data;
+  if (sertFilter==='expired') filtered = data.filter(a => parseExpDate(a.tanggal_expired) < now);
+  else if (sertFilter==='warning') filtered = data.filter(a => { const d = Math.ceil((parseExpDate(a.tanggal_expired)-now)/86400000); return d>=0&&d<=60; });
+  else if (sertFilter==='valid') filtered = data.filter(a => Math.ceil((parseExpDate(a.tanggal_expired)-now)/86400000) > 60);
+  filtered.sort((a,b) => parseExpDate(a.tanggal_expired)-parseExpDate(b.tanggal_expired));
+
+  const el = document.getElementById('sertListWrap');
+  if (!filtered.length) {
+    el.innerHTML = '<div class="asset-empty"><div class="asset-empty-icon">📋</div><div class="asset-empty-title">Tidak ada data sertifikasi</div></div>';
+    return;
+  }
+  el.innerHTML = filtered.map(a => {
+    const exp = parseExpDate(a.tanggal_expired);
+    const diff = Math.ceil((exp-now)/86400000);
+    const isExp = diff < 0, isWarn = diff>=0&&diff<=60;
+    const borderStyle = isExp ? 'border-left:3px solid var(--red)' : isWarn ? 'border-left:3px solid var(--yellow)' : '';
+    const badge = isExp
+      ? `<span class="badge-sert expired">🔴 Expired ${Math.abs(diff)} hari lalu</span>`
+      : isWarn
+      ? `<span class="badge-sert warning">⚠️ ${diff} hari lagi</span>`
+      : `<span class="badge-sert valid">✅ Valid</span>`;
+    const picInitials = (a.pic_nama||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    return `<div class="asset-item" style="${borderStyle}">
+      <div class="asset-item-head">
+        <div class="asset-item-main">
+          <div class="asset-item-name">${a.nama_alat||'-'} · ${a.no_id||a.no_toolbox||'-'}</div>
+          <div class="asset-item-id">${a.nama_subarea||'-'} · ${a.nama_kategori||'-'}</div>
+        </div>
+        <div class="asset-item-badges">${badge}<span style="font-size:10px;color:var(--muted2)">Exp: ${fmtDateShort(a.tanggal_expired)}</span></div>
+      </div>
+      <div class="asset-item-tags">
+        <span class="asset-tag" style="font-family:monospace;font-size:11px;color:var(--muted)">${a.no_sertifikasi||'No. sertifikat belum diisi'}</span>
+      </div>
+      ${a.pic_nama ? `<div class="asset-pic-row">
+        <div class="pic-avatar-sm">${picInitials}</div>
+        <div><div class="pic-name-sm" style="${isExp?'color:var(--red)':''}">${a.pic_nama}</div><div class="pic-sub-sm">PIC penanggung jawab</div></div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── EVENT HANDLERS ──
+function setAssetArea(areaId, el) {
+  assetAreaFilter = areaId;
+  document.querySelectorAll('.asset-area-btn').forEach(b => { b.style.background='transparent'; b.style.color='var(--muted)'; });
+  document.querySelectorAll('[id^="areaBtn"]').forEach(b => { b.classList.remove('active'); });
+  if (el) { el.style.background='var(--primary)'; el.style.color='#fff'; }
+  applyAssetFilter();
+  renderSertTab();
+  buildKatCards();
+}
+
+function setAssetKat(katId, el) {
+  assetKatFilter = assetKatFilter === katId ? '' : katId;
+  buildKatCards();
+  applyAssetFilter();
+}
+
+function setAssetStatus(status, el) {
+  assetStatusFilter = status;
+  document.querySelectorAll('.asset-chips .asset-chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  applyAssetFilter();
+}
+
+function setSertFilter(filter, el) {
+  sertFilter = filter;
+  document.querySelectorAll('#atab-content-sertifikasi .asset-chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderSertTab();
+}
+
+function setAssetTab(tab, el) {
+  assetTabActive = tab;
+  ['asset','sertifikasi'].forEach(t => {
+    const c = document.getElementById('atab-content-'+t);
+    const b = document.getElementById('atab-'+t);
+    if (c) c.style.display = t===tab ? 'block' : 'none';
+    if (b) { b.classList.toggle('active', t===tab); }
+  });
+}
+
+function applyAssetFilter() {
+  const filtered = getFilteredAssets();
+  renderAssetList(filtered);
+}
+
+// ── PBI ──
+function hidePBILoading() { const el=document.getElementById('pbiLoading'); if(el) el.classList.add('hidden'); }
 function toggleFullscreen() {
   const wrap = document.getElementById('pbiWrap');
-  if (!document.fullscreenElement) {
-    wrap.requestFullscreen().catch(() => {});
-  } else {
-    document.exitFullscreen();
-  }
+  if (!document.fullscreenElement) wrap.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen();
 }
 
 // ── HELPERS ──
-function setText(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val;
+function parseExpDate(val) {
+  const s = String(val).split('T')[0];
+  const [y,m,d] = s.split('-');
+  return new Date(parseInt(y), parseInt(m)-1, parseInt(d));
 }
+
+function setText(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
 
 function fmtDateShort(dateStr) {
   if (!dateStr) return '-';
   try {
     const d = new Date(dateStr);
     if (isNaN(d)) return dateStr;
-    return d.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+    return d.toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'});
   } catch(e) { return dateStr; }
 }
 
 function updateStatusTime() {
   const now = new Date();
-  const t = now.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}) +
-            ' ' + now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) + ' WIB';
-  setText('statusTime', t);
+  setText('statusTime', now.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) + ' ' + now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + ' WIB');
 }
 
-function showLoad(msg) {
-  document.getElementById('lo').classList.add('show');
-  document.getElementById('loMsg').textContent = msg || 'Loading...';
-}
-function hideLoad() {
-  document.getElementById('lo').classList.remove('show');
-}
+function showLoad(msg) { document.getElementById('lo').classList.add('show'); document.getElementById('loMsg').textContent = msg||'Loading...'; }
+function hideLoad() { document.getElementById('lo').classList.remove('show'); }
 function showToast(msg, type='info') {
-  const t = document.getElementById('toast');
-  document.getElementById('toastMsg').textContent = msg;
-  t.className = 'toast show ' + type;
-  setTimeout(() => t.classList.remove('show'), 3500);
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.className='toast show '+type;
+  setTimeout(()=>t.classList.remove('show'), 3500);
 }
 
-// ── DEMO DATA (fallback if API fails) ──
+// ── DEMO DATA ──
 function getDemoTemuan() {
-  const today = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now()-86400000).toISOString().split('T')[0];
-  const d2 = new Date(Date.now()-172800000).toISOString().split('T')[0];
+  const today=new Date().toISOString().split('T')[0];
+  const yesterday=new Date(Date.now()-86400000).toISOString().split('T')[0];
+  const d2=new Date(Date.now()-172800000).toISOString().split('T')[0];
   return [
-    // Open overdue
     {temuan_id:'TM-001',inspeksi_id:'INS-001',status_temuan:'OPEN',nama_pic:'Dimas Pratama',pic_nik:'EMP001',nama_subarea:'6015',due_date:d2,sla_status:'OVERDUE',umur_hari:18},
-    {temuan_id:'TM-002',inspeksi_id:'INS-001',status_temuan:'OPEN',nama_pic:'Dimas Pratama',pic_nik:'EMP001',nama_subarea:'6015',due_date:d2,sla_status:'OVERDUE',umur_hari:18},
-    {temuan_id:'TM-003',inspeksi_id:'INS-001',status_temuan:'OPEN',nama_pic:'Dimas Pratama',pic_nik:'EMP001',nama_subarea:'6015',due_date:d2,sla_status:'OVERDUE',umur_hari:18},
-    {temuan_id:'TM-004',inspeksi_id:'INS-001',status_temuan:'OPEN',nama_pic:'Dimas Pratama',pic_nik:'EMP001',nama_subarea:'6015',due_date:d2,sla_status:'OVERDUE',umur_hari:18},
     {temuan_id:'TM-005',inspeksi_id:'INS-002',status_temuan:'OPEN',nama_pic:'Rizky Kurniawan',pic_nik:'EMP002',nama_subarea:'773',due_date:yesterday,sla_status:'OVERDUE',umur_hari:15},
-    {temuan_id:'TM-006',inspeksi_id:'INS-002',status_temuan:'OPEN',nama_pic:'Rizky Kurniawan',pic_nik:'EMP002',nama_subarea:'773',due_date:yesterday,sla_status:'OVERDUE',umur_hari:15},
-    {temuan_id:'TM-007',inspeksi_id:'INS-002',status_temuan:'OPEN',nama_pic:'Rizky Kurniawan',pic_nik:'EMP002',nama_subarea:'773',due_date:yesterday,sla_status:'OVERDUE',umur_hari:15},
     {temuan_id:'TM-008',inspeksi_id:'INS-003',status_temuan:'OPEN',nama_pic:'Andi Setiawan',pic_nik:'EMP003',nama_subarea:'Workshop',due_date:yesterday,sla_status:'OVERDUE',umur_hari:10},
-    {temuan_id:'TM-009',inspeksi_id:'INS-003',status_temuan:'OPEN',nama_pic:'Andi Setiawan',pic_nik:'EMP003',nama_subarea:'Workshop',due_date:yesterday,sla_status:'OVERDUE',umur_hari:10},
     {temuan_id:'TM-010',inspeksi_id:'INS-004',status_temuan:'OPEN',nama_pic:'Muhammad Firdaus',pic_nik:'EMP004',nama_subarea:'Crusher',due_date:today,sla_status:'ON_TIME',umur_hari:0},
-    {temuan_id:'TM-011',inspeksi_id:'INS-004',status_temuan:'OPEN',nama_pic:'Muhammad Firdaus',pic_nik:'EMP004',nama_subarea:'Crusher',due_date:yesterday,sla_status:'OVERDUE',umur_hari:8},
-    {temuan_id:'TM-012',inspeksi_id:'INS-005',status_temuan:'OPEN',nama_pic:'Bayu Aji',pic_nik:'EMP005',nama_subarea:'Stockpile',due_date:today,sla_status:'OVERDUE',umur_hari:5},
-    // Closed
     {temuan_id:'TM-013',inspeksi_id:'INS-006',status_temuan:'CLOSED',nama_pic:'Dimas Pratama',pic_nik:'EMP001',nama_subarea:'6015',due_date:'2026-06-10',sla_status:'ON_TIME',tgl_closed:today},
     {temuan_id:'TM-014',inspeksi_id:'INS-007',status_temuan:'CLOSED',nama_pic:'Rizky Kurniawan',pic_nik:'EMP002',nama_subarea:'773',due_date:'2026-06-08',sla_status:'ON_TIME',tgl_closed:today},
-    {temuan_id:'TM-015',inspeksi_id:'INS-008',status_temuan:'CLOSED',nama_pic:'Andi Setiawan',pic_nik:'EMP003',nama_subarea:'Workshop',due_date:'2026-06-05',sla_status:'ON_TIME',tgl_closed:today},
-    {temuan_id:'TM-016',inspeksi_id:'INS-009',status_temuan:'CLOSED',nama_pic:'Bayu Aji',pic_nik:'EMP005',nama_subarea:'Stockpile',due_date:'2026-06-12',sla_status:'ON_TIME',tgl_closed:today},
-    {temuan_id:'TM-017',inspeksi_id:'INS-010',status_temuan:'CLOSED',nama_pic:'Dimas Pratama',pic_nik:'EMP001',nama_subarea:'6015',due_date:'2026-06-15',sla_status:'ON_TIME',tgl_closed:today},
-    {temuan_id:'TM-018',inspeksi_id:'INS-011',status_temuan:'CLOSED',nama_pic:'Rizky Kurniawan',pic_nik:'EMP002',nama_subarea:'773',due_date:'2026-06-18',sla_status:'ON_TIME',tgl_closed:today},
-    {temuan_id:'TM-019',inspeksi_id:'INS-012',status_temuan:'CLOSED',nama_pic:'Muhammad Firdaus',pic_nik:'EMP004',nama_subarea:'Crusher',due_date:'2026-06-20',sla_status:'ON_TIME',tgl_closed:today},
-    {temuan_id:'TM-020',inspeksi_id:'INS-013',status_temuan:'CLOSED',nama_pic:'Andi Setiawan',pic_nik:'EMP003',nama_subarea:'Workshop',due_date:'2026-06-22',sla_status:'ON_TIME',tgl_closed:today},
-    {temuan_id:'TM-021',inspeksi_id:'INS-014',status_temuan:'CLOSED',nama_pic:'Bayu Aji',pic_nik:'EMP005',nama_subarea:'Stockpile',due_date:'2026-06-25',sla_status:'ON_TIME',tgl_closed:today},
+  ];
+}
+
+function getDemoAssets() {
+  return [
+    {asset_id:'AST-2026-000001',nama_alat:'Jack Stand 10T',no_id:'JS-001',merk:'Tekiro',nama_subarea:'WS HE CIA',area_id:'AR001',kategori_id:'K001',nama_kategori:'Jack Stand',status_aset_terakhir:'LAYAK',pic_nik:'EMP003',pic_nama:'Zainal',tanggal_expired:'2026-09-15',no_sertifikasi:'SRT-001/2026',spesifikasi_detail:'{"SWL":"10T","Tinggi":"43cm"}',spec_fields:'{"fields":[{"key":"SWL","label":"SWL"},{"key":"Tinggi","label":"Tinggi (cm)"}]}'},
+    {asset_id:'AST-2026-000002',nama_alat:'Bor Listrik Makita',no_id:'BL-3817',merk:'Makita',nama_subarea:'WS HE CIA',area_id:'AR001',kategori_id:'K002',nama_kategori:'Tenaga Angin',status_aset_terakhir:'TIDAK LAYAK',pic_nik:'EMP003',pic_nama:'Zainal'},
+    {asset_id:'AST-2026-000003',nama_alat:'APAR 6kg ABC',no_id:'APAR-012',merk:'Appron',nama_subarea:'BAY CP',area_id:'AR001',kategori_id:'K003',nama_kategori:'APAR',status_aset_terakhir:'LAYAK',pic_nik:'EMP001',pic_nama:'Abdul Azis',tanggal_expired:'2026-07-10',no_sertifikasi:'SRT-APAR-012'},
+    {asset_id:'AST-2026-000004',nama_alat:'Crane Workshop 5T',no_id:'CW-005',merk:'-',nama_subarea:'WS SSB',area_id:'AR002',kategori_id:'K004',nama_kategori:'Crane Workshop',status_aset_terakhir:'LAYAK',pic_nik:'EMP002',pic_nama:'Sentot',tanggal_expired:'2025-12-31',no_sertifikasi:'SRT-CW-005'},
   ];
 }
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW register failed:', e));
-  });
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(e=>{}); });
 }
 </script>
 </body>
