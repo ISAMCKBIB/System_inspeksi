@@ -6671,11 +6671,10 @@
                 });
               }
               if (f.source === "subarea") {
-                const selectedArea =
-                  document.getElementById("mf_area_id")?.value || "";
-                const filteredSub = (masterDropdowns.subarea || []).filter(
-                  (s) => !selectedArea || s.area_id === selectedArea,
-                );
+  const selectedArea = record.area_id || "";
+  const filteredSub = (masterDropdowns.subarea || []).filter(
+    (s) => !selectedArea || s.area_id === selectedArea,
+  );
                 filteredSub.forEach((s) => {
                   opts += `<option value="${s.subarea_id}" ${val === s.subarea_id ? "selected" : ""}>${s.nama_subarea}</option>`;
                 });
