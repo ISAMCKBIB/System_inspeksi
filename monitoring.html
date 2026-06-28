@@ -888,14 +888,40 @@ function renderAssetList(assets) {
     }
 
     // Spec tags
-    let specTags = '';
-    if (a.spesifikasi_detail && a.spec_fields) {
-      try {
-        const spek = JSON.parse(a.spesifikasi_detail);
-        const fields = JSON.parse(a.spec_fields).fields || [];
-        specTags = fields.map(f => spek[f.key] ? `<span class="spec-tag">${f.label}: ${spek[f.key]}</span>` : '').filter(Boolean).join('');
-      } catch(e) {}
-    }
+ // Spec tags
+let specTags = '';
+const specParts = [];
+
+// 1) Dari spesifikasi_detail JSON (field dinamis dari master kategori)
+if (a.spesifikasi_detail && a.spec_fields) {
+  try {
+    const spek = JSON.parse(a.spesifikasi_detail);
+    const fields = JSON.parse(a.spec_fields).fields || [];
+    fields.forEach(f => {
+      if (spek[f.key]) specParts.push({ label: f.label, val: spek[f.key] });
+    });
+  } catch(e) {}
+}
+
+// 2) Field terpisah yang ada di root data asset (marking, swl, dll)
+const extraFieldMap = [
+  { key: 'marking',   label: 'Marking'     },
+  { key: 'swl',       label: 'SWL'         },
+  { key: 'kapasitas', label: 'Kapasitas'   },
+  { key: 'tinggi',    label: 'Tinggi (cm)' },
+  { key: 'panjang',   label: 'Panjang'     },
+  { key: 'warna',     label: 'Warna'       },
+  { key: 'tahun',     label: 'Tahun'       },
+];
+extraFieldMap.forEach(({ key, label }) => {
+  if (a[key]) {
+    // Hindari duplikasi label yang sudah ada dari spec_fields
+    const alreadyHas = specParts.some(p => p.label.toLowerCase() === label.toLowerCase());
+    if (!alreadyHas) specParts.push({ label, val: a[key] });
+  }
+});
+
+specTags = specParts.map(p => `<span class="spec-tag">${p.label}: ${p.val}</span>`).join('');
 
     // PIC row
     const picInitials = (a.pic_nama || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
