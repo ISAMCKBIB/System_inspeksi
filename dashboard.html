@@ -6806,23 +6806,19 @@ function setAssetArea(areaId, el) {
           });
           const json = await res.json();
           hideLoad();
-          if (json.status === "ok") {
-            closeSertModal();
-            showToast("✅ Sertifikasi berhasil diupdate", "success");
-            // Update local cache
-            const idx = assetsRaw.findIndex(
-              (a) => a.asset_id === activeSertAssetId,
-            );
-            if (idx >= 0) Object.assign(assetsRaw[idx], record);
-            renderAssetV2();
-          } else {
-            showToast("❌ " + (json.message || "Error"), "error");
-          }
-        } catch (e) {
-          hideLoad();
-          showToast("❌ Koneksi gagal", "error");
-        }
-      }
+if (json.status === "ok") {
+  closeSertModal();
+  showToast("✅ Sertifikasi berhasil diupdate", "success");
+  // Update local cache
+  const idx = assetsRaw.findIndex(
+    (a) => a.asset_id === activeSertAssetId,
+  );
+  if (idx >= 0) Object.assign(assetsRaw[idx], record);
+  renderAssetV2();
+  renderSertifikasiTab();
+} else {
+  showToast("❌ " + (json.message || "Error"), "error");
+}
 
       // ── History Drawer ──
       async function openHistoryDrawer(assetId, noId, namaAlat) {
