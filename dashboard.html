@@ -5854,6 +5854,19 @@
       // ════════════════════════════════════════════════════════
       // ASSET MONITORING V2
       // ════════════════════════════════════════════════════════
+      function parseExp(val) {
+  const str = String(val).split("T")[0];
+  const [y, m, d] = str.split("-");
+  return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+}
+
+function fmtExpDate(val) {
+  if (!val) return "-";
+  const str = String(val).split("T")[0];
+  const [y, m, d] = str.split("-");
+  const months = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agt","Sep","Okt","Nov","Des"];
+  return d + " " + months[parseInt(m) - 1] + " " + y;
+}
       let assetAreaFilter = "ALL";
       let assetTabActive = "asset";
       let assetStatusFilter2 = "semua";
@@ -6150,13 +6163,6 @@
           data = data.filter(
             (a) => String(a.area_id) === String(assetAreaFilter),
           );
-
-        function parseExp(val) {
-          const str = String(val).split("T")[0];
-          const [y, m, d] = str.split("-");
-          return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-        }
-
         const expired = data.filter(
           (a) => parseExp(a.tanggal_expired) < now,
         ).length;
@@ -6450,16 +6456,18 @@ let filtered = data;
             .join("");
       }
 
-      function setAssetArea(areaId, el) {
-        assetAreaFilter = areaId;
-        document.querySelectorAll('[id^="areaBtn"]').forEach((b) => {
-          b.style.background = "transparent";
-          b.style.color = "var(--muted)";
-        });
-        el.style.background = "var(--primary)";
-        el.style.color = "#fff";
-        renderAssetV2();
-      }
+function setAssetArea(areaId, el) {
+  assetAreaFilter = areaId;
+  document.querySelectorAll('[id^="areaBtn"]').forEach((b) => {
+    b.style.background = "transparent";
+    b.style.color = "var(--muted)";
+  });
+  el.style.background = "var(--primary)";
+  el.style.color = "#fff";
+  renderAssetV2();
+  renderSertifikasiTab();
+  if (assetTabActive === "spesifikasi") renderSpecTab();
+}
 
       function setAssetTab(tab, el) {
         assetTabActive = tab;
