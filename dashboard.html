@@ -2237,152 +2237,106 @@
 
       <!-- ADMIN HOME -->
       <div class="view" id="viewAdminHome">
-        <div
-          style="font-size: 12px; color: var(--muted); margin-bottom: 14px"
-          id="adminDateBar"
-        ></div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+    <span id="adminDateBar"></span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div>
+      <span id="kpiLastUpdated" style="font-size:10px;color:var(--muted2)">-</span>
+      <span style="font-size:10px;color:var(--muted2)">·</span>
+      <span id="kpiRefreshCountdown" style="font-size:10px;color:var(--muted2)">-</span>
+      <button onclick="manualRefreshKPI()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:11px;font-weight:600;cursor:pointer;color:var(--primary);font-family:'Inter',sans-serif">⟳ Refresh</button>
+    </div>
+  </div>
 
-        <!-- Greeting card -->
-        <div
-          style="
-            background: linear-gradient(
-              135deg,
-              var(--primary),
-              var(--primary-dark)
-            );
-            border-radius: var(--radius);
-            padding: 18px 20px;
-            margin-bottom: 14px;
-            color: #fff;
-          "
-        >
-          <div style="font-size: 13px; opacity: 0.8" id="adminGreet">
-            Selamat datang,
-          </div>
-          <div
-            style="font-size: 20px; font-weight: 700; margin: 4px 0"
-            id="adminName"
-          >
-            Administrator
-          </div>
-          <div style="font-size: 11px; opacity: 0.7" id="adminDate"></div>
-        </div>
+  <!-- Greeting -->
+  <div style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;color:#fff">
+    <div style="font-size:13px;opacity:.8" id="adminGreet">Selamat datang,</div>
+    <div style="font-size:20px;font-weight:700;margin:4px 0" id="adminName">Administrator</div>
+    <div style="font-size:11px;opacity:.7" id="adminDate"></div>
+  </div>
 
-        <!-- Stats utama -->
-        <div
-          class="stats-grid"
-          style="grid-template-columns: 1fr 1fr; margin-bottom: 10px"
-        >
-          <div class="stat-card c-blue" onclick="triggerView('adminTemuan')">
-            <div class="stat-label">Total Inspeksi</div>
-            <div class="stat-value c-blue" id="aHomeTotalInsp">—</div>
-            <div class="stat-sub" id="aHomeTotalInspTrend">bulan ini</div>
-          </div>
-          <div class="stat-card c-red" onclick="triggerView('adminTemuan')">
-            <div class="stat-label">Open Temuan</div>
-            <div class="stat-value c-red" id="aHomeOpen">—</div>
-            <div class="stat-sub">belum ditindaklanjuti</div>
-          </div>
-        </div>
-        <div
-          class="stats-grid"
-          style="grid-template-columns: 1fr 1fr; margin-bottom: 14px"
-        >
-          <div class="stat-card c-green">
-            <div class="stat-label">Closed Bln Ini</div>
-            <div class="stat-value c-green" id="aHomeClosed">—</div>
-            <div class="stat-sub">berhasil diselesaikan</div>
-          </div>
-          <div class="stat-card c-yellow">
-            <div class="stat-label">Compliance</div>
-            <div class="stat-value c-yellow" id="aHomeCompliance">—</div>
-            <div class="stat-sub">tingkat kepatuhan</div>
-          </div>
-        </div>
-
-        <!-- Critical alert -->
-        <div
-          id="criticalAlert"
-          style="
-            display: none;
-            background: var(--red-bg);
-            border: 1.5px solid var(--red-bd);
-            border-radius: var(--radius);
-            padding: 14px;
-            margin-bottom: 14px;
-          "
-        >
-          <div style="display: flex; align-items: center; gap: 10px">
-            <div style="font-size: 24px">🚨</div>
-            <div>
-              <div
-                style="font-size: 13px; font-weight: 700; color: var(--red)"
-                id="criticalCount"
-              >
-                0 Temuan Critical
-              </div>
-              <div
-                style="font-size: 12px; color: var(--muted); margin-top: 2px"
-              >
-                Perlu segera ditindaklanjuti
-              </div>
-            </div>
-            <div
-              style="
-                margin-left: auto;
-                background: var(--red);
-                color: #fff;
-                padding: 6px 14px;
-                border-radius: 8px;
-                font-size: 12px;
-                font-weight: 600;
-                cursor: pointer;
-              "
-              onclick="
-                triggerView('adminTemuan');
-                filterAllTemuan('critical');
-              "
-            >
-              Lihat →
-            </div>
-          </div>
-        </div>
-
-        <!-- Area Performance -->
-        <div class="sec-hdr">
-          <div class="sec-title">Area Performance</div>
-          <div class="sec-link" onclick="triggerView('adminKPIArea')">
-            Lihat Semua
-          </div>
-        </div>
-        <div
-          id="aHomeAreaPerf"
-          style="
-            background: var(--surface);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            padding: 14px;
-            margin-bottom: 14px;
-          "
-        ></div>
-
-        <!-- Recent activity -->
-        <div class="sec-hdr">
-          <div class="sec-title">Aktivitas Terbaru</div>
-          <div class="sec-link" onclick="triggerView('adminActLog')">
-            Lihat Semua
-          </div>
-        </div>
-        <div
-          id="aHomeActivity"
-          style="
-            background: var(--surface);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            overflow: hidden;
-          "
-        ></div>
+  <!-- Alert banner -->
+  <div id="criticalAlert" style="display:none;background:var(--red-bg);border:1.5px solid var(--red-bd);border-radius:var(--radius);padding:14px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-size:24px">🚨</div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--red)" id="criticalCount">-</div>
+        <div id="criticalAlertMsg" style="font-size:12px;color:var(--muted);margin-top:2px">Perlu segera ditindaklanjuti</div>
       </div>
+      <div style="margin-left:auto;background:var(--red);color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer" onclick="triggerView('adminAsset')">Lihat →</div>
+    </div>
+  </div>
+
+  <!-- KPI Temuan — 4 cards -->
+  <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Monitoring temuan</div>
+  <div class="stats-grid" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
+    <div class="stat-card c-blue" onclick="triggerView('adminTemuan')">
+      <div class="stat-label">Total inspeksi</div>
+      <div class="stat-value c-blue" id="aHomeTotalInsp">—</div>
+      <div class="stat-sub">bulan ini</div>
+    </div>
+    <div class="stat-card c-red" onclick="triggerView('adminTemuan')">
+      <div class="stat-label">Open temuan</div>
+      <div class="stat-value c-red" id="aHomeOpen">—</div>
+      <div class="stat-sub">belum ditindaklanjuti</div>
+    </div>
+    <div class="stat-card c-green">
+      <div class="stat-label">Closed bln ini</div>
+      <div class="stat-value c-green" id="aHomeClosed">—</div>
+      <div class="stat-sub">berhasil diselesaikan</div>
+    </div>
+    <div class="stat-card c-yellow">
+      <div class="stat-label">Compliance</div>
+      <div class="stat-value c-yellow" id="aHomeCompliance">—</div>
+      <div class="stat-sub">tingkat kepatuhan</div>
+    </div>
+  </div>
+
+  <!-- KPI Sertifikasi — 4 cards -->
+  <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;margin-top:4px">Monitoring sertifikasi</div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px">
+    <div style="background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:14px;cursor:pointer" onclick="triggerView('adminAsset')">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Compliance sertifikasi</div>
+      <div style="font-size:28px;font-weight:700;color:var(--green)" id="kpiSertCompliance">—</div>
+      <div style="font-size:11px;color:var(--muted2)" id="kpiSertTotal">— unit</div>
+    </div>
+    <div style="background:var(--red-bg);border-radius:var(--radius);border:1px solid var(--red-bd);padding:14px;cursor:pointer" onclick="triggerView('adminAsset')">
+      <div style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;margin-bottom:6px">🔴 Expired</div>
+      <div style="font-size:28px;font-weight:700;color:var(--red)" id="kpiSertExpired">—</div>
+      <div style="font-size:11px;color:var(--muted2)">perlu perpanjangan</div>
+    </div>
+    <div style="background:var(--yellow-bg);border-radius:var(--radius);border:1px solid var(--yellow-bd);padding:14px;cursor:pointer" onclick="triggerView('adminAsset')">
+      <div style="font-size:11px;font-weight:600;color:var(--yellow);text-transform:uppercase;margin-bottom:6px">⚠️ Akan expired</div>
+      <div style="font-size:28px;font-weight:700;color:var(--yellow)" id="kpiSertWarning">—</div>
+      <div style="font-size:11px;color:var(--muted2)">dalam 60 hari</div>
+    </div>
+    <div style="background:var(--green-bg);border-radius:var(--radius);border:1px solid var(--green-bd);padding:14px;cursor:pointer" onclick="triggerView('adminAsset')">
+      <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;margin-bottom:6px">✅ Valid</div>
+      <div style="font-size:28px;font-weight:700;color:var(--green)" id="kpiSertValid">—</div>
+      <div style="font-size:11px;color:var(--muted2)">sertifikat masih berlaku</div>
+    </div>
+  </div>
+
+  <!-- Compliance chart -->
+  <div style="background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:14px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:12px">📈 Compliance rate 6 bulan</div>
+    <div id="complianceChartHome" style="display:flex;align-items:flex-end;gap:6px;height:110px;padding-top:16px"></div>
+  </div>
+
+  <!-- Area performance -->
+  <div class="sec-hdr">
+    <div class="sec-title">Area performance</div>
+    <div class="sec-link" onclick="triggerView('adminKPIArea')">Lihat semua</div>
+  </div>
+  <div id="aHomeAreaPerf" style="background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:14px"></div>
+
+  <!-- Aktivitas terbaru -->
+  <div class="sec-hdr">
+    <div class="sec-title">Aktivitas terbaru</div>
+    <div class="sec-link" onclick="triggerView('adminActLog')">Lihat semua</div>
+  </div>
+  <div id="aHomeActivity" style="background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden"></div>
+</div>
 
       <!-- ADMIN MONITORING TEMUAN -->
       <div class="view" id="viewAdminTemuan">
@@ -5500,75 +5454,150 @@
       // ════════════════════════════════════════════════════════════
       //  ADMIN HOME
       // ════════════════════════════════════════════════════════════
-      function renderAdminHome() {
-        if (!kpiData) return;
-        const s = kpiData.summary;
-        const greet =
-          new Date().getHours() < 12
-            ? "Selamat pagi,"
-            : new Date().getHours() < 17
-              ? "Selamat siang,"
-              : "Selamat sore,";
-        document.getElementById("adminGreet").textContent = greet;
-        document.getElementById("adminName").textContent =
-          SESSION.nama || "Administrator";
-        document.getElementById("adminDate").textContent =
-          new Date().toLocaleDateString("id-ID", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          });
-        document.getElementById("adminDateBar").textContent =
-          "📅 " +
-          new Date().toLocaleDateString("id-ID", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          });
-        document.getElementById("aHomeTotalInsp").textContent =
-          s.total_inspeksi || 0;
-        document.getElementById("aHomeOpen").textContent = s.open_temuan || 0;
-        document.getElementById("aHomeClosed").textContent =
-          s.closed_this_month || 0;
-        document.getElementById("aHomeCompliance").textContent =
-          (s.compliance || 0) + "%";
-        // Critical alert
-        const critical = allTemuan.filter(
-          (t) => t.status_temuan === "OPEN" && t.risiko === "CRITICAL",
-        ).length;
-        const alertEl = document.getElementById("criticalAlert");
-        if (critical > 0) {
-          alertEl.style.display = "block";
-          document.getElementById("criticalCount").textContent =
-            critical + " Temuan Critical";
-        }
-        // Area performance bars
-        const areas = (kpiData.kpi_subarea || []).slice(0, 5);
-        document.getElementById("aHomeAreaPerf").innerHTML = areas.length
-          ? areas
-              .map((a) => {
-                const cColor =
-                  a.compliance >= 90
-                    ? "var(--green)"
-                    : a.compliance >= 70
-                      ? "var(--yellow)"
-                      : "var(--red)";
-                return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <div style="font-size:12px;font-weight:600;width:90px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.nama_subarea || a.subarea_id}</div>
-            <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
-              <div style="height:100%;background:${cColor};border-radius:4px;width:${a.compliance}%;transition:width .6s ease"></div>
-            </div>
-            <div style="font-size:12px;font-weight:700;color:${cColor};width:36px;text-align:right">${a.compliance}%</div>
-          </div>`;
-              })
-              .join("")
-          : '<div style="font-size:13px;color:var(--muted);text-align:center;padding:10px">Belum ada data</div>';
-        // Activity
-        loadActLog(true);
-      }
+function renderAdminHome() {
+  if (!kpiData) return;
+  const s = kpiData.summary;
+  const sert = kpiData.sertifikasi || {};
 
+  // Greeting
+  const greet = new Date().getHours() < 12 ? 'Selamat pagi,' : new Date().getHours() < 17 ? 'Selamat siang,' : 'Selamat sore,';
+  document.getElementById('adminGreet').textContent = greet;
+  document.getElementById('adminName').textContent = SESSION.nama || 'Administrator';
+  document.getElementById('adminDate').textContent = new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('adminDateBar').textContent = '📅 ' + new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  // KPI utama
+  document.getElementById('aHomeTotalInsp').textContent = s.total_inspeksi || 0;
+  document.getElementById('aHomeOpen').textContent = s.open_temuan || 0;
+  document.getElementById('aHomeClosed').textContent = s.closed_this_month || 0;
+  document.getElementById('aHomeCompliance').textContent = (s.compliance || 0) + '%';
+
+  // Last updated indicator
+  const luEl = document.getElementById('kpiLastUpdated');
+  if (luEl) luEl.textContent = 'Diperbarui ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+
+  // Alert banner — muncul kalau ada expired atau critical
+  const critical = allTemuan.filter(t => t.status_temuan === 'OPEN' && t.risiko === 'CRITICAL').length;
+  const alertEl = document.getElementById('criticalAlert');
+  const alertMsg = document.getElementById('criticalAlertMsg');
+  if ((sert.expired > 0 || critical > 0) && alertEl) {
+    alertEl.style.display = 'block';
+    const parts = [];
+    if (sert.expired > 0) parts.push(sert.expired + ' sertifikasi expired');
+    if (critical > 0) parts.push(critical + ' temuan Critical');
+    if (alertMsg) alertMsg.textContent = parts.join(' · ');
+    document.getElementById('criticalCount').textContent = parts.join(' · ');
+  }
+
+  // KPI Sertifikasi cards
+  const elSert = id => document.getElementById(id);
+  if (elSert('kpiSertTotal')) elSert('kpiSertTotal').textContent = sert.total || 0;
+  if (elSert('kpiSertExpired')) elSert('kpiSertExpired').textContent = sert.expired || 0;
+  if (elSert('kpiSertWarning')) elSert('kpiSertWarning').textContent = sert.warning || 0;
+  if (elSert('kpiSertValid')) elSert('kpiSertValid').textContent = sert.valid || 0;
+  if (elSert('kpiSertCompliance')) elSert('kpiSertCompliance').textContent = (sert.compliance_rate || 0) + '%';
+
+  // Compliance chart trend 6 bulan
+  const trend = kpiData.trend_compliance || [];
+  const cEl = document.getElementById('complianceChartHome');
+  if (cEl && trend.length) {
+    const max = Math.max(...trend.map(t => t.compliance), 1);
+    cEl.innerHTML = trend.map(t => {
+      const h = Math.max(Math.round((t.compliance / max) * 80), 4);
+      const c = t.compliance >= 90 ? 'var(--green)' : t.compliance >= 70 ? 'var(--primary)' : 'var(--red)';
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+        <div style="font-size:10px;font-weight:700;color:${c}">${t.compliance}%</div>
+        <div style="flex:1;display:flex;align-items:flex-end;width:100%">
+          <div style="width:100%;background:${c};border-radius:3px 3px 0 0;height:${h}px;min-height:4px"></div>
+        </div>
+        <div style="font-size:9px;color:var(--muted2)">${t.bulan}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Area performance bars
+  const areas = (kpiData.kpi_subarea || []).slice(0, 5);
+  document.getElementById('aHomeAreaPerf').innerHTML = areas.length
+    ? areas.map(a => {
+        const c = a.compliance >= 90 ? 'var(--green)' : a.compliance >= 70 ? 'var(--primary)' : 'var(--red)';
+        return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="font-size:12px;font-weight:600;width:90px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.nama_subarea || a.subarea_id}</div>
+          <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+            <div style="height:100%;background:${c};border-radius:4px;width:${a.compliance}%;transition:width .6s ease"></div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:${c};width:36px;text-align:right">${a.compliance}%</div>
+        </div>`;
+      }).join('')
+    : '<div style="font-size:13px;color:var(--muted);text-align:center;padding:10px">Belum ada data</div>';
+
+  // Activity log
+  loadActLog(true);
+
+  // Mulai auto refresh
+  startKPIAutoRefresh();
+}
+let _kpiRefreshTimer = null;
+let _kpiRefreshCountdown = 15 * 60; // 15 menit dalam detik
+
+function startKPIAutoRefresh() {
+  // Clear timer lama kalau ada
+  if (_kpiRefreshTimer) clearInterval(_kpiRefreshTimer);
+
+  _kpiRefreshCountdown = 15 * 60;
+  updateRefreshIndicator();
+
+  _kpiRefreshTimer = setInterval(async function() {
+    _kpiRefreshCountdown--;
+    updateRefreshIndicator();
+
+    if (_kpiRefreshCountdown <= 0) {
+      _kpiRefreshCountdown = 15 * 60;
+      // Refresh data dari GAS
+      showToast('🔄 Memperbarui data...', 'info');
+      try {
+        const [r1, r2] = await Promise.all([
+          fetch(APPS_SCRIPT_URL + '?action=getTemuan'),
+          fetch(APPS_SCRIPT_URL + '?action=getKPI')
+        ]);
+        const [j1, j2] = await Promise.all([r1.json(), r2.json()]);
+        if (j1.status === 'ok') allTemuan = j1.data;
+        if (j2.status === 'ok') kpiData = j2.data;
+        renderAdminHome();
+        renderAdminTemuan();
+        showToast('✅ Data diperbarui', 'success');
+      } catch(e) {
+        showToast('⚠️ Gagal refresh data', 'warn');
+      }
+    }
+  }, 1000); // tick setiap 1 detik
+}
+
+function updateRefreshIndicator() {
+  const el = document.getElementById('kpiRefreshCountdown');
+  if (!el) return;
+  const mnt = Math.floor(_kpiRefreshCountdown / 60);
+  const dtk = _kpiRefreshCountdown % 60;
+  el.textContent = mnt + 'm ' + String(dtk).padStart(2, '0') + 'd lagi';
+}
+
+async function manualRefreshKPI() {
+  showToast('🔄 Memperbarui data...', 'info');
+  _kpiRefreshCountdown = 15 * 60;
+  try {
+    const [r1, r2] = await Promise.all([
+      fetch(APPS_SCRIPT_URL + '?action=getTemuan'),
+      fetch(APPS_SCRIPT_URL + '?action=getKPI')
+    ]);
+    const [j1, j2] = await Promise.all([r1.json(), r2.json()]);
+    if (j1.status === 'ok') allTemuan = j1.data;
+    if (j2.status === 'ok') kpiData = j2.data;
+    renderAdminHome();
+    renderAdminTemuan();
+    showToast('✅ Data diperbarui', 'success');
+  } catch(e) {
+    showToast('⚠️ Gagal refresh', 'warn');
+  }
+}
       // ════════════════════════════════════════════════════════════
       //  ADMIN MONITORING TEMUAN
       // ════════════════════════════════════════════════════════════
