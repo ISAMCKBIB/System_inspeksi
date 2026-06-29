@@ -8014,7 +8014,8 @@ MASTER_ASSET: [
   { key:'kategori_id', label:'Kategori *', type:'select_master', source:'kategori', required:true },
   { key:'nama_alat', label:'Nama Alat *', type:'text', required:true },
   { key:'merk', label:'Merk', type:'text' },
-  { key:'no_id', label:'No ID / No Asset', type:'text' },
+  { key:'no_id', label:'No ID', type:'text' },
+  { key:'no_asset', label:'No Asset', type:'text' },
   { key:'tanggal_expired', label:'Tgl Expired Sertifikasi', type:'date' },
   { key:'no_sertifikasi', label:'No Sertifikasi', type:'text' },
   { key:'nama_penguji', label:'Nama Penguji', type:'text' },
@@ -8149,10 +8150,16 @@ function setAssetMasterKat(katId, el) {
     data = data.filter(r => String(r.aktif || r.status) === 'N');
   }
 
-  // Filter kategori — hanya untuk MASTER_PERTANYAAN
+// Filter kategori — hanya untuk MASTER_PERTANYAAN
   if (masterSheetActive === 'MASTER_PERTANYAAN' && pertanyaanKatFilter) {
     data = data.filter(r => String(r.kategori_id) === String(pertanyaanKatFilter));
   }
+
+  // Filter kategori — hanya untuk MASTER_ASSET
+  if (masterSheetActive === 'MASTER_ASSET' && assetMasterKatFilter) {
+    data = data.filter(r => String(r.kategori_id) === String(assetMasterKatFilter));
+  }
+
 
   // Filter teks
   if (q && q.trim()) {
