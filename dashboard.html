@@ -3692,6 +3692,13 @@
   <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none" id="pertanyaanKatChips"></div>
 </div>
 
+<!-- Filter kategori asset — muncul hanya kalau di tab Asset -->
+<div id="assetMasterKatFilter" style="display:none;margin-bottom:12px">
+  <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.5px;margin-bottom:8px">Filter Kategori</div>
+  <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none" id="assetMasterKatChips"></div>
+</div>
+
         <div class="sec-hdr" style="margin-bottom: 10px">
           <div class="sec-title" id="masterSheetTitle">Master Employee</div>
           <button
@@ -5671,6 +5678,7 @@
       let editingRecord = null;
       let masterAktifFilter = "Y"; // default hanya tampil data aktif
       let pertanyaanKatFilter = ''; // filter kategori aktif di tab pertanyaan
+      let assetMasterKatFilter = '';
 
       // ════════════════════════════════════════════════════════════
       //  ADMIN — BUILD NAV
@@ -7998,25 +8006,25 @@ const MASTER_FIELDS = {
     { key:'urutan', label:'Urutan', type:'number' },
     { key:'status', label:'Status', type:'select', options:['Y','N'] },
   ],
-  MASTER_ASSET: [
-    { key:'asset_id', label:'Asset ID', type:'text', readonly:true, auto:'AST' },
-    { key:'nama_alat', label:'Nama Alat *', type:'text', required:true },
-    { key:'merk', label:'Merk', type:'text' },
-    { key:'no_id', label:'No ID', type:'text' },
-    { key:'company_id', label:'Perusahaan *', type:'select_master', source:'perusahaan', required:true },
-    { key:'area_id', label:'Area *', type:'select_master', source:'area', required:true },
-    { key:'subarea_id', label:'Sub Area *', type:'select_master', source:'subarea', required:true },
-    { key:'kategori_id', label:'Kategori *', type:'select_master', source:'kategori', required:true },
-    { key:'no_toolbox', label:'No Toolbox', type:'text' },
-    { key:'tipe_toolbox_id', label:'Tipe Toolbox', type:'select', options:['','TBT001','TBT002','TBT003','TBT004'] },
-    { key:'tanggal_expired', label:'Tgl Expired Sertifikasi', type:'date' },
-    { key:'marking', label:'Marking', type:'text' },
-    { key:'no_sertifikasi', label:'No Sertifikasi', type:'text' },
-    { key:'nama_penguji', label:'Nama Penguji', type:'text' },
-    { key:'status_sertifikasi', label:'Status Sertifikasi', type:'select', options:['','VALID','PENDING','EXPIRED'] },
-    { key:'status_aset_terakhir', label:'Status Aset', type:'select', options:['LAYAK','TIDAK LAYAK'] },
-    { key:'aktif', label:'Aktif', type:'select', options:['Y','N'] },
-  ],
+MASTER_ASSET: [
+  { key:'asset_id', label:'Asset ID', type:'text', readonly:true, auto:'AST' },
+  { key:'company_id', label:'Perusahaan *', type:'select_master', source:'perusahaan', required:true },
+  { key:'area_id', label:'Area *', type:'select_master', source:'area', required:true },
+  { key:'subarea_id', label:'Sub Area *', type:'select_master', source:'subarea', required:true },
+  { key:'kategori_id', label:'Kategori *', type:'select_master', source:'kategori', required:true },
+  { key:'nama_alat', label:'Nama Alat *', type:'text', required:true },
+  { key:'merk', label:'Merk', type:'text' },
+  { key:'no_id', label:'No ID / No Asset', type:'text' },
+  { key:'tanggal_expired', label:'Tgl Expired Sertifikasi', type:'date' },
+  { key:'no_sertifikasi', label:'No Sertifikasi', type:'text' },
+  { key:'nama_penguji', label:'Nama Penguji', type:'text' },
+  { key:'status_sertifikasi', label:'Status Sertifikasi', type:'select', options:['','VALID','PENDING','EXPIRED'] },
+  { key:'status_aset_terakhir', label:'Status Aset', type:'select', options:['LAYAK','TIDAK LAYAK'] },
+  { key:'aktif', label:'Aktif', type:'select', options:['Y','N'] },
+  // Field kondisional — disembunyikan dulu, muncul sesuai kategori
+  { key:'no_toolbox', label:'No Toolbox', type:'text', hidden:true },
+  { key:'tipe_toolbox_id', label:'Tipe Toolbox', type:'select', options:['','TBT001','TBT002','TBT003','TBT004'], hidden:true },
+],
   MASTER_SLA: [
     { key:'risiko', label:'Risiko', type:'select', options:['CRITICAL','HIGH','MEDIUM','LOW'], readonly:true },
     { key:'sla_hari', label:'SLA (Hari) *', type:'number', required:true },
@@ -8051,9 +8059,19 @@ async function loadMasterSheet(sheetName, keyCol, chipEl) {
   if (katFilterEl) {
     katFilterEl.style.display = sheetName === 'MASTER_PERTANYAAN' ? 'block' : 'none';
   }
-  if (sheetName === 'MASTER_PERTANYAAN') {
+if (sheetName === 'MASTER_PERTANYAAN') {
     pertanyaanKatFilter = '';
     buildPertanyaanKatChips();
+  }
+
+  // Tampil/hide filter kategori asset
+  const assetKatFilterEl = document.getElementById('assetMasterKatFilter');
+  if (assetKatFilterEl) {
+    assetKatFilterEl.style.display = sheetName === 'MASTER_ASSET' ? 'block' : 'none';
+  }
+  if (sheetName === 'MASTER_ASSET') {
+    assetMasterKatFilter = '';
+    buildAssetMasterKatChips();
   }
 
   showLoad('Memuat ' + sheetName + '...');
@@ -8094,6 +8112,27 @@ function buildPertanyaanKatChips() {
 function setPertanyaanKat(katId, el) {
   pertanyaanKatFilter = katId;
   document.querySelectorAll('#pertanyaanKatChips .chip')
+    .forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const searchVal = document.getElementById('searchMaster')?.value || '';
+  filterMasterList(searchVal);
+}
+unction buildAssetMasterKatChips() {
+  const el = document.getElementById('assetMasterKatChips');
+  if (!el) return;
+  const kats = masterDropdowns.kategori || [];
+  el.innerHTML = `
+    <div class="chip active" onclick="setAssetMasterKat('', this)">Semua</div>
+    ${kats.map(k => `
+      <div class="chip" onclick="setAssetMasterKat('${k.kategori_id}', this)">
+        ${k.nama_kategori}
+      </div>`).join('')}
+  `;
+}
+
+function setAssetMasterKat(katId, el) {
+  assetMasterKatFilter = katId;
+  document.querySelectorAll('#assetMasterKatChips .chip')
     .forEach(c => c.classList.remove('active'));
   if (el) el.classList.add('active');
   const searchVal = document.getElementById('searchMaster')?.value || '';
@@ -8157,6 +8196,65 @@ function setPertanyaanKat(katId, el) {
 
   if (!masterDataFiltered.length) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Belum ada data</div></div>';
+    return;
+  }
+// Tampilan khusus untuk MASTER_ASSET — grouped per kategori
+  if (masterSheetActive === 'MASTER_ASSET') {
+    // Kalau filter aktif, tampil flat
+    if (assetMasterKatFilter) {
+      const kat = (masterDropdowns.kategori || []).find(k => k.kategori_id === assetMasterKatFilter);
+      el.innerHTML = `
+        <div style="background:var(--primary-light);border:.5px solid var(--border);
+          border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;
+          color:var(--primary);font-weight:600">
+          🗂️ ${kat ? kat.nama_kategori : assetMasterKatFilter}
+          · ${masterDataFiltered.length} asset
+        </div>
+        ${masterDataFiltered.map(row => renderAssetMasterCard(row)).join('')}
+      `;
+      return;
+    }
+
+    // Grouped per kategori
+    const grouped = {};
+    masterDataFiltered.forEach(row => {
+      const k = row.kategori_id || 'lain';
+      if (!grouped[k]) grouped[k] = [];
+      grouped[k].push(row);
+    });
+
+    const katMap = {};
+    (masterDropdowns.kategori || []).forEach(k => { katMap[k.kategori_id] = k.nama_kategori; });
+
+    el.innerHTML = Object.entries(grouped).map(([katId, rows]) => {
+      const katNama = katMap[katId] || katId;
+      return `
+        <div style="background:var(--surface);border:1px solid var(--border);
+          border-radius:var(--radius);margin-bottom:12px;overflow:hidden">
+          <div style="background:var(--primary-light);padding:10px 14px;
+            border-bottom:1px solid var(--border);display:flex;
+            align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--primary)">
+                🗂️ ${katNama}
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-top:1px">
+                ${rows.length} asset
+              </div>
+            </div>
+            <button onclick="setAssetMasterKat('${katId}', null)"
+              style="font-size:11px;padding:4px 10px;border-radius:6px;
+              border:1px solid var(--primary);background:transparent;
+              color:var(--primary);cursor:pointer;font-family:'Inter',sans-serif">
+              Filter →
+            </button>
+          </div>
+          <div style="padding:8px">
+            ${rows.map(row => renderAssetMasterCard(row)).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
     return;
   }
 
@@ -8292,6 +8390,55 @@ function renderPertanyaanCard(row, idx) {
     </div>
   </div>`;
 }
+function renderAssetMasterCard(row) {
+  const keyVal = row[masterKeyCol];
+  const isInaktif = String(row.aktif || 'Y') === 'N';
+  const isLayak = row.status_aset_terakhir === 'LAYAK';
+
+  // Parse spec
+  let specTags = '';
+  if (row.spesifikasi_detail) {
+    try {
+      const spek = JSON.parse(row.spesifikasi_detail);
+      specTags = Object.entries(spek)
+        .map(([k, v]) => `<span style="font-size:10px;background:var(--primary-light);
+          color:var(--primary);border-radius:4px;padding:2px 7px;font-weight:600;
+          border:0.5px solid var(--border)">${k}: ${v}</span>`)
+        .join('');
+    } catch(e) {}
+  }
+
+  return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;
+    border-radius:8px;border:.5px solid var(--border);margin-bottom:6px;
+    background:${isInaktif ? 'var(--surface2)' : '#fff'};${isInaktif ? 'opacity:.6' : ''}">
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">
+        <div style="font-size:13px;font-weight:600">${row.nama_alat || '—'}</div>
+        <span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;
+          ${isLayak
+            ? 'background:var(--green-bg);color:var(--green)'
+            : 'background:var(--red-bg);color:var(--red)'}">
+          ${isLayak ? '✅ Layak' : '❌ Tidak Layak'}
+        </span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:${specTags ? '5px' : '0'}">
+        ${row.no_id || row.no_toolbox || '-'} · ${row.nama_subarea || '-'}
+      </div>
+      ${specTags ? `<div style="display:flex;gap:4px;flex-wrap:wrap">${specTags}</div>` : ''}
+      <div style="font-size:10px;color:var(--muted2);margin-top:3px">${keyVal || '-'}</div>
+    </div>
+    <div style="display:flex;gap:5px;flex-shrink:0">
+      <button onclick="openEditModal('${keyVal}')"
+        style="padding:5px 10px;border-radius:6px;border:1px solid var(--border);
+        background:#fff;font-size:11px;cursor:pointer;color:var(--primary);
+        font-family:'Inter',sans-serif">Edit</button>
+      <button onclick="deleteMasterRecord('${keyVal}')"
+        style="padding:5px 10px;border-radius:6px;border:1px solid var(--red-bd);
+        background:var(--red-bg);font-size:11px;cursor:pointer;color:var(--red);
+        font-family:'Inter',sans-serif">Hapus</button>
+    </div>
+  </div>`;
+}
 
       function openAddModal() {
         editingRecord = null;
@@ -8413,8 +8560,22 @@ function renderModalFields(record) {
       </div>`;
     }
 
-    if (f.type === 'hidden') {
+        if (f.type === 'hidden') {
       return `<input type="hidden" id="mf_${f.key}" value="${val}">`;
+    }
+
+    if (f.hidden) {
+      const editVal = record[f.key] || '';
+      return `<div class="dfield" id="wrap_mf_${f.key}" style="display:none">
+        <label>${f.label}</label>
+        ${f.type === 'select'
+          ? `<select id="mf_${f.key}" style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:#fff;font-family:'Inter',sans-serif;outline:none;color:var(--text)">
+              ${f.options.map(o => `<option value="${o}" ${editVal===o?'selected':''}>${o||'-- Pilih --'}</option>`).join('')}
+            </select>`
+          : `<input id="mf_${f.key}" type="${f.type||'text'}" value="${editVal}"
+              style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:#fff;font-family:'Inter',sans-serif;outline:none;color:var(--text)">`
+        }
+      </div>`;
     }
 
     return `<div class="dfield">
@@ -8454,15 +8615,17 @@ function renderModalFields(record) {
 
     // Kategori asset → toolbox fields + spec fields
     const katEl = document.getElementById('mf_kategori_id');
+    // Kategori asset → toolbox fields + spec fields
+    const katEl = document.getElementById('mf_kategori_id');
     if (katEl && masterSheetActive === 'MASTER_ASSET') {
       function handleKatChange() {
         const katId = katEl.value;
         const kat = (masterDropdowns.kategori||[]).find(k => k.kategori_id === katId);
         const isToolbox = kat && kat.tipe_inspeksi === 'TOOLBOX_INVENTORY';
 
-        // Show/hide toolbox fields
+        // Show/hide toolbox fields pakai wrapper div
         ['mf_no_toolbox','mf_tipe_toolbox_id'].forEach(id => {
-          const wrap = document.getElementById(id)?.closest('.dfield');
+          const wrap = document.getElementById('wrap_' + id);
           if (wrap) wrap.style.display = isToolbox ? 'block' : 'none';
         });
 
@@ -8470,7 +8633,7 @@ function renderModalFields(record) {
         const old = document.getElementById('specFieldsContainer');
         if (old) old.remove();
 
-        // Build spec fields baru
+        // Build spec fields baru dari spec_fields JSON
         if (kat && kat.spec_fields) {
           let specFields = [];
           try { specFields = JSON.parse(kat.spec_fields).fields || []; } catch(e) {}
@@ -8521,7 +8684,8 @@ function renderModalFields(record) {
       }
 
       katEl.addEventListener('change', handleKatChange);
-      if (editingRecord) handleKatChange();
+      // Trigger langsung — baik CREATE maupun EDIT
+      handleKatChange();
     }
   }, 150);
 }
