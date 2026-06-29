@@ -7982,230 +7982,70 @@ if (fabCount) fabCount.textContent = n + ' dipilih';
       // ════════════════════════════════════════════════════════════
       //  MASTER DATA CRUD
       // ════════════════════════════════════════════════════════════
-      const MASTER_FIELDS = {
-        MASTER_EMPLOYEE: [
-          {
-            key: "employee_id",
-            label: "Employee ID",
-            type: "text",
-            readonly: true,
-          },
-          { key: "nik", label: "NIK *", type: "text", required: true },
-          {
-            key: "nama",
-            label: "Nama Lengkap *",
-            type: "text",
-            required: true,
-          },
-          { key: "email", label: "Email", type: "email" },
-          { key: "jabatan", label: "Jabatan", type: "text" },
-          {
-            key: "role",
-            label: "Role *",
-            type: "select",
-            options: ["PIC", "ADMIN", "VIEWER"],
-            required: true,
-          },
-          { key: "company_id", label: "Company ID", type: "text" },
-          { key: "area_id", label: "Area ID", type: "text" },
-          { key: "subarea_id", label: "Sub Area ID", type: "text" },
-          { key: "password_hash", label: "Password", type: "text" },
-          { key: "aktif", label: "Aktif", type: "select", options: ["Y", "N"] },
-        ],
-        MASTER_SUBAREA: [
-          {
-            key: "subarea_id",
-            label: "Sub Area ID",
-            type: "text",
-            readonly: true,
-          },
-          { key: "area_id", label: "Area ID *", type: "text", required: true },
-          {
-            key: "nama_subarea",
-            label: "Nama Sub Area *",
-            type: "text",
-            required: true,
-          },
-          { key: "pic1_nik", label: "PIC 1 NIK", type: "text" },
-          {
-            key: "pic1_nama",
-            label: "Nama PIC 1",
-            type: "text",
-            readonly: true,
-            virtual: true,
-          },
-          { key: "pic2_nik", label: "PIC 2 NIK", type: "text" },
-          {
-            key: "pic2_nama",
-            label: "Nama PIC 2",
-            type: "text",
-            readonly: true,
-            virtual: true,
-          },
-          {
-            key: "status",
-            label: "Status",
-            type: "select",
-            options: ["Y", "N"],
-          },
-        ],
-        MASTER_KATEGORI: [
-          {
-            key: "kategori_id",
-            label: "Kategori ID",
-            type: "text",
-            readonly: true,
-          },
-          {
-            key: "nama_kategori",
-            label: "Nama Kategori *",
-            type: "text",
-            required: true,
-          },
-          {
-            key: "tipe",
-            label: "Tipe",
-            type: "select",
-            options: ["CHECKLIST", "TOOLBOX"],
-          },
-          { key: "aktif", label: "Aktif", type: "select", options: ["Y", "N"] },
-        ],
-        MASTER_PERTANYAAN: [
-          {
-            key: "question_id",
-            label: "Question ID",
-            type: "text",
-            readonly: true,
-          },
-          {
-            key: "kategori_id",
-            label: "Kategori ID *",
-            type: "text",
-            required: true,
-          },
-          {
-            key: "pertanyaan",
-            label: "Pertanyaan *",
-            type: "textarea",
-            required: true,
-          },
-          { key: "urutan", label: "Urutan", type: "number" },
-          {
-            key: "status",
-            label: "Status",
-            type: "select",
-            options: ["Y", "N"],
-          },
-        ],
-        MASTER_ASSET: [
-          {
-            key: "asset_id",
-            label: "Asset ID",
-            type: "hidden",
-            readonly: true,
-          },
-          {
-            key: "nama_alat",
-            label: "Nama Alat *",
-            type: "text",
-            required: true,
-          },
-          { key: "merk", label: "Merk", type: "text" },
-          { key: "no_id", label: "No ID", type: "text" },
-          { key: "no_toolbox", label: "No Toolbox", type: "text" },
-          {
-            key: "tipe_toolbox_id",
-            label: "Tipe Toolbox",
-            type: "select",
-            options: ["", "TBT001", "TBT002", "TBT003", "TBT004"],
-          },
-          {
-            key: "company_id",
-            label: "Perusahaan *",
-            type: "select_master",
-            source: "perusahaan",
-            required: true,
-          },
-          {
-            key: "area_id",
-            label: "Area *",
-            type: "select_master",
-            source: "area",
-            required: true,
-          },
-          {
-            key: "subarea_id",
-            label: "Sub Area *",
-            type: "select_master",
-            source: "subarea",
-            required: true,
-          },
-          {
-            key: "kategori_id",
-            label: "Kategori *",
-            type: "select_master",
-            source: "kategori",
-            required: true,
-          },
-          {
-            key: "no_toolbox",
-            label: "No Toolbox",
-            type: "text",
-            conditional: "isToolbox",
-          },
-          {
-            key: "tipe_toolbox_id",
-            label: "Tipe Toolbox",
-            type: "select",
-            options: ["", "TBT001", "TBT002", "TBT003", "TBT004"],
-            conditional: "isToolbox",
-          },
-          {
-            key: "tanggal_expired",
-            label: "Tgl Expired Sertifikasi",
-            type: "date",
-          },
-          { key: "marking", label: "Marking", type: "text" },
-          { key: "spesifikasi", label: "Spesifikasi", type: "text" },
-          { key: "no_sertifikat", label: "No Sertifikat", type: "text" },
-          { key: "nama_penguji", label: "Nama Penguji", type: "text" },
-          {
-            key: "status_sertifikasi",
-            label: "Status Sertifikasi",
-            type: "select",
-            options: ["", "VALID", "PENDING", "EXPIRED"],
-          },
-          {
-            key: "status_aset_terakhir",
-            label: "Status Aset",
-            type: "select",
-            options: ["LAYAK", "TIDAK LAYAK"],
-          },
-          { key: "aktif", label: "Aktif", type: "select", options: ["Y", "N"] },
-        ],
-        MASTER_SLA: [
-          {
-            key: "risiko",
-            label: "Risiko",
-            type: "select",
-            options: ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
-            readonly: true,
-          },
-          {
-            key: "sla_hari",
-            label: "SLA (Hari) *",
-            type: "number",
-            required: true,
-          },
-          { key: "reminder_h_minus", label: "Reminder H-", type: "number" },
-          {
-            key: "interval_overdue",
-            label: "Interval Overdue (hari)",
-            type: "number",
-          },
-          { key: "aktif", label: "Aktif", type: "select", options: ["Y", "N"] },
-        ],
-      };
+const MASTER_FIELDS = {
+  MASTER_EMPLOYEE: [
+    { key:'employee_id', label:'Employee ID', type:'text', readonly:true, auto:'EMP' },
+    { key:'nik', label:'NIK *', type:'text', required:true },
+    { key:'nama', label:'Nama Lengkap *', type:'text', required:true },
+    { key:'email', label:'Email', type:'email' },
+    { key:'jabatan', label:'Jabatan', type:'text' },
+    { key:'role', label:'Role *', type:'select', options:['PIC','ADMIN','VIEWER'], required:true },
+    { key:'company_id', label:'Perusahaan', type:'select_master', source:'perusahaan' },
+    { key:'area_id', label:'Area', type:'select_master', source:'area' },
+    { key:'subarea_id', label:'Sub Area', type:'select_master', source:'subarea' },
+    { key:'password_hash', label:'Password', type:'text' },
+    { key:'aktif', label:'Aktif', type:'select', options:['Y','N'] },
+  ],
+  MASTER_SUBAREA: [
+    { key:'subarea_id', label:'Sub Area ID', type:'text', readonly:true, auto:'SA' },
+    { key:'area_id', label:'Area *', type:'select_master', source:'area', required:true },
+    { key:'nama_subarea', label:'Nama Sub Area *', type:'text', required:true },
+    { key:'pic1_nik', label:'PIC 1 *', type:'select_employee', required:true },
+    { key:'pic2_nik', label:'PIC 2', type:'select_employee' },
+    { key:'status', label:'Status', type:'select', options:['Y','N'] },
+  ],
+  MASTER_KATEGORI: [
+    { key:'kategori_id', label:'Kategori ID', type:'text', readonly:true, auto:'KT' },
+    { key:'nama_kategori', label:'Nama Kategori *', type:'text', required:true },
+    { key:'grup_kategori', label:'Grup Kategori', type:'text' },
+    { key:'tipe_inspeksi', label:'Tipe', type:'select', options:['CHECKLIST','TOOLBOX_INVENTORY'] },
+    { key:'interval_hari', label:'Interval (hari)', type:'number' },
+    { key:'aktif', label:'Aktif', type:'select', options:['Y','N'] },
+  ],
+  MASTER_PERTANYAAN: [
+    { key:'question_id', label:'Question ID', type:'text', readonly:true, auto:'QST' },
+    { key:'kategori_id', label:'Kategori *', type:'select_master', source:'kategori', required:true },
+    { key:'pertanyaan', label:'Pertanyaan *', type:'textarea', required:true },
+    { key:'urutan', label:'Urutan', type:'number' },
+    { key:'status', label:'Status', type:'select', options:['Y','N'] },
+  ],
+  MASTER_ASSET: [
+    { key:'asset_id', label:'Asset ID', type:'text', readonly:true, auto:'AST' },
+    { key:'nama_alat', label:'Nama Alat *', type:'text', required:true },
+    { key:'merk', label:'Merk', type:'text' },
+    { key:'no_id', label:'No ID', type:'text' },
+    { key:'company_id', label:'Perusahaan *', type:'select_master', source:'perusahaan', required:true },
+    { key:'area_id', label:'Area *', type:'select_master', source:'area', required:true },
+    { key:'subarea_id', label:'Sub Area *', type:'select_master', source:'subarea', required:true },
+    { key:'kategori_id', label:'Kategori *', type:'select_master', source:'kategori', required:true },
+    { key:'no_toolbox', label:'No Toolbox', type:'text' },
+    { key:'tipe_toolbox_id', label:'Tipe Toolbox', type:'select', options:['','TBT001','TBT002','TBT003','TBT004'] },
+    { key:'tanggal_expired', label:'Tgl Expired Sertifikasi', type:'date' },
+    { key:'marking', label:'Marking', type:'text' },
+    { key:'no_sertifikasi', label:'No Sertifikasi', type:'text' },
+    { key:'nama_penguji', label:'Nama Penguji', type:'text' },
+    { key:'status_sertifikasi', label:'Status Sertifikasi', type:'select', options:['','VALID','PENDING','EXPIRED'] },
+    { key:'status_aset_terakhir', label:'Status Aset', type:'select', options:['LAYAK','TIDAK LAYAK'] },
+    { key:'aktif', label:'Aktif', type:'select', options:['Y','N'] },
+  ],
+  MASTER_SLA: [
+    { key:'risiko', label:'Risiko', type:'select', options:['CRITICAL','HIGH','MEDIUM','LOW'], readonly:true },
+    { key:'sla_hari', label:'SLA (Hari) *', type:'number', required:true },
+    { key:'reminder_h_minus', label:'Reminder H-', type:'number' },
+    { key:'interval_overdue', label:'Interval Overdue (hari)', type:'number' },
+    { key:'aktif', label:'Aktif', type:'select', options:['Y','N'] },
+  ],
+};
 
       async function loadMasterSheet(sheetName, keyCol, chipEl) {
         masterSheetActive = sheetName;
@@ -8387,140 +8227,147 @@ if (fabCount) fabCount.textContent = n + ' dipilih';
         }, 10);
       }
 
-      function renderModalFields(record) {
-        const fields = MASTER_FIELDS[masterSheetActive] || [];
-        document.getElementById("modalBody").innerHTML = fields
-          .map((f) => {
-            const val = record[f.key] || "";
-            const ro = f.readonly && editingRecord;
-            if (f.type === "hidden") {
-              return `<input type="hidden" id="mf_${f.key}" value="${val}">`;
-            }
-            if (f.conditional === "isToolbox") {
-              const katEl = document.getElementById("mf_kategori_id");
-              const katVal = katEl ? katEl.value : "";
-              const isToolbox = masterDropdowns.kategori.find(
-                (k) =>
-                  k.kategori_id === katVal &&
-                  k.tipe_inspeksi === "TOOLBOX_INVENTORY",
-              );
-              if (!isToolbox)
-                return `<div style="display:none"><input type="hidden" id="mf_${f.key}" value=""></div>`;
-            }
-            if (f.type === "select") {
-              return `<div class="dfield">
-              <label>${f.label}${f.required ? ' <span style="color:var(--red)">*</span>' : ""}</label>
-              <select id="mf_${f.key}" ${ro ? "disabled" : ""} style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:${ro ? "var(--surface2)" : "#fff"};font-family:'Inter',sans-serif;outline:none;color:var(--text)">
-                ${f.options.map((o) => `<option value="${o}" ${val === o ? "selected" : ""}>${o}</option>`).join("")}
-              </select>
-            </div>`;
-            }
+function renderModalFields(record) {
+  const fields = MASTER_FIELDS[masterSheetActive] || [];
+  document.getElementById('modalBody').innerHTML = fields.map(f => {
+    const val = record[f.key] || '';
+    const ro = f.readonly && editingRecord;
 
-            // ← TAMBAH DI SINI, setelah if select
-            if (f.type === "select_master") {
-              let opts = '<option value="">-- Pilih --</option>';
-              if (f.source === "perusahaan") {
-                (masterDropdowns.perusahaan || []).forEach((p) => {
-                  opts += `<option value="${p.company_id}" ${val === p.company_id ? "selected" : ""}>${p.nama_perusahaan}</option>`;
-                });
-              }
-              if (f.source === "area") {
-                (masterDropdowns.area || []).forEach((a) => {
-                  opts += `<option value="${a.area_id}" ${val === a.area_id ? "selected" : ""}>${a.nama_area}</option>`;
-                });
-              }
-              if (f.source === "subarea") {
-                const selectedArea = record.area_id || "";
-                const filteredSub = (masterDropdowns.subarea || []).filter(
-                  (s) => !selectedArea || s.area_id === selectedArea,
-                );
-                filteredSub.forEach((s) => {
-                  opts += `<option value="${s.subarea_id}" ${val === s.subarea_id ? "selected" : ""}>${s.nama_subarea}</option>`;
-                });
-              }
-              if (f.source === "kategori") {
-                (masterDropdowns.kategori || []).forEach((k) => {
-                  opts += `<option value="${k.kategori_id}" ${val === k.kategori_id ? "selected" : ""}>${k.nama_kategori}</option>`;
-                });
-              }
-              return `<div class="dfield">
-              <label>${f.label}${f.required ? ' <span style="color:var(--red)">*</span>' : ""}</label>
-              <select id="mf_${f.key}" ${ro ? "disabled" : ""} style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:${ro ? "var(--surface2)" : "#fff"};font-family:'Inter',sans-serif;outline:none;color:var(--text)">
-                ${opts}
-              </select>
-            </div>`;
-            }
+    // Hidden auto-generate — tampilkan sebagai read-only text kalau edit, kosong kalau tambah
+    if (f.auto && f.readonly) {
+      const displayVal = editingRecord ? val : '(auto)';
+      return `<div class="dfield">
+        <label>${f.label}</label>
+        <input id="mf_${f.key}" type="text" value="${editingRecord ? val : ''}" readonly
+          style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;
+          font-size:14px;background:var(--surface2);font-family:'Inter',sans-serif;
+          outline:none;color:var(--muted)">
+        <div style="font-size:11px;color:var(--muted2);margin-top:4px">
+          ${editingRecord ? '' : '🔄 ID akan digenerate otomatis saat simpan'}
+        </div>
+      </div>`;
+    }
 
-            if (f.type === "textarea") {
-              return `<div class="dfield">
-              <label>${f.label}${f.required ? ' <span style="color:var(--red)">*</span>' : ""}</label>
-              <textarea id="mf_${f.key}" ${ro ? "readonly" : ""} style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:${ro ? "var(--surface2)" : "#fff"};font-family:'Inter',sans-serif;outline:none;color:var(--text);resize:vertical;min-height:80px">${val}</textarea>
-            </div>`;
-            }
+    // Select dari employee cache
+    if (f.type === 'select_employee') {
+      const empOptions = Object.entries(employeeCache)
+        .map(([nik, nama]) => `<option value="${nik}" ${val === nik ? 'selected' : ''}>${nama} (${nik})</option>`)
+        .join('');
+      return `<div class="dfield">
+        <label>${f.label}${f.required ? ' <span style="color:var(--red)">*</span>' : ''}</label>
+        <select id="mf_${f.key}" style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+          padding:12px;font-size:14px;background:#fff;font-family:'Inter',sans-serif;outline:none;color:var(--text)">
+          <option value="">-- Pilih PIC --</option>
+          ${empOptions}
+        </select>
+      </div>`;
+    }
 
-            return `<div class="dfield">
-            <label>${f.label}${f.required ? ' <span style="color:var(--red)">*</span>' : ""}</label>
-            <input id="mf_${f.key}" type="${f.type || "text"}" value="${val}" ${ro ? "readonly" : ""} style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:${ro ? "var(--surface2)" : "#fff"};font-family:'Inter',sans-serif;outline:none;color:var(--text)">
-          </div>`;
-          })
-          .join("");
-        // === EVENT LISTENERS TAMBAHAN ===
-        setTimeout(() => {
-          // Fix 1: Area → Filter Subarea
-          const areaEl = document.getElementById("mf_area_id");
-          if (areaEl) {
-            areaEl.addEventListener("change", () => {
-              const subEl = document.getElementById("mf_subarea_id");
-              if (!subEl) return;
-              const selectedArea = areaEl.value;
-              const filteredSub = (masterDropdowns.subarea || []).filter(
-                (s) => !selectedArea || s.area_id === selectedArea,
-              );
-              subEl.innerHTML =
-                '<option value="">-- Pilih --</option>' +
-                filteredSub
-                  .map(
-                    (s) =>
-                      `<option value="${s.subarea_id}">${s.nama_subarea}</option>`,
-                  )
-                  .join("");
-            });
-          }
-
-          // Fix 3: Status Sertifikasi Otomatis
-          const tglExpEl = document.getElementById("mf_tanggal_expired");
-          const sertEl = document.getElementById("mf_status_sertifikasi");
-          if (tglExpEl && sertEl) {
-            tglExpEl.addEventListener("change", () => {
-              const exp = new Date(tglExpEl.value);
-              const now = new Date();
-              if (!isNaN(exp.getTime())) {
-                sertEl.value = exp > now ? "VALID" : "EXPIRED";
-              }
-            });
-          }
-
-          // Fix 5: Show/Hide Toolbox Fields
-          const katEl = document.getElementById("mf_kategori_id");
-          if (katEl) {
-            katEl.addEventListener("change", () => {
-              const isToolbox = masterDropdowns.kategori.find(
-                (k) =>
-                  k.kategori_id === katEl.value &&
-                  k.tipe_inspeksi === "TOOLBOX_INVENTORY",
-              );
-              const tbFields = ["no_toolbox", "tipe_toolbox_id"];
-              tbFields.forEach((key) => {
-                const wrap = document
-                  .getElementById("mf_" + key)
-                  ?.closest(".dfield");
-                if (wrap) wrap.style.display = isToolbox ? "block" : "none";
-              });
-            });
-            katEl.dispatchEvent(new Event("change")); // Trigger pertama kali
-          }
-        }, 150);
+    // Select master (perusahaan, area, subarea, kategori)
+    if (f.type === 'select_master') {
+      let opts = '<option value="">-- Pilih --</option>';
+      if (f.source === 'perusahaan') {
+        (masterDropdowns.perusahaan || []).forEach(p => {
+          opts += `<option value="${p.company_id}" ${val === p.company_id ? 'selected' : ''}>${p.nama_perusahaan}</option>`;
+        });
       }
+      if (f.source === 'area') {
+        (masterDropdowns.area || []).forEach(a => {
+          opts += `<option value="${a.area_id}" ${val === a.area_id ? 'selected' : ''}>${a.nama_area}</option>`;
+        });
+      }
+      if (f.source === 'subarea') {
+        const selectedArea = record.area_id || '';
+        (masterDropdowns.subarea || [])
+          .filter(s => !selectedArea || s.area_id === selectedArea)
+          .forEach(s => {
+            opts += `<option value="${s.subarea_id}" ${val === s.subarea_id ? 'selected' : ''}>${s.nama_subarea}</option>`;
+          });
+      }
+      if (f.source === 'kategori') {
+        (masterDropdowns.kategori || []).forEach(k => {
+          opts += `<option value="${k.kategori_id}" ${val === k.kategori_id ? 'selected' : ''}>${k.nama_kategori}</option>`;
+        });
+      }
+      return `<div class="dfield">
+        <label>${f.label}${f.required ? ' <span style="color:var(--red)">*</span>' : ''}</label>
+        <select id="mf_${f.key}" style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+          padding:12px;font-size:14px;background:#fff;font-family:'Inter',sans-serif;outline:none;color:var(--text)">
+          ${opts}
+        </select>
+      </div>`;
+    }
+
+    // Select biasa
+    if (f.type === 'select') {
+      return `<div class="dfield">
+        <label>${f.label}${f.required ? ' <span style="color:var(--red)">*</span>' : ''}</label>
+        <select id="mf_${f.key}" ${ro ? 'disabled' : ''}
+          style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;
+          font-size:14px;background:${ro ? 'var(--surface2)' : '#fff'};
+          font-family:'Inter',sans-serif;outline:none;color:var(--text)">
+          ${f.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o || '-- Pilih --'}</option>`).join('')}
+        </select>
+      </div>`;
+    }
+
+    // Textarea
+    if (f.type === 'textarea') {
+      return `<div class="dfield">
+        <label>${f.label}${f.required ? ' <span style="color:var(--red)">*</span>' : ''}</label>
+        <textarea id="mf_${f.key}" ${ro ? 'readonly' : ''}
+          style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;
+          font-size:14px;background:${ro ? 'var(--surface2)' : '#fff'};
+          font-family:'Inter',sans-serif;outline:none;color:var(--text);
+          resize:vertical;min-height:80px">${val}</textarea>
+      </div>`;
+    }
+
+    // Hidden
+    if (f.type === 'hidden') {
+      return `<input type="hidden" id="mf_${f.key}" value="${val}">`;
+    }
+
+    // Default text/number/email/date
+    return `<div class="dfield">
+      <label>${f.label}${f.required ? ' <span style="color:var(--red)">*</span>' : ''}</label>
+      <input id="mf_${f.key}" type="${f.type || 'text'}" value="${val}" ${ro ? 'readonly' : ''}
+        style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;
+        font-size:14px;background:${ro ? 'var(--surface2)' : '#fff'};
+        font-family:'Inter',sans-serif;outline:none;color:var(--text)">
+    </div>`;
+  }).join('');
+
+  // Event listeners setelah render
+  setTimeout(() => {
+    // Area → filter subarea
+    const areaEl = document.getElementById('mf_area_id');
+    if (areaEl) {
+      areaEl.addEventListener('change', () => {
+        const subEl = document.getElementById('mf_subarea_id');
+        if (!subEl) return;
+        const selectedArea = areaEl.value;
+        subEl.innerHTML = '<option value="">-- Pilih --</option>' +
+          (masterDropdowns.subarea || [])
+            .filter(s => !selectedArea || s.area_id === selectedArea)
+            .map(s => `<option value="${s.subarea_id}">${s.nama_subarea}</option>`)
+            .join('');
+      });
+    }
+
+    // Tgl expired → auto status sertifikasi
+    const tglExpEl = document.getElementById('mf_tanggal_expired');
+    const sertEl = document.getElementById('mf_status_sertifikasi');
+    if (tglExpEl && sertEl) {
+      tglExpEl.addEventListener('change', () => {
+        const exp = new Date(tglExpEl.value);
+        if (!isNaN(exp.getTime())) {
+          sertEl.value = exp > new Date() ? 'VALID' : 'EXPIRED';
+        }
+      });
+    }
+  }, 150);
+}
 
       function closeModal() {
         const modal = document.getElementById("crudModal");
@@ -8535,15 +8382,19 @@ if (fabCount) fabCount.textContent = n + ' dipilih';
         const record = {};
         let valid = true;
         fields.forEach((f) => {
-          const el = document.getElementById("mf_" + f.key);
-          if (!el) return;
-          const val = el.value.trim();
-          if (f.required && !val) {
-            el.style.borderColor = "var(--red)";
-            valid = false;
-          } else el.style.borderColor = "var(--border)";
-          record[f.key] = val;
-        });
+  const el = document.getElementById('mf_' + f.key);
+  if (!el) return;
+  // Skip auto-generate field saat CREATE — GAS yang generate
+  if (f.auto && f.readonly && !editingRecord) return;
+  const val = el.value.trim();
+  if (f.required && !val) {
+    el.style.borderColor = 'var(--red)';
+    valid = false;
+  } else {
+    el.style.borderColor = 'var(--border)';
+  }
+  record[f.key] = val;
+});
         // ← AUTO FILL NAMA & NORMALIZE TANGGAL
         if (masterSheetActive === "MASTER_ASSET") {
           // Auto-fill nama dari ID
