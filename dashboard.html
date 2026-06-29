@@ -2237,106 +2237,378 @@
 
       <!-- ADMIN HOME -->
       <div class="view" id="viewAdminHome">
-  <div style="font-size:12px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
-    <span id="adminDateBar"></span>
-    <div style="display:flex;align-items:center;gap:8px">
-      <div style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div>
-      <span id="kpiLastUpdated" style="font-size:10px;color:var(--muted2)">-</span>
-      <span style="font-size:10px;color:var(--muted2)">·</span>
-      <span id="kpiRefreshCountdown" style="font-size:10px;color:var(--muted2)">-</span>
-      <button onclick="manualRefreshKPI()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:11px;font-weight:600;cursor:pointer;color:var(--primary);font-family:'Inter',sans-serif">⟳ Refresh</button>
-    </div>
-  </div>
+        <div
+          style="
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          "
+        >
+          <span id="adminDateBar"></span>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div
+              style="
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--green);
+              "
+            ></div>
+            <span
+              id="kpiLastUpdated"
+              style="font-size: 10px; color: var(--muted2)"
+              >-</span
+            >
+            <span style="font-size: 10px; color: var(--muted2)">·</span>
+            <span
+              id="kpiRefreshCountdown"
+              style="font-size: 10px; color: var(--muted2)"
+              >-</span
+            >
+            <button
+              onclick="manualRefreshKPI()"
+              style="
+                padding: 4px 10px;
+                border-radius: 6px;
+                border: 1px solid var(--border);
+                background: var(--surface);
+                font-size: 11px;
+                font-weight: 600;
+                cursor: pointer;
+                color: var(--primary);
+                font-family: &quot;Inter&quot;, sans-serif;
+              "
+            >
+              ⟳ Refresh
+            </button>
+          </div>
+        </div>
 
-  <!-- Greeting -->
-  <div style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;color:#fff">
-    <div style="font-size:13px;opacity:.8" id="adminGreet">Selamat datang,</div>
-    <div style="font-size:20px;font-weight:700;margin:4px 0" id="adminName">Administrator</div>
-    <div style="font-size:11px;opacity:.7" id="adminDate"></div>
-  </div>
+        <!-- Greeting -->
+        <div
+          style="
+            background: linear-gradient(
+              135deg,
+              var(--primary),
+              var(--primary-dark)
+            );
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            margin-bottom: 14px;
+            color: #fff;
+          "
+        >
+          <div style="font-size: 13px; opacity: 0.8" id="adminGreet">
+            Selamat datang,
+          </div>
+          <div
+            style="font-size: 20px; font-weight: 700; margin: 4px 0"
+            id="adminName"
+          >
+            Administrator
+          </div>
+          <div style="font-size: 11px; opacity: 0.7" id="adminDate"></div>
+        </div>
 
-  <!-- Alert banner -->
-  <div id="criticalAlert" style="display:none;background:var(--red-bg);border:1.5px solid var(--red-bd);border-radius:var(--radius);padding:14px;margin-bottom:14px">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div style="font-size:24px">🚨</div>
-      <div>
-        <div style="font-size:13px;font-weight:700;color:var(--red)" id="criticalCount">-</div>
-        <div id="criticalAlertMsg" style="font-size:12px;color:var(--muted);margin-top:2px">Perlu segera ditindaklanjuti</div>
+        <!-- Alert banner -->
+        <div
+          id="criticalAlert"
+          style="
+            display: none;
+            background: var(--red-bg);
+            border: 1.5px solid var(--red-bd);
+            border-radius: var(--radius);
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <div style="display: flex; align-items: center; gap: 10px">
+            <div style="font-size: 24px">🚨</div>
+            <div>
+              <div
+                style="font-size: 13px; font-weight: 700; color: var(--red)"
+                id="criticalCount"
+              >
+                -
+              </div>
+              <div
+                id="criticalAlertMsg"
+                style="font-size: 12px; color: var(--muted); margin-top: 2px"
+              >
+                Perlu segera ditindaklanjuti
+              </div>
+            </div>
+            <div
+              style="
+                margin-left: auto;
+                background: var(--red);
+                color: #fff;
+                padding: 6px 14px;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+              "
+              onclick="triggerView('adminAsset')"
+            >
+              Lihat →
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Temuan — 4 cards -->
+        <div
+          style="
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+          "
+        >
+          Monitoring temuan
+        </div>
+        <div
+          class="stats-grid"
+          style="grid-template-columns: 1fr 1fr; margin-bottom: 10px"
+        >
+          <div class="stat-card c-blue" onclick="triggerView('adminTemuan')">
+            <div class="stat-label">Total inspeksi</div>
+            <div class="stat-value c-blue" id="aHomeTotalInsp">—</div>
+            <div class="stat-sub">bulan ini</div>
+          </div>
+          <div class="stat-card c-red" onclick="triggerView('adminTemuan')">
+            <div class="stat-label">Open temuan</div>
+            <div class="stat-value c-red" id="aHomeOpen">—</div>
+            <div class="stat-sub">belum ditindaklanjuti</div>
+          </div>
+          <div class="stat-card c-green">
+            <div class="stat-label">Closed bln ini</div>
+            <div class="stat-value c-green" id="aHomeClosed">—</div>
+            <div class="stat-sub">berhasil diselesaikan</div>
+          </div>
+          <div class="stat-card c-yellow">
+            <div class="stat-label">Compliance</div>
+            <div class="stat-value c-yellow" id="aHomeCompliance">—</div>
+            <div class="stat-sub">tingkat kepatuhan</div>
+          </div>
+        </div>
+
+        <!-- KPI Sertifikasi — 4 cards -->
+        <div
+          style="
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            margin-top: 4px;
+          "
+        >
+          Monitoring sertifikasi
+        </div>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+          "
+        >
+          <div
+            style="
+              background: var(--surface);
+              border-radius: var(--radius);
+              border: 1px solid var(--border);
+              padding: 14px;
+              cursor: pointer;
+            "
+            onclick="triggerView('adminAsset')"
+          >
+            <div
+              style="
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--muted);
+                text-transform: uppercase;
+                margin-bottom: 6px;
+              "
+            >
+              Compliance sertifikasi
+            </div>
+            <div
+              style="font-size: 28px; font-weight: 700; color: var(--green)"
+              id="kpiSertCompliance"
+            >
+              —
+            </div>
+            <div
+              style="font-size: 11px; color: var(--muted2)"
+              id="kpiSertTotal"
+            >
+              — unit
+            </div>
+          </div>
+          <div
+            style="
+              background: var(--red-bg);
+              border-radius: var(--radius);
+              border: 1px solid var(--red-bd);
+              padding: 14px;
+              cursor: pointer;
+            "
+            onclick="triggerView('adminAsset')"
+          >
+            <div
+              style="
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--red);
+                text-transform: uppercase;
+                margin-bottom: 6px;
+              "
+            >
+              🔴 Expired
+            </div>
+            <div
+              style="font-size: 28px; font-weight: 700; color: var(--red)"
+              id="kpiSertExpired"
+            >
+              —
+            </div>
+            <div style="font-size: 11px; color: var(--muted2)">
+              perlu perpanjangan
+            </div>
+          </div>
+          <div
+            style="
+              background: var(--yellow-bg);
+              border-radius: var(--radius);
+              border: 1px solid var(--yellow-bd);
+              padding: 14px;
+              cursor: pointer;
+            "
+            onclick="triggerView('adminAsset')"
+          >
+            <div
+              style="
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--yellow);
+                text-transform: uppercase;
+                margin-bottom: 6px;
+              "
+            >
+              ⚠️ Akan expired
+            </div>
+            <div
+              style="font-size: 28px; font-weight: 700; color: var(--yellow)"
+              id="kpiSertWarning"
+            >
+              —
+            </div>
+            <div style="font-size: 11px; color: var(--muted2)">
+              dalam 60 hari
+            </div>
+          </div>
+          <div
+            style="
+              background: var(--green-bg);
+              border-radius: var(--radius);
+              border: 1px solid var(--green-bd);
+              padding: 14px;
+              cursor: pointer;
+            "
+            onclick="triggerView('adminAsset')"
+          >
+            <div
+              style="
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--green);
+                text-transform: uppercase;
+                margin-bottom: 6px;
+              "
+            >
+              ✅ Valid
+            </div>
+            <div
+              style="font-size: 28px; font-weight: 700; color: var(--green)"
+              id="kpiSertValid"
+            >
+              —
+            </div>
+            <div style="font-size: 11px; color: var(--muted2)">
+              sertifikat masih berlaku
+            </div>
+          </div>
+        </div>
+
+        <!-- Compliance chart -->
+        <div
+          style="
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <div style="font-size: 13px; font-weight: 700; margin-bottom: 12px">
+            📈 Compliance rate 6 bulan
+          </div>
+          <div
+            id="complianceChartHome"
+            style="
+              display: flex;
+              align-items: flex-end;
+              gap: 6px;
+              height: 110px;
+              padding-top: 16px;
+            "
+          ></div>
+        </div>
+
+        <!-- Area performance -->
+        <div class="sec-hdr">
+          <div class="sec-title">Area performance</div>
+          <div class="sec-link" onclick="triggerView('adminKPIArea')">
+            Lihat semua
+          </div>
+        </div>
+        <div
+          id="aHomeAreaPerf"
+          style="
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        ></div>
+
+        <!-- Aktivitas terbaru -->
+        <div class="sec-hdr">
+          <div class="sec-title">Aktivitas terbaru</div>
+          <div class="sec-link" onclick="triggerView('adminActLog')">
+            Lihat semua
+          </div>
+        </div>
+        <div
+          id="aHomeActivity"
+          style="
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+          "
+        ></div>
       </div>
-      <div style="margin-left:auto;background:var(--red);color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer" onclick="triggerView('adminAsset')">Lihat →</div>
-    </div>
-  </div>
-
-  <!-- KPI Temuan — 4 cards -->
-  <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Monitoring temuan</div>
-  <div class="stats-grid" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
-    <div class="stat-card c-blue" onclick="triggerView('adminTemuan')">
-      <div class="stat-label">Total inspeksi</div>
-      <div class="stat-value c-blue" id="aHomeTotalInsp">—</div>
-      <div class="stat-sub">bulan ini</div>
-    </div>
-    <div class="stat-card c-red" onclick="triggerView('adminTemuan')">
-      <div class="stat-label">Open temuan</div>
-      <div class="stat-value c-red" id="aHomeOpen">—</div>
-      <div class="stat-sub">belum ditindaklanjuti</div>
-    </div>
-    <div class="stat-card c-green">
-      <div class="stat-label">Closed bln ini</div>
-      <div class="stat-value c-green" id="aHomeClosed">—</div>
-      <div class="stat-sub">berhasil diselesaikan</div>
-    </div>
-    <div class="stat-card c-yellow">
-      <div class="stat-label">Compliance</div>
-      <div class="stat-value c-yellow" id="aHomeCompliance">—</div>
-      <div class="stat-sub">tingkat kepatuhan</div>
-    </div>
-  </div>
-
-  <!-- KPI Sertifikasi — 4 cards -->
-  <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;margin-top:4px">Monitoring sertifikasi</div>
-  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px">
-    <div style="background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:14px;cursor:pointer" onclick="triggerView('adminAsset')">
-      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Compliance sertifikasi</div>
-      <div style="font-size:28px;font-weight:700;color:var(--green)" id="kpiSertCompliance">—</div>
-      <div style="font-size:11px;color:var(--muted2)" id="kpiSertTotal">— unit</div>
-    </div>
-    <div style="background:var(--red-bg);border-radius:var(--radius);border:1px solid var(--red-bd);padding:14px;cursor:pointer" onclick="triggerView('adminAsset')">
-      <div style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;margin-bottom:6px">🔴 Expired</div>
-      <div style="font-size:28px;font-weight:700;color:var(--red)" id="kpiSertExpired">—</div>
-      <div style="font-size:11px;color:var(--muted2)">perlu perpanjangan</div>
-    </div>
-    <div style="background:var(--yellow-bg);border-radius:var(--radius);border:1px solid var(--yellow-bd);padding:14px;cursor:pointer" onclick="triggerView('adminAsset')">
-      <div style="font-size:11px;font-weight:600;color:var(--yellow);text-transform:uppercase;margin-bottom:6px">⚠️ Akan expired</div>
-      <div style="font-size:28px;font-weight:700;color:var(--yellow)" id="kpiSertWarning">—</div>
-      <div style="font-size:11px;color:var(--muted2)">dalam 60 hari</div>
-    </div>
-    <div style="background:var(--green-bg);border-radius:var(--radius);border:1px solid var(--green-bd);padding:14px;cursor:pointer" onclick="triggerView('adminAsset')">
-      <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;margin-bottom:6px">✅ Valid</div>
-      <div style="font-size:28px;font-weight:700;color:var(--green)" id="kpiSertValid">—</div>
-      <div style="font-size:11px;color:var(--muted2)">sertifikat masih berlaku</div>
-    </div>
-  </div>
-
-  <!-- Compliance chart -->
-  <div style="background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:14px">
-    <div style="font-size:13px;font-weight:700;margin-bottom:12px">📈 Compliance rate 6 bulan</div>
-    <div id="complianceChartHome" style="display:flex;align-items:flex-end;gap:6px;height:110px;padding-top:16px"></div>
-  </div>
-
-  <!-- Area performance -->
-  <div class="sec-hdr">
-    <div class="sec-title">Area performance</div>
-    <div class="sec-link" onclick="triggerView('adminKPIArea')">Lihat semua</div>
-  </div>
-  <div id="aHomeAreaPerf" style="background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:14px"></div>
-
-  <!-- Aktivitas terbaru -->
-  <div class="sec-hdr">
-    <div class="sec-title">Aktivitas terbaru</div>
-    <div class="sec-link" onclick="triggerView('adminActLog')">Lihat semua</div>
-  </div>
-  <div id="aHomeActivity" style="background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden"></div>
-</div>
 
       <!-- ADMIN MONITORING TEMUAN -->
       <div class="view" id="viewAdminTemuan">
@@ -3067,6 +3339,83 @@
             >
               🆕 Belum Sertifikasi
             </div>
+          </div>
+          <!-- Bulk mode toggle -->
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 10px;
+            "
+          >
+            <div
+              style="font-size: 12px; color: var(--muted)"
+              id="bulkSelBar"
+              style="display: none"
+            >
+              <span id="bulkSelCount">0</span> dari
+              <span id="bulkSelTotal">0</span> dipilih
+              <span
+                style="
+                  margin-left: 8px;
+                  color: var(--primary);
+                  cursor: pointer;
+                  font-weight: 600;
+                "
+                onclick="selectAllBulk()"
+                >Pilih semua</span
+              >
+            </div>
+            <button
+              onclick="toggleBulkMode(!bulkModeActive)"
+              style="
+                padding: 6px 14px;
+                border-radius: 8px;
+                border: 1.5px solid var(--border);
+                background: #fff;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                color: var(--primary);
+                font-family: &quot;Inter&quot;, sans-serif;
+                margin-left: auto;
+              "
+            >
+              ☑️ Pilih banyak
+            </button>
+          </div>
+
+          <!-- FAB bulk update -->
+          <div
+            id="bulkFAB"
+            onclick="openBulkModal()"
+            style="
+              display: none;
+              background: var(--primary);
+              color: #fff;
+              border-radius: 10px;
+              padding: 12px 16px;
+              margin-bottom: 10px;
+              align-items: center;
+              gap: 10px;
+              cursor: pointer;
+            "
+          >
+            <span style="font-size: 14px">📦</span>
+            <span style="font-size: 13px; font-weight: 600; flex: 1"
+              >Bulk update sertifikasi</span
+            >
+            <span
+              id="bulkFABCount"
+              style="
+                background: rgba(255, 255, 255, 0.25);
+                font-size: 11px;
+                padding: 3px 10px;
+                border-radius: 20px;
+              "
+              >0 dipilih</span
+            >
           </div>
 
           <div id="sertifikasiList2"></div>
@@ -5454,150 +5803,202 @@
       // ════════════════════════════════════════════════════════════
       //  ADMIN HOME
       // ════════════════════════════════════════════════════════════
-function renderAdminHome() {
-  if (!kpiData) return;
-  const s = kpiData.summary;
-  const sert = kpiData.sertifikasi || {};
+      function renderAdminHome() {
+        if (!kpiData) return;
+        const s = kpiData.summary;
+        const sert = kpiData.sertifikasi || {};
 
-  // Greeting
-  const greet = new Date().getHours() < 12 ? 'Selamat pagi,' : new Date().getHours() < 17 ? 'Selamat siang,' : 'Selamat sore,';
-  document.getElementById('adminGreet').textContent = greet;
-  document.getElementById('adminName').textContent = SESSION.nama || 'Administrator';
-  document.getElementById('adminDate').textContent = new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-  document.getElementById('adminDateBar').textContent = '📅 ' + new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+        // Greeting
+        const greet =
+          new Date().getHours() < 12
+            ? "Selamat pagi,"
+            : new Date().getHours() < 17
+              ? "Selamat siang,"
+              : "Selamat sore,";
+        document.getElementById("adminGreet").textContent = greet;
+        document.getElementById("adminName").textContent =
+          SESSION.nama || "Administrator";
+        document.getElementById("adminDate").textContent =
+          new Date().toLocaleDateString("id-ID", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+        document.getElementById("adminDateBar").textContent =
+          "📅 " +
+          new Date().toLocaleDateString("id-ID", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
 
-  // KPI utama
-  document.getElementById('aHomeTotalInsp').textContent = s.total_inspeksi || 0;
-  document.getElementById('aHomeOpen').textContent = s.open_temuan || 0;
-  document.getElementById('aHomeClosed').textContent = s.closed_this_month || 0;
-  document.getElementById('aHomeCompliance').textContent = (s.compliance || 0) + '%';
+        // KPI utama
+        document.getElementById("aHomeTotalInsp").textContent =
+          s.total_inspeksi || 0;
+        document.getElementById("aHomeOpen").textContent = s.open_temuan || 0;
+        document.getElementById("aHomeClosed").textContent =
+          s.closed_this_month || 0;
+        document.getElementById("aHomeCompliance").textContent =
+          (s.compliance || 0) + "%";
 
-  // Last updated indicator
-  const luEl = document.getElementById('kpiLastUpdated');
-  if (luEl) luEl.textContent = 'Diperbarui ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+        // Last updated indicator
+        const luEl = document.getElementById("kpiLastUpdated");
+        if (luEl)
+          luEl.textContent =
+            "Diperbarui " +
+            new Date().toLocaleTimeString("id-ID", {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
 
-  // Alert banner — muncul kalau ada expired atau critical
-  const critical = allTemuan.filter(t => t.status_temuan === 'OPEN' && t.risiko === 'CRITICAL').length;
-  const alertEl = document.getElementById('criticalAlert');
-  const alertMsg = document.getElementById('criticalAlertMsg');
-  if ((sert.expired > 0 || critical > 0) && alertEl) {
-    alertEl.style.display = 'block';
-    const parts = [];
-    if (sert.expired > 0) parts.push(sert.expired + ' sertifikasi expired');
-    if (critical > 0) parts.push(critical + ' temuan Critical');
-    if (alertMsg) alertMsg.textContent = parts.join(' · ');
-    document.getElementById('criticalCount').textContent = parts.join(' · ');
-  }
+        // Alert banner — muncul kalau ada expired atau critical
+        const critical = allTemuan.filter(
+          (t) => t.status_temuan === "OPEN" && t.risiko === "CRITICAL",
+        ).length;
+        const alertEl = document.getElementById("criticalAlert");
+        const alertMsg = document.getElementById("criticalAlertMsg");
+        if ((sert.expired > 0 || critical > 0) && alertEl) {
+          alertEl.style.display = "block";
+          const parts = [];
+          if (sert.expired > 0)
+            parts.push(sert.expired + " sertifikasi expired");
+          if (critical > 0) parts.push(critical + " temuan Critical");
+          if (alertMsg) alertMsg.textContent = parts.join(" · ");
+          document.getElementById("criticalCount").textContent =
+            parts.join(" · ");
+        }
 
-  // KPI Sertifikasi cards
-  const elSert = id => document.getElementById(id);
-  if (elSert('kpiSertTotal')) elSert('kpiSertTotal').textContent = sert.total || 0;
-  if (elSert('kpiSertExpired')) elSert('kpiSertExpired').textContent = sert.expired || 0;
-  if (elSert('kpiSertWarning')) elSert('kpiSertWarning').textContent = sert.warning || 0;
-  if (elSert('kpiSertValid')) elSert('kpiSertValid').textContent = sert.valid || 0;
-  if (elSert('kpiSertCompliance')) elSert('kpiSertCompliance').textContent = (sert.compliance_rate || 0) + '%';
+        // KPI Sertifikasi cards
+        const elSert = (id) => document.getElementById(id);
+        if (elSert("kpiSertTotal"))
+          elSert("kpiSertTotal").textContent = sert.total || 0;
+        if (elSert("kpiSertExpired"))
+          elSert("kpiSertExpired").textContent = sert.expired || 0;
+        if (elSert("kpiSertWarning"))
+          elSert("kpiSertWarning").textContent = sert.warning || 0;
+        if (elSert("kpiSertValid"))
+          elSert("kpiSertValid").textContent = sert.valid || 0;
+        if (elSert("kpiSertCompliance"))
+          elSert("kpiSertCompliance").textContent =
+            (sert.compliance_rate || 0) + "%";
 
-  // Compliance chart trend 6 bulan
-  const trend = kpiData.trend_compliance || [];
-  const cEl = document.getElementById('complianceChartHome');
-  if (cEl && trend.length) {
-    const max = Math.max(...trend.map(t => t.compliance), 1);
-    cEl.innerHTML = trend.map(t => {
-      const h = Math.max(Math.round((t.compliance / max) * 80), 4);
-      const c = t.compliance >= 90 ? 'var(--green)' : t.compliance >= 70 ? 'var(--primary)' : 'var(--red)';
-      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+        // Compliance chart trend 6 bulan
+        const trend = kpiData.trend_compliance || [];
+        const cEl = document.getElementById("complianceChartHome");
+        if (cEl && trend.length) {
+          const max = Math.max(...trend.map((t) => t.compliance), 1);
+          cEl.innerHTML = trend
+            .map((t) => {
+              const h = Math.max(Math.round((t.compliance / max) * 80), 4);
+              const c =
+                t.compliance >= 90
+                  ? "var(--green)"
+                  : t.compliance >= 70
+                    ? "var(--primary)"
+                    : "var(--red)";
+              return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
         <div style="font-size:10px;font-weight:700;color:${c}">${t.compliance}%</div>
         <div style="flex:1;display:flex;align-items:flex-end;width:100%">
           <div style="width:100%;background:${c};border-radius:3px 3px 0 0;height:${h}px;min-height:4px"></div>
         </div>
         <div style="font-size:9px;color:var(--muted2)">${t.bulan}</div>
       </div>`;
-    }).join('');
-  }
+            })
+            .join("");
+        }
 
-  // Area performance bars
-  const areas = (kpiData.kpi_subarea || []).slice(0, 5);
-  document.getElementById('aHomeAreaPerf').innerHTML = areas.length
-    ? areas.map(a => {
-        const c = a.compliance >= 90 ? 'var(--green)' : a.compliance >= 70 ? 'var(--primary)' : 'var(--red)';
-        return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        // Area performance bars
+        const areas = (kpiData.kpi_subarea || []).slice(0, 5);
+        document.getElementById("aHomeAreaPerf").innerHTML = areas.length
+          ? areas
+              .map((a) => {
+                const c =
+                  a.compliance >= 90
+                    ? "var(--green)"
+                    : a.compliance >= 70
+                      ? "var(--primary)"
+                      : "var(--red)";
+                return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
           <div style="font-size:12px;font-weight:600;width:90px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.nama_subarea || a.subarea_id}</div>
           <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
             <div style="height:100%;background:${c};border-radius:4px;width:${a.compliance}%;transition:width .6s ease"></div>
           </div>
           <div style="font-size:12px;font-weight:700;color:${c};width:36px;text-align:right">${a.compliance}%</div>
         </div>`;
-      }).join('')
-    : '<div style="font-size:13px;color:var(--muted);text-align:center;padding:10px">Belum ada data</div>';
+              })
+              .join("")
+          : '<div style="font-size:13px;color:var(--muted);text-align:center;padding:10px">Belum ada data</div>';
 
-  // Activity log
-  loadActLog(true);
+        // Activity log
+        loadActLog(true);
 
-  // Mulai auto refresh
-  startKPIAutoRefresh();
-}
-let _kpiRefreshTimer = null;
-let _kpiRefreshCountdown = 15 * 60; // 15 menit dalam detik
-
-function startKPIAutoRefresh() {
-  // Clear timer lama kalau ada
-  if (_kpiRefreshTimer) clearInterval(_kpiRefreshTimer);
-
-  _kpiRefreshCountdown = 15 * 60;
-  updateRefreshIndicator();
-
-  _kpiRefreshTimer = setInterval(async function() {
-    _kpiRefreshCountdown--;
-    updateRefreshIndicator();
-
-    if (_kpiRefreshCountdown <= 0) {
-      _kpiRefreshCountdown = 15 * 60;
-      // Refresh data dari GAS
-      showToast('🔄 Memperbarui data...', 'info');
-      try {
-        const [r1, r2] = await Promise.all([
-          fetch(APPS_SCRIPT_URL + '?action=getTemuan'),
-          fetch(APPS_SCRIPT_URL + '?action=getKPI')
-        ]);
-        const [j1, j2] = await Promise.all([r1.json(), r2.json()]);
-        if (j1.status === 'ok') allTemuan = j1.data;
-        if (j2.status === 'ok') kpiData = j2.data;
-        renderAdminHome();
-        renderAdminTemuan();
-        showToast('✅ Data diperbarui', 'success');
-      } catch(e) {
-        showToast('⚠️ Gagal refresh data', 'warn');
+        // Mulai auto refresh
+        startKPIAutoRefresh();
       }
-    }
-  }, 1000); // tick setiap 1 detik
-}
+      let _kpiRefreshTimer = null;
+      let _kpiRefreshCountdown = 15 * 60; // 15 menit dalam detik
 
-function updateRefreshIndicator() {
-  const el = document.getElementById('kpiRefreshCountdown');
-  if (!el) return;
-  const mnt = Math.floor(_kpiRefreshCountdown / 60);
-  const dtk = _kpiRefreshCountdown % 60;
-  el.textContent = mnt + 'm ' + String(dtk).padStart(2, '0') + 'd lagi';
-}
+      function startKPIAutoRefresh() {
+        // Clear timer lama kalau ada
+        if (_kpiRefreshTimer) clearInterval(_kpiRefreshTimer);
 
-async function manualRefreshKPI() {
-  showToast('🔄 Memperbarui data...', 'info');
-  _kpiRefreshCountdown = 15 * 60;
-  try {
-    const [r1, r2] = await Promise.all([
-      fetch(APPS_SCRIPT_URL + '?action=getTemuan'),
-      fetch(APPS_SCRIPT_URL + '?action=getKPI')
-    ]);
-    const [j1, j2] = await Promise.all([r1.json(), r2.json()]);
-    if (j1.status === 'ok') allTemuan = j1.data;
-    if (j2.status === 'ok') kpiData = j2.data;
-    renderAdminHome();
-    renderAdminTemuan();
-    showToast('✅ Data diperbarui', 'success');
-  } catch(e) {
-    showToast('⚠️ Gagal refresh', 'warn');
-  }
-}
+        _kpiRefreshCountdown = 15 * 60;
+        updateRefreshIndicator();
+
+        _kpiRefreshTimer = setInterval(async function () {
+          _kpiRefreshCountdown--;
+          updateRefreshIndicator();
+
+          if (_kpiRefreshCountdown <= 0) {
+            _kpiRefreshCountdown = 15 * 60;
+            // Refresh data dari GAS
+            showToast("🔄 Memperbarui data...", "info");
+            try {
+              const [r1, r2] = await Promise.all([
+                fetch(APPS_SCRIPT_URL + "?action=getTemuan"),
+                fetch(APPS_SCRIPT_URL + "?action=getKPI"),
+              ]);
+              const [j1, j2] = await Promise.all([r1.json(), r2.json()]);
+              if (j1.status === "ok") allTemuan = j1.data;
+              if (j2.status === "ok") kpiData = j2.data;
+              renderAdminHome();
+              renderAdminTemuan();
+              showToast("✅ Data diperbarui", "success");
+            } catch (e) {
+              showToast("⚠️ Gagal refresh data", "warn");
+            }
+          }
+        }, 1000); // tick setiap 1 detik
+      }
+
+      function updateRefreshIndicator() {
+        const el = document.getElementById("kpiRefreshCountdown");
+        if (!el) return;
+        const mnt = Math.floor(_kpiRefreshCountdown / 60);
+        const dtk = _kpiRefreshCountdown % 60;
+        el.textContent = mnt + "m " + String(dtk).padStart(2, "0") + "d lagi";
+      }
+
+      async function manualRefreshKPI() {
+        showToast("🔄 Memperbarui data...", "info");
+        _kpiRefreshCountdown = 15 * 60;
+        try {
+          const [r1, r2] = await Promise.all([
+            fetch(APPS_SCRIPT_URL + "?action=getTemuan"),
+            fetch(APPS_SCRIPT_URL + "?action=getKPI"),
+          ]);
+          const [j1, j2] = await Promise.all([r1.json(), r2.json()]);
+          if (j1.status === "ok") allTemuan = j1.data;
+          if (j2.status === "ok") kpiData = j2.data;
+          renderAdminHome();
+          renderAdminTemuan();
+          showToast("✅ Data diperbarui", "success");
+        } catch (e) {
+          showToast("⚠️ Gagal refresh", "warn");
+        }
+      }
       // ════════════════════════════════════════════════════════════
       //  ADMIN MONITORING TEMUAN
       // ════════════════════════════════════════════════════════════
@@ -5961,6 +6362,8 @@ async function manualRefreshKPI() {
       let sertFilter = "semua";
       let specKatFilter = "";
       let specDynFilters = {};
+      let bulkSelectedIds = new Set();
+      let bulkModeActive = false;
       let activeSertAssetId = null;
       let masterKategoriCache = [];
 
@@ -6398,6 +6801,19 @@ async function manualRefreshKPI() {
               </button>
             </div>`
                 : "";
+            // Tambah ini di awal return card, sebelum <div style="padding:12px 14px">
+            const cbHtml = bulkModeActive
+              ? `
+  <div style="padding:10px 14px 0;display:flex;align-items:center;gap:8px">
+    <div id="cb-${a.asset_id}" onclick="event.stopPropagation();toggleBulkSelect('${a.asset_id}')"
+      style="width:20px;height:20px;border-radius:5px;border:1.5px solid var(--border);
+      background:${bulkSelectedIds.has(a.asset_id) ? "var(--primary)" : "#fff"};
+      display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
+      ${bulkSelectedIds.has(a.asset_id) ? '<span style="color:#fff;font-size:12px">✓</span>' : ""}
+    </div>
+    <span style="font-size:11px;color:var(--muted)">Pilih asset ini</span>
+  </div>`
+              : "";
 
             return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;${borderStyle}">
             <div style="padding:12px 14px">
@@ -6651,6 +7067,289 @@ async function manualRefreshKPI() {
         renderSertifikasiTab();
       }
 
+      function toggleBulkMode(on) {
+        bulkModeActive = on;
+        bulkSelectedIds.clear();
+        renderSertifikasiTab();
+        updateBulkFAB();
+      }
+
+      function toggleBulkSelect(assetId) {
+        if (bulkSelectedIds.has(assetId)) bulkSelectedIds.delete(assetId);
+        else bulkSelectedIds.add(assetId);
+        updateBulkFAB();
+        // Update visual checkbox tanpa re-render penuh
+        const cb = document.getElementById("cb-" + assetId);
+        const card = document.getElementById("sert-card-" + assetId);
+        if (cb)
+          cb.style.background = bulkSelectedIds.has(assetId)
+            ? "var(--primary)"
+            : "#fff";
+        if (card)
+          card.style.borderColor = bulkSelectedIds.has(assetId)
+            ? "var(--primary)"
+            : "var(--border)";
+      }
+
+      function selectAllBulk() {
+        const cards = document.querySelectorAll('[id^="sert-card-"]');
+        const allSelected =
+          cards.length > 0 &&
+          [...cards].every((c) =>
+            bulkSelectedIds.has(c.id.replace("sert-card-", "")),
+          );
+        if (allSelected) {
+          bulkSelectedIds.clear();
+        } else {
+          cards.forEach((c) =>
+            bulkSelectedIds.add(c.id.replace("sert-card-", "")),
+          );
+        }
+        updateBulkFAB();
+        renderSertifikasiTab();
+      }
+
+      function updateBulkFAB() {
+        const fab = document.getElementById("bulkFAB");
+        const selBar = document.getElementById("bulkSelBar");
+        const selCount = document.getElementById("bulkSelCount");
+        const selTotal = document.getElementById("bulkSelTotal");
+        if (!fab) return;
+        const n = bulkSelectedIds.size;
+        if (bulkModeActive) {
+          fab.style.display = "flex";
+          fab.style.opacity = n > 0 ? "1" : ".5";
+          fab.style.pointerEvents = n > 0 ? "all" : "none";
+          if (selBar) selBar.style.display = "flex";
+          if (selCount) selCount.textContent = n;
+          const total = document.querySelectorAll('[id^="sert-card-"]').length;
+          if (selTotal) selTotal.textContent = total;
+        } else {
+          fab.style.display = "none";
+          if (selBar) selBar.style.display = "none";
+        }
+      }
+
+      function openBulkModal() {
+        if (!bulkSelectedIds.size) return;
+        const n = bulkSelectedIds.size;
+        const bg = document.getElementById("sertModalBg");
+        const modal = document.getElementById("sertModal");
+        document.getElementById("sertModalTitle").textContent =
+          "Bulk update sertifikasi · " + n + " asset";
+
+        document.getElementById("sertModalBody").innerHTML = `
+    <div style="background:var(--primary-light);border:.5px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--primary)">
+      ℹ️ Field kosong tidak akan di-overwrite — isi hanya yang mau diubah untuk ${n} asset.
+    </div>
+
+    <div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px">Status pengajuan</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="bulkPhaseGrid">
+        ${[
+          {
+            id: "BELUM",
+            icon: "📋",
+            label: "Belum",
+            desc: "Belum ada tindakan",
+          },
+          {
+            id: "DIAJUKAN",
+            icon: "📤",
+            label: "Diajukan",
+            desc: "Menunggu penguji",
+          },
+          {
+            id: "SELESAI",
+            icon: "✅",
+            label: "Selesai",
+            desc: "Input sertifikat",
+          },
+        ]
+          .map(
+            (p) => `
+          <div onclick="selectBulkPhase('${p.id}')" id="bphase-${p.id}"
+            style="padding:10px 8px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);text-align:center;cursor:pointer;transition:.15s">
+            <div style="font-size:18px;margin-bottom:3px">${p.icon}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--muted)">${p.label}</div>
+            <div style="font-size:9px;color:var(--muted2);margin-top:2px">${p.desc}</div>
+          </div>`,
+          )
+          .join("")}
+      </div>
+    </div>
+
+    <div style="margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px">Nama penguji</div>
+      <input type="text" id="bulkPenguji" placeholder="PT. JKTI — kosongkan jika tidak diubah"
+        style="width:100%;font-size:13px;border:.5px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface2);color:var(--text);outline:none;font-family:'Inter',sans-serif">
+    </div>
+
+    <div id="bulkSertPanel" style="display:none">
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px">No sertifikasi baru</div>
+        <input type="text" id="bulkNoSert" placeholder="363-XX/CER-SJ/JKTI-CK/..."
+          style="width:100%;font-size:13px;border:.5px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface2);color:var(--text);outline:none;font-family:'Inter',sans-serif">
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px">Tanggal expired baru</div>
+        <input type="date" id="bulkTglExp"
+          style="width:100%;font-size:13px;border:.5px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface2);color:var(--text);outline:none;font-family:'Inter',sans-serif">
+      </div>
+    </div>
+
+    <div id="bulkInfoPanel" style="display:none;background:var(--yellow-bg);border:.5px solid var(--yellow-bd);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--yellow);margin-bottom:10px">
+      ⏳ Status diajukan tersimpan. Kembali ke sini saat sertifikat baru tiba untuk input detail.
+    </div>
+
+    <div style="margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px">Catatan</div>
+      <input type="text" id="bulkCatatan" placeholder="Opsional — berlaku untuk semua asset yang dipilih"
+        style="width:100%;font-size:13px;border:.5px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface2);color:var(--text);outline:none;font-family:'Inter',sans-serif">
+    </div>`;
+
+        window._bulkPhase = null;
+        bg.style.display = "block";
+        modal.style.display = "block";
+        setTimeout(() => {
+          modal.style.opacity = "1";
+          modal.style.transform = "translate(-50%,-50%) scale(1)";
+        }, 10);
+
+        // Update tombol simpan
+        const saveBtn = document.querySelector(
+          '#sertModal button[onclick="saveSertifikasi()"]',
+        );
+        if (saveBtn) {
+          saveBtn.textContent = "📦 Update " + n + " asset";
+          saveBtn.onclick = saveBulkSertifikasi;
+        }
+      }
+
+      function selectBulkPhase(phase) {
+        window._bulkPhase = phase;
+        const colorMap = {
+          BELUM: {
+            border: "var(--border)",
+            bg: "var(--surface2)",
+            color: "var(--muted)",
+          },
+          DIAJUKAN: {
+            border: "var(--yellow-bd)",
+            bg: "var(--yellow-bg)",
+            color: "var(--yellow)",
+          },
+          SELESAI: {
+            border: "var(--green-bd)",
+            bg: "var(--green-bg)",
+            color: "var(--green)",
+          },
+        };
+        ["BELUM", "DIAJUKAN", "SELESAI"].forEach((p) => {
+          const el = document.getElementById("bphase-" + p);
+          if (!el) return;
+          const isActive = p === phase;
+          const c = colorMap[p];
+          el.style.border = `1.5px solid ${isActive ? c.border : "var(--border)"}`;
+          el.style.background = isActive ? c.bg : "var(--surface2)";
+          const nameEl = el.querySelector("div:nth-child(2)");
+          if (nameEl) nameEl.style.color = isActive ? c.color : "var(--muted)";
+        });
+        const sertPanel = document.getElementById("bulkSertPanel");
+        const infoPanel = document.getElementById("bulkInfoPanel");
+        const saveBtn = document.querySelector("#sertModal button");
+        const n = bulkSelectedIds.size;
+        if (phase === "SELESAI") {
+          if (sertPanel) sertPanel.style.display = "block";
+          if (infoPanel) infoPanel.style.display = "none";
+          if (saveBtn)
+            saveBtn.textContent = "✅ Update " + n + " asset — selesai";
+        } else if (phase === "DIAJUKAN") {
+          if (sertPanel) sertPanel.style.display = "none";
+          if (infoPanel) infoPanel.style.display = "block";
+          if (saveBtn)
+            saveBtn.textContent = "📤 Update " + n + " asset — diajukan";
+        } else {
+          if (sertPanel) sertPanel.style.display = "none";
+          if (infoPanel) infoPanel.style.display = "none";
+          if (saveBtn) saveBtn.textContent = "📦 Update " + n + " asset";
+        }
+      }
+
+      async function saveBulkSertifikasi() {
+        const phase = window._bulkPhase;
+        const penguji =
+          document.getElementById("bulkPenguji")?.value?.trim() || "";
+        const catatan =
+          document.getElementById("bulkCatatan")?.value?.trim() || "";
+        const now = new Date().toISOString().split("T")[0];
+
+        const record = {};
+        if (phase) {
+          record.pengajuan_sertifikasi = phase;
+          if (phase === "DIAJUKAN") record.tgl_pengajuan = now;
+          if (phase === "SELESAI") record.tgl_selesai_sertifikasi = now;
+        }
+        if (penguji) record.nama_penguji = penguji;
+        if (catatan) record.catatan_sertifikasi = catatan;
+
+        if (phase === "SELESAI") {
+          const noSert = document.getElementById("bulkNoSert")?.value?.trim();
+          const tglExp = document.getElementById("bulkTglExp")?.value;
+          if (!noSert || !tglExp) {
+            showToast("⚠️ Isi no sertifikasi dan tgl expired dulu", "warn");
+            return;
+          }
+          record.no_sertifikasi = noSert;
+          record.tanggal_expired = tglExp;
+          record.status_sertifikasi = "VALID";
+        }
+
+        if (!Object.keys(record).length) {
+          showToast("⚠️ Isi minimal satu field dulu", "warn");
+          return;
+        }
+
+        const ids = [...bulkSelectedIds];
+        showLoad("Mengupdate " + ids.length + " asset...");
+
+        try {
+          const res = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({
+              action: "bulkUpdateSertifikasi",
+              asset_ids: ids,
+              record,
+              caller_nik: SESSION.nik || "SYSTEM",
+            }),
+          });
+          const json = await res.json();
+          hideLoad();
+
+          if (json.status === "ok") {
+            closeSertModal();
+            showToast(
+              "✅ " + json.updated + " asset berhasil diupdate",
+              "success",
+            );
+            // Update local cache
+            ids.forEach((id) => {
+              const idx = assetsRaw.findIndex((a) => a.asset_id === id);
+              if (idx >= 0) Object.assign(assetsRaw[idx], record);
+            });
+            // Reset bulk mode
+            bulkSelectedIds.clear();
+            bulkModeActive = false;
+            renderAssetV2();
+            renderSertifikasiTab();
+          } else {
+            showToast("❌ " + (json.message || "Error"), "error");
+          }
+        } catch (e) {
+          hideLoad();
+          showToast("❌ Koneksi gagal", "error");
+        }
+      }
       // ── Tab Spesifikasi ──
       function buildSpecKatChips() {
         const el = document.getElementById("specKatChips");
