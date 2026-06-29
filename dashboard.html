@@ -3349,11 +3349,7 @@
               margin-bottom: 10px;
             "
           >
-            <div
-              style="font-size: 12px; color: var(--muted)"
-              id="bulkSelBar"
-              style="display: none"
-            >
+            <div id="bulkSelBar" style="font-size:12px;color:var(--muted);display:none;align-items:center;gap:4px"></div>
               <span id="bulkSelCount">0</span> dari
               <span id="bulkSelTotal">0</span> dipilih
               <span
@@ -3572,6 +3568,7 @@
             Batal
           </button>
           <button
+          class="btn-save-sert"
             onclick="saveSertifikasi()"
             style="
               flex: 2;
@@ -6815,8 +6812,9 @@
   </div>`
               : "";
 
-            return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;${borderStyle}">
-            <div style="padding:12px 14px">
+            return `<div id="sert-card-${a.asset_id}" style="background:#fff;border:1px solid ${bulkSelectedIds.has(a.asset_id) ? 'var(--primary)' : 'var(--border)'};border-radius:12px;margin-bottom:10px;overflow:hidden;${borderStyle}">
+  ${cbHtml}
+  <div style="padding:12px 14px">
               <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
                 <div>
                   <div style="font-size:13px;font-weight:600">${a.nama_alat || "-"} · ${a.no_id || a.no_toolbox || "-"}</div>
@@ -7124,6 +7122,8 @@
           if (selCount) selCount.textContent = n;
           const total = document.querySelectorAll('[id^="sert-card-"]').length;
           if (selTotal) selTotal.textContent = total;
+          const fabCount = document.getElementById('bulkFABCount');
+if (fabCount) fabCount.textContent = n + ' dipilih';
         } else {
           fab.style.display = "none";
           if (selBar) selBar.style.display = "none";
@@ -7217,9 +7217,7 @@
         }, 10);
 
         // Update tombol simpan
-        const saveBtn = document.querySelector(
-          '#sertModal button[onclick="saveSertifikasi()"]',
-        );
+        const saveBtn = document.querySelector('#sertModal .btn-save-sert');
         if (saveBtn) {
           saveBtn.textContent = "📦 Update " + n + " asset";
           saveBtn.onclick = saveBulkSertifikasi;
@@ -7257,7 +7255,7 @@
         });
         const sertPanel = document.getElementById("bulkSertPanel");
         const infoPanel = document.getElementById("bulkInfoPanel");
-        const saveBtn = document.querySelector("#sertModal button");
+        const saveBtn = document.querySelector('#sertModal .btn-save-sert');
         const n = bulkSelectedIds.size;
         if (phase === "SELESAI") {
           if (sertPanel) sertPanel.style.display = "block";
@@ -7866,6 +7864,9 @@
           bg.style.display = "none";
         }, 320);
       }
+      function exportAssetPDF() {
+  showToast('Export PDF belum tersedia', 'warn');
+}
 
       function setPengajuan(el, assetId, idx) {
         const parent = el.closest('div[style*="display:flex"]');
