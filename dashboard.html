@@ -9343,6 +9343,28 @@
           return;
         }
 
+        // Cek duplikat no_id — khusus MASTER_ASSET saat CREATE
+        if (
+          masterSheetActive === "MASTER_ASSET" &&
+          !editingRecord &&
+          record.no_id
+        ) {
+          const dupe = masterDataRaw.find(
+            (r) =>
+              String(r.no_id || "")
+                .trim()
+                .toLowerCase() === record.no_id.toLowerCase(),
+          );
+          if (dupe) {
+            const katNama =
+              (masterDropdowns.kategori || []).find(
+                (k) => k.kategori_id === dupe.kategori_id,
+              )?.nama_kategori || dupe.kategori_id;
+            showDuplicateWarning(dupe, katNama, record);
+            return;
+          }
+        }
+
         // MASTER_ASSET — kumpulkan spec_fields + auto-fill nama
         if (masterSheetActive === "MASTER_ASSET") {
           const katId = record.kategori_id;
@@ -9427,6 +9449,35 @@
         }
       }
 
+      function showDuplicateWarning(dupe, katNama, newRecord) {
+        document.getElementById("modalBody").innerHTML = `
+    <div style="background:var(--red-bg);border:1.5px solid var(--red-bd);border-radius:10px;padding:16px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="font-size:20px">⚠️</span>
+        <div style="font-size:14px;font-weight:700;color:var(--red)">No ID sudah terdaftar!</div>
+      </div>
+      <div style="font-size:12px;color:var(--text);margin-bottom:12px">
+        No ID <strong>${newRecord.no_id}</strong> sudah dipakai oleh asset berikut:
+      </div>
+      <div style="background:#fff;border:1px solid var(--red-bd);border-radius:8px;padding:12px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px">${dupe.nama_alat || "-"}</div>
+        <div style="font-size:11px;color:var(--muted)">
+          ${dupe.nama_subarea || "-"} · ${katNama}
+        </div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:4px">${dupe.asset_id || "-"}</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">
+      Ganti No ID dengan yang belum dipakai, atau edit data yang sudah ada lewat tombol Edit di list.
+    </div>
+    <button onclick="renderModalFields(${JSON.stringify(newRecord).replace(/"/g, "&quot;")})"
+      style="width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--border);
+      background:#fff;color:var(--primary);font-size:13px;font-weight:600;cursor:pointer;
+      font-family:'Inter',sans-serif">
+      ← Kembali ke Form
+    </button>
+  `;
+      }
       async function deleteMasterRecord(keyVal) {
         if (!confirm("Yakin hapus data ini?")) return;
         showLoad("Menghapus...");
