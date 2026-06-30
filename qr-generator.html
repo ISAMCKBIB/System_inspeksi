@@ -378,10 +378,10 @@ function renderGrid() {
     return;
   }
 
-  grid.innerHTML = filteredAssets.map(a => `
-    <div class="asset-card${selectedIds.has(a.no_id||a.asset_id)?' selected':''}" id="card-${a.no_id||a.asset_id}" onclick="toggleSelect('${a.no_id||a.asset_id}')">
-      <div class="card-check">${selectedIds.has(a.no_id||a.asset_id)?'✓':''}</div>
-      <div class="card-qr" id="qr-wrap-${a.no_id||a.asset_id}"></div>
+ grid.innerHTML = filteredAssets.map(a => `
+    <div class="asset-card${selectedIds.has(a.asset_id)?' selected':''}" id="card-${a.asset_id}" onclick="toggleSelect('${a.asset_id}')">
+      <div class="card-check">${selectedIds.has(a.asset_id)?'✓':''}</div>
+      <div class="card-qr" id="qr-wrap-${a.asset_id}"></div>
       <div class="card-info">
         <div class="card-noid">${a.no_id||a.asset_id||'-'}</div>
         <div class="card-nama">${a.nama_alat||'-'}</div>
@@ -396,7 +396,7 @@ function renderGrid() {
 
   // Generate QR per card
   filteredAssets.forEach(a => {
-    const assetKey = a.no_id || a.asset_id;
+    const assetKey = a.asset_id;
     const wrap = document.getElementById('qr-wrap-' + assetKey);
     if (!wrap) return;
     const url = FORM_URL + '?asset=' + encodeURIComponent(assetKey);
@@ -416,21 +416,21 @@ function renderGrid() {
 function regenAll() { renderGrid(); }
 
 // ── SELECT ──
-function toggleSelect(noId) {
-  if (!noId || noId === 'undefined') return;
-  if (selectedIds.has(noId)) selectedIds.delete(noId);
-  else selectedIds.add(noId);
-  const card = document.getElementById('card-' + noId);
+function toggleSelect(assetId) {
+  if (!assetId || assetId === 'undefined') return;
+  if (selectedIds.has(assetId)) selectedIds.delete(assetId);
+  else selectedIds.add(assetId);
+  const card = document.getElementById('card-' + assetId);
   if (card) {
-    card.classList.toggle('selected', selectedIds.has(noId));
-    card.querySelector('.card-check').textContent = selectedIds.has(noId) ? '✓' : '';
+    card.classList.toggle('selected', selectedIds.has(assetId));
+    card.querySelector('.card-check').textContent = selectedIds.has(assetId) ? '✓' : '';
   }
   updateSelectBar();
   updateStats();
 }
 
 function selectAll() {
-  filteredAssets.forEach(a => selectedIds.add(a.no_id));
+  filteredAssets.forEach(a => selectedIds.add(a.asset_id));
   renderGrid();
   updateSelectBar();
   updateStats();
@@ -463,13 +463,8 @@ async function printSelected() {
   await markAsPrinted([...selectedIds]);
 }
 
-async function markAsPrinted(noIds) {
-  const assetIds = noIds
-    .map(noId => {
-      const a = allAssets.find(x => (x.no_id || x.asset_id) === noId);
-      return a ? a.asset_id : null;
-    })
-    .filter(Boolean);
+async function markAsPrinted(assetIds) {
+  assetIds = assetIds.filter(Boolean);
   if (!assetIds.length) return;
   try {
     await fetch(APPS_SCRIPT_URL, {
