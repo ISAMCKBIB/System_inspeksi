@@ -2429,13 +2429,43 @@
             GRB
           </button>
         </div>
-      <div id="vAssetKatChips" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none"></div>
-        <div id="vAssetSpecFilter" style="display:none;background:#fff;border:1.5px solid var(--blue-bd,#bfdbfe);
-          border-radius:12px;padding:14px;margin-bottom:12px">
-          <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:10px" id="vAssetSpecFilterTitle">Filter Spesifikasi</div>
+        <div
+          id="vAssetKatChips"
+          style="
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            scrollbar-width: none;
+          "
+        ></div>
+        <div
+          id="vAssetSpecFilter"
+          style="
+            display: none;
+            background: #fff;
+            border: 1.5px solid var(--blue-bd, #bfdbfe);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+          "
+        >
+          <div
+            style="
+              font-size: 12px;
+              font-weight: 700;
+              color: var(--primary);
+              margin-bottom: 10px;
+            "
+            id="vAssetSpecFilterTitle"
+          >
+            Filter Spesifikasi
+          </div>
           <div id="vAssetSpecFilterBody"></div>
         </div>
         <div id="vAssetList"></div>
+      </div>
 
       <!-- ADMIN HOME -->
       <div class="view" id="viewAdminHome">
@@ -6849,14 +6879,17 @@
       let vAssetSpecFilters = {};
 
       async function loadVAsset() {
-  if (!masterKategoriCache.length) {
-    try {
-      const resKat = await fetch(APPS_SCRIPT_URL + '?action=getMasterData&type=all');
-      const jKat = await resKat.json();
-      if (jKat.status === 'ok' && jKat.data.kategori) masterKategoriCache = jKat.data.kategori;
-    } catch(e) {}
-  }
-  if (vAssetRaw.length) {
+        if (!masterKategoriCache.length) {
+          try {
+            const resKat = await fetch(
+              APPS_SCRIPT_URL + "?action=getMasterData&type=all",
+            );
+            const jKat = await resKat.json();
+            if (jKat.status === "ok" && jKat.data.kategori)
+              masterKategoriCache = jKat.data.kategori;
+          } catch (e) {}
+        }
+        if (vAssetRaw.length) {
           renderVAssetStats();
           buildVAssetKatChips();
           filterVAsset(document.getElementById("vAssetSearch")?.value || "");
@@ -6920,73 +6953,95 @@
       }
 
       function setVAssetKat(katId, el) {
-  vAssetKatFilter = katId;
-  vAssetSpecFilters = {};
-  document.querySelectorAll('#vAssetKatChips .chip').forEach(c => c.classList.remove('active'));
-  if (el) el.classList.add('active');
-  renderVAssetSpecFilter();
-  filterVAsset(document.getElementById('vAssetSearch')?.value || '');
-}
+        vAssetKatFilter = katId;
+        vAssetSpecFilters = {};
+        document
+          .querySelectorAll("#vAssetKatChips .chip")
+          .forEach((c) => c.classList.remove("active"));
+        if (el) el.classList.add("active");
+        renderVAssetSpecFilter();
+        filterVAsset(document.getElementById("vAssetSearch")?.value || "");
+      }
 
-function renderVAssetSpecFilter() {
-  const el = document.getElementById('vAssetSpecFilter');
-  const body = document.getElementById('vAssetSpecFilterBody');
-  const title = document.getElementById('vAssetSpecFilterTitle');
-  if (!el || !body) return;
-  if (!vAssetKatFilter) { el.style.display = 'none'; return; }
+      function renderVAssetSpecFilter() {
+        const el = document.getElementById("vAssetSpecFilter");
+        const body = document.getElementById("vAssetSpecFilterBody");
+        const title = document.getElementById("vAssetSpecFilterTitle");
+        if (!el || !body) return;
+        if (!vAssetKatFilter) {
+          el.style.display = "none";
+          return;
+        }
 
-  const kat = masterKategoriCache.find(k => k.kategori_id === vAssetKatFilter);
-  if (!kat || !kat.spec_fields) { el.style.display = 'none'; return; }
+        const kat = masterKategoriCache.find(
+          (k) => k.kategori_id === vAssetKatFilter,
+        );
+        if (!kat || !kat.spec_fields) {
+          el.style.display = "none";
+          return;
+        }
 
-  let fields = [];
-  try { fields = JSON.parse(kat.spec_fields).fields || []; } catch(e) {}
-  if (!fields.length) { el.style.display = 'none'; return; }
+        let fields = [];
+        try {
+          fields = JSON.parse(kat.spec_fields).fields || [];
+        } catch (e) {}
+        if (!fields.length) {
+          el.style.display = "none";
+          return;
+        }
 
-  if (title) title.textContent = '⚙️ Filter ' + (kat.nama_kategori || '');
-  el.style.display = 'block';
+        if (title) title.textContent = "⚙️ Filter " + (kat.nama_kategori || "");
+        el.style.display = "block";
 
-  const scoped = getVAssetFilteredByArea().filter(a => a.kategori_id === vAssetKatFilter && a.spesifikasi_detail);
-  const uniqueVals = {};
-  scoped.forEach(a => {
-    try {
-      const spek = JSON.parse(a.spesifikasi_detail);
-      fields.forEach(f => {
-        if (!uniqueVals[f.key]) uniqueVals[f.key] = new Set();
-        if (spek[f.key]) uniqueVals[f.key].add(spek[f.key]);
-      });
-    } catch(e) {}
-  });
+        const scoped = getVAssetFilteredByArea().filter(
+          (a) => a.kategori_id === vAssetKatFilter && a.spesifikasi_detail,
+        );
+        const uniqueVals = {};
+        scoped.forEach((a) => {
+          try {
+            const spek = JSON.parse(a.spesifikasi_detail);
+            fields.forEach((f) => {
+              if (!uniqueVals[f.key]) uniqueVals[f.key] = new Set();
+              if (spek[f.key]) uniqueVals[f.key].add(spek[f.key]);
+            });
+          } catch (e) {}
+        });
 
-  body.innerHTML = fields.map(f => {
-    const vals = [...(uniqueVals[f.key] || [])].sort();
-    const opts = [
-      `<div onclick="setVAssetSpecFilter(this,'${f.key}','all')" style="padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--primary);background:var(--primary-light,#eef3ff);color:var(--primary);cursor:pointer;font-weight:600">Semua</div>`,
-      ...vals.map(v => `<div onclick="setVAssetSpecFilter(this,'${f.key}','${v}')" style="padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer">${v}</div>`)
-    ].join('');
-    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        body.innerHTML = fields
+          .map((f) => {
+            const vals = [...(uniqueVals[f.key] || [])].sort();
+            const opts = [
+              `<div onclick="setVAssetSpecFilter(this,'${f.key}','all')" style="padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--primary);background:var(--primary-light,#eef3ff);color:var(--primary);cursor:pointer;font-weight:600">Semua</div>`,
+              ...vals.map(
+                (v) =>
+                  `<div onclick="setVAssetSpecFilter(this,'${f.key}','${v}')" style="padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer">${v}</div>`,
+              ),
+            ].join("");
+            return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
       <span style="font-size:12px;color:var(--muted);width:60px;flex-shrink:0;font-weight:500">${f.label}</span>
       <div style="display:flex;gap:4px;flex-wrap:wrap">${opts}</div>
     </div>`;
-  }).join('');
-}
+          })
+          .join("");
+      }
 
-function setVAssetSpecFilter(el, key, val) {
-  vAssetSpecFilters[key] = val === 'all' ? null : val;
-  const parent = el.closest('div[style*="display:flex"]');
-  if (parent) {
-    parent.querySelectorAll('div[onclick]').forEach(d => {
-      d.style.background = '#fff';
-      d.style.borderColor = 'var(--border)';
-      d.style.color = 'var(--muted)';
-      d.style.fontWeight = '400';
-    });
-  }
-  el.style.background = 'var(--primary-light,#eef3ff)';
-  el.style.borderColor = 'var(--primary)';
-  el.style.color = 'var(--primary)';
-  el.style.fontWeight = '600';
-  filterVAsset(document.getElementById('vAssetSearch')?.value || '');
-}
+      function setVAssetSpecFilter(el, key, val) {
+        vAssetSpecFilters[key] = val === "all" ? null : val;
+        const parent = el.closest('div[style*="display:flex"]');
+        if (parent) {
+          parent.querySelectorAll("div[onclick]").forEach((d) => {
+            d.style.background = "#fff";
+            d.style.borderColor = "var(--border)";
+            d.style.color = "var(--muted)";
+            d.style.fontWeight = "400";
+          });
+        }
+        el.style.background = "var(--primary-light,#eef3ff)";
+        el.style.borderColor = "var(--primary)";
+        el.style.color = "var(--primary)";
+        el.style.fontWeight = "600";
+        filterVAsset(document.getElementById("vAssetSearch")?.value || "");
+      }
 
       function setVAssetArea(areaId, el) {
         vAssetAreaFilter = areaId;
@@ -7011,82 +7066,111 @@ function setVAssetSpecFilter(el, key, val) {
       }
 
       function filterVAsset(q) {
-  let data = getVAssetFilteredByArea();
-  if (vAssetKatFilter) data = data.filter(a => String(a.kategori_id) === String(vAssetKatFilter));
-  Object.entries(vAssetSpecFilters).forEach(([key, val]) => {
-    if (!val) return;
-    data = data.filter(a => {
-      if (!a.spesifikasi_detail) return false;
-      try {
-        const spek = JSON.parse(a.spesifikasi_detail);
-        return String(spek[key] || '').toLowerCase() === String(val).toLowerCase();
-      } catch(e) { return false; }
-    });
-  });
-  if (q && q.trim()) {
-    const lq = q.toLowerCase().trim();
-    data = data.filter(a =>
-      (a.nama_alat||'').toLowerCase().includes(lq) ||
-      (a.no_id||'').toLowerCase().includes(lq) ||
-      (a.no_toolbox||'').toLowerCase().includes(lq)
-    );
-  }
-  renderVAssetList(data);
-}
-      
+        let data = getVAssetFilteredByArea();
+        if (vAssetKatFilter)
+          data = data.filter(
+            (a) => String(a.kategori_id) === String(vAssetKatFilter),
+          );
+        Object.entries(vAssetSpecFilters).forEach(([key, val]) => {
+          if (!val) return;
+          data = data.filter((a) => {
+            if (!a.spesifikasi_detail) return false;
+            try {
+              const spek = JSON.parse(a.spesifikasi_detail);
+              return (
+                String(spek[key] || "").toLowerCase() ===
+                String(val).toLowerCase()
+              );
+            } catch (e) {
+              return false;
+            }
+          });
+        });
+        if (q && q.trim()) {
+          const lq = q.toLowerCase().trim();
+          data = data.filter(
+            (a) =>
+              (a.nama_alat || "").toLowerCase().includes(lq) ||
+              (a.no_id || "").toLowerCase().includes(lq) ||
+              (a.no_toolbox || "").toLowerCase().includes(lq),
+          );
+        }
+        renderVAssetList(data);
+      }
+
       function renderVAssetList(data) {
-  const el = document.getElementById('vAssetList');
-  if (!el) return;
-  if (!data.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">🔧</div><div class="empty-title">Tidak ada asset</div></div>';
-    return;
-  }
-  el.innerHTML = data.map(a => {
-    const isLayak = a.status_aset_terakhir === 'LAYAK';
+        const el = document.getElementById("vAssetList");
+        if (!el) return;
+        if (!data.length) {
+          el.innerHTML =
+            '<div class="empty"><div class="empty-icon">🔧</div><div class="empty-title">Tidak ada asset</div></div>';
+          return;
+        }
+        el.innerHTML = data
+          .map((a) => {
+            const isLayak = a.status_aset_terakhir === "LAYAK";
 
-    let specTags = '';
-    if (a.spesifikasi_detail) {
-      try {
-        const spek = JSON.parse(a.spesifikasi_detail);
-        const kat = masterKategoriCache.find(k => k.kategori_id === a.kategori_id);
-        let fields = [];
-        if (kat && kat.spec_fields) fields = JSON.parse(kat.spec_fields).fields || [];
-        specTags = fields.map(f => {
-          const val = spek[f.key];
-          return val ? `<span style="font-size:10px;background:var(--primary-light,#eef3ff);color:var(--primary);
-            border-radius:4px;padding:2px 7px;font-weight:600;border:0.5px solid var(--blue-bd,#bfdbfe)">${f.label}: ${val}</span>` : '';
-        }).filter(Boolean).join('');
-      } catch(e) {}
-    }
+            let specTags = "";
+            if (a.spesifikasi_detail) {
+              try {
+                const spek = JSON.parse(a.spesifikasi_detail);
+                const kat = masterKategoriCache.find(
+                  (k) => k.kategori_id === a.kategori_id,
+                );
+                let fields = [];
+                if (kat && kat.spec_fields)
+                  fields = JSON.parse(kat.spec_fields).fields || [];
+                specTags = fields
+                  .map((f) => {
+                    const val = spek[f.key];
+                    return val
+                      ? `<span style="font-size:10px;background:var(--primary-light,#eef3ff);color:var(--primary);
+            border-radius:4px;padding:2px 7px;font-weight:600;border:0.5px solid var(--blue-bd,#bfdbfe)">${f.label}: ${val}</span>`
+                      : "";
+                  })
+                  .filter(Boolean)
+                  .join("");
+              } catch (e) {}
+            }
 
-    const picInitials = (a.pic_nama || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+            const picInitials = (a.pic_nama || "?")
+              .split(" ")
+              .map((w) => w[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase();
 
-    return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;
+            return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;
       padding:12px 14px;margin-bottom:10px">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
         <div>
-          <div style="font-size:14px;font-weight:600">${a.nama_alat || '-'}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">${a.no_id || a.no_toolbox || '-'} · ${a.nama_subarea || '-'}</div>
+          <div style="font-size:14px;font-weight:600">${a.nama_alat || "-"}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${a.no_id || a.no_toolbox || "-"} · ${a.nama_subarea || "-"}</div>
         </div>
         <span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;
-          ${isLayak ? 'background:var(--green-bg);color:var(--green)' : 'background:var(--red-bg);color:var(--red)'}">
-          ${isLayak ? '✅ Layak' : '❌ Tidak Layak'}
+          ${isLayak ? "background:var(--green-bg);color:var(--green)" : "background:var(--red-bg);color:var(--red)"}">
+          ${isLayak ? "✅ Layak" : "❌ Tidak Layak"}
         </span>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${specTags ? '6px' : '0'}">
-        <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--muted);border:0.5px solid var(--border)">${a.nama_kategori || '-'}</span>
-        ${a.merk ? `<span style="font-size:11px;color:var(--muted2)">${a.merk}</span>` : ''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${specTags ? "6px" : "0"}">
+        <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--muted);border:0.5px solid var(--border)">${a.nama_kategori || "-"}</span>
+        ${a.merk ? `<span style="font-size:11px;color:var(--muted2)">${a.merk}</span>` : ""}
       </div>
-      ${specTags ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">${specTags}</div>` : ''}
-      ${a.pic_nama ? `
+      ${specTags ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">${specTags}</div>` : ""}
+      ${
+        a.pic_nama
+          ? `
       <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">
         <div style="width:24px;height:24px;border-radius:50%;background:var(--primary-light,#eef3ff);color:var(--primary);
           font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${picInitials}</div>
         <div><div style="font-size:12px;font-weight:600">${a.pic_nama}</div><div style="font-size:10px;color:var(--muted)">PIC penanggung jawab</div></div>
-      </div>` : ''}
+      </div>`
+          : ""
+      }
     </div>`;
-  }).join('');
-}
+          })
+          .join("");
+      }
 
       async function loadAdminAsset() {
         showLoad("Memuat data asset...");
@@ -7143,9 +7227,12 @@ function setVAssetSpecFilter(el, key, val) {
         const filtered = getFilteredAssets();
 
         // Scope by area dulu — basis untuk semua hitungan stat
-        const scoped = assetAreaFilter === "ALL"
-          ? [...assetsRaw]
-          : assetsRaw.filter((a) => String(a.area_id) === String(assetAreaFilter));
+        const scoped =
+          assetAreaFilter === "ALL"
+            ? [...assetsRaw]
+            : assetsRaw.filter(
+                (a) => String(a.area_id) === String(assetAreaFilter),
+              );
 
         const layak = scoped.filter(
           (a) => a.status_aset_terakhir === "LAYAK",
@@ -7598,9 +7685,12 @@ function setVAssetSpecFilter(el, key, val) {
           return "🔧";
         }
         const byKat = {};
-        const scopedForKat = assetAreaFilter === "ALL"
-          ? assetsRaw
-          : assetsRaw.filter((a) => String(a.area_id) === String(assetAreaFilter));
+        const scopedForKat =
+          assetAreaFilter === "ALL"
+            ? assetsRaw
+            : assetsRaw.filter(
+                (a) => String(a.area_id) === String(assetAreaFilter),
+              );
         scopedForKat.forEach((a) => {
           const k = a.kategori_id || "lain";
           if (!byKat[k])
