@@ -1584,6 +1584,16 @@
           transform: rotate(360deg);
         }
       }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px) scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
       .lo-msg {
         font-size: 14px;
         color: var(--muted);
@@ -4516,7 +4526,181 @@
         // Render notifikasi otomatis dari data temuan & jadwal
         loadNotif();
         renderPICHome();
+        if ((SESSION.role || "").toUpperCase() === "PIC") {
+          setTimeout(checkDailyWarning, 800);
+        }
       }
+
+
+      function checkDailyWarning() {
+        const role = (SESSION.role || "").toUpperCase();
+        if (role === "VIEWER") return;
+
+        let summary = null;
+
+        if (role === "PIC") {
+          const overdueTemuan = getFiltered("overdue");
+          const overdueJadwal = (allJadwal || []).filter(
+            (j) => j.status_jadwal === "OVERDUE",
+          );
+          const upcomingJadwal = (allJadwal || []).filter((j) => {
+            if (j.status_jadwal !== "UPCOMING") return false;
+            const due = new Date(j.tgl_inspeksi_due);
+            const diff = Math.floor((due - new Date()) / 86400000);
+            return diff <= 7;
+          });
+          const totalCount =
+            overdueTemuan.length + overdueJadwal.length + upcomingJadwal.length;
+          if (totalCount === 0) return;
+          summary = {
+            totalCount,
+            items: [
+              overdueTemuan.length > 0
+                ? {
+                    icon: "🚨",
+                    label: overdueTemuan.length + " temuan overdue",
+                    filter: "overdue",
+                    view: "home",
+                  }
+                : null,
+              overdueJadwal.length > 0
+                ? {
+                    icon: "📅",
+                    label: overdueJadwal.length + " jadwal inspeksi terlambat",
+                    view: "jadwal",
+                  }
+                : null,
+              upcomingJadwal.length > 0
+                ? {
+                    icon: "⏰",
+                    label:
+                      upcomingJadwal.length +
+                      " jadwal segera jatuh tempo (H-7)",
+                    view: "jadwal",
+                  }
+                : null,
+            ].filter(Boolean),
+          };
+        } else if (role === "ADMIN") {
+          const overdueTemuan = allTemuan.filter(
+            (t) => t.status_temuan === "OPEN" && t.sla_status === "OVERDUE",
+          );
+          const sert = (kpiData && kpiData.sertifikasi) || {};
+          const overdueJadwal = (allJadwal || []).filter(
+            (j) => j.status_jadwal === "OVERDUE",
+          );
+          const totalCount =
+            overdueTemuan.length +
+            (sert.expired || 0) +
+            (sert.warning || 0) +
+            overdueJadwal.length;
+          if (totalCount === 0) return;
+          summary = {
+            totalCount,
+            items: [
+              overdueTemuan.length > 0
+                ? {
+                    icon: "🚨",
+                    label: overdueTemuan.length + " temuan overdue",
+                    view: "adminTemuan",
+                  }
+                : null,
+              sert.expired > 0
+                ? {
+                    icon: "🔴",
+                    label: sert.expired + " sertifikasi expired",
+                    view: "adminAsset",
+                  }
+                : null,
+              sert.warning > 0
+                ? {
+                    icon: "⚠️",
+                    label: sert.warning + " sertifikasi akan expired (60 hari)",
+                    view: "adminAsset",
+                  }
+                : null,
+              overdueJadwal.length > 0
+                ? {
+                    icon: "📅",
+                    label: overdueJadwal.length + " jadwal inspeksi terlambat",
+                    view: "jadwal",
+                  }
+                : null,
+            ].filter(Boolean),
+          };
+        }
+
+        if (!summary || !summary.totalCount) return;
+
+        const todayStr = new Date().toISOString().split("T")[0];
+        const storageKey = "daily_warning_" + (SESSION.nik || "guest");
+        let lastShown = null;
+        try {
+          lastShown = JSON.parse(localStorage.getItem(storageKey) || "null");
+        } catch (e) {}
+
+        const shouldShow =
+          !lastShown ||
+          lastShown.date !== todayStr ||
+          summary.totalCount > lastShown.count;
+        if (!shouldShow) return;
+
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify({ date: todayStr, count: summary.totalCount }),
+        );
+        showDailyWarningModal(summary, role);
+      }
+
+      function showDailyWarningModal(summary, role) {
+        const overlay = document.createElement("div");
+        overlay.id = "dailyWarnOverlay";
+        overlay.style.cssText =
+          "position:fixed;inset:0;background:rgba(15,26,60,.55);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)";
+
+        const roleLabel = role === "PIC" ? "Tugas Anda" : "Ringkasan Sistem";
+
+        overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:420px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .25s ease">
+      <div style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:20px 24px;color:#fff">
+        <div style="font-size:13px;opacity:.85">⚠️ Perlu Perhatian — ${roleLabel}</div>
+        <div style="font-size:22px;font-weight:700;margin-top:4px">${summary.totalCount} item belum ditindaklanjuti</div>
+      </div>
+      <div style="padding:18px 24px">
+        ${summary.items
+          .map(
+            (it) => `
+          <div onclick="closeDailyWarning();triggerView('${it.view}')"
+            style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;
+            background:var(--surface2);margin-bottom:8px;cursor:pointer;transition:.15s"
+            onmouseover="this.style.background='var(--primary-light)'"
+            onmouseout="this.style.background='var(--surface2)'">
+            <span style="font-size:20px">${it.icon}</span>
+            <span style="font-size:13px;font-weight:600;flex:1">${it.label}</span>
+            <span style="color:var(--primary);font-size:13px">→</span>
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
+      <div style="padding:0 24px 20px">
+        <button onclick="closeDailyWarning()"
+          style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--primary);
+          color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+          Mengerti, Tutup
+        </button>
+      </div>
+    </div>
+  `;
+
+        document.body.appendChild(overlay);
+      }
+
+      function closeDailyWarning() {
+        const overlay = document.getElementById("dailyWarnOverlay");
+        if (overlay) overlay.remove();
+      }
+
       function renderPICHome() {
         const role = (SESSION.role || "").toUpperCase();
         if (role !== "PIC") return;
@@ -5954,6 +6138,7 @@
         loadAdminAsset();
         loadActLog();
         loadMasterSheet("MASTER_EMPLOYEE", "employee_id");
+        setTimeout(checkDailyWarning, 1200);
         // Update badges
         const openCount = allTemuan.filter(
           (t) => t.status_temuan === "OPEN",
