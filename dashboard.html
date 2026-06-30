@@ -60,6 +60,64 @@
         background: var(--bg);
         color: var(--text);
         min-height: 100vh;
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+
+      /* ── DARK MODE ── */
+      [data-theme="dark"] {
+        --primary: #3b82f6;
+        --primary-dark: #2563eb;
+        --primary-light: #1e293b;
+        --secondary: #38bdf8;
+        --bg: #0f172a;
+        --surface: #1e293b;
+        --surface2: #18233a;
+        --border: #2d3b54;
+        --text: #e8edf5;
+        --muted: #94a3b8;
+        --muted2: #64748b;
+
+        --green-bg: #102a1c;
+        --green-bd: #1e5631;
+        --red-bg: #2a1414;
+        --red-bd: #5c2323;
+        --yellow-bg: #2a2210;
+        --yellow-bd: #5c4a18;
+        --purple-bg: #1e1832;
+      }
+      [data-theme="dark"] .topbar-logo,
+      [data-theme="dark"] .topbar-btn,
+      [data-theme="dark"] .avatar-btn {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      [data-theme="dark"] .skel {
+        background: linear-gradient(
+          90deg,
+          #1e293b 25%,
+          #2d3b54 50%,
+          #1e293b 75%
+        );
+        background-size: 200%;
+      }
+      [data-theme="dark"] .chip:not(.active) {
+        background: var(--surface);
+      }
+      .theme-toggle-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: #fff;
+        transition: background 0.15s;
+      }
+      .theme-toggle-btn:active {
+        background: rgba(255, 255, 255, 0.28);
       }
       /* MORE MENU */
       .more-overlay {
@@ -1969,6 +2027,14 @@
         </div>
       </div>
       <div class="topbar-actions">
+        <button
+          class="theme-toggle-btn"
+          id="themeToggleBtn"
+          onclick="toggleTheme()"
+          title="Mode Gelap/Terang"
+        >
+          <span id="themeToggleIcon">🌙</span>
+        </button>
         <button
           class="topbar-btn"
           id="pwaInstallBtn"
@@ -3914,6 +3980,34 @@
           window.location.reload();
         }
       });
+
+      // ── DARK / LIGHT MODE ──
+      function applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        const icon = document.getElementById("themeToggleIcon");
+        if (icon) icon.textContent = theme === "dark" ? "☀️" : "🌙";
+        const btn = document.getElementById("themeToggleBtn");
+        if (btn)
+          btn.title =
+            theme === "dark" ? "Mode Terang" : "Mode Gelap";
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", theme === "dark" ? "#0f172a" : "#1B4FD8");
+      }
+      function toggleTheme() {
+        const current =
+          document.documentElement.getAttribute("data-theme") || "light";
+        const next = current === "dark" ? "light" : "dark";
+        applyTheme(next);
+        localStorage.setItem("isam_theme", next);
+      }
+      // Apply saved theme as early as possible (before login check / async init)
+      (function initTheme() {
+        const saved = localStorage.getItem("isam_theme");
+        const prefersDark =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+        applyTheme(saved || (prefersDark ? "dark" : "light"));
+      })();
 
       // ── INIT ──
       window.onload = async () => {
