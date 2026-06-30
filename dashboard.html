@@ -60,6 +60,64 @@
         background: var(--bg);
         color: var(--text);
         min-height: 100vh;
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+
+      /* ── DARK MODE ── */
+      [data-theme="dark"] {
+        --primary: #3b82f6;
+        --primary-dark: #2563eb;
+        --primary-light: #1e293b;
+        --secondary: #38bdf8;
+        --bg: #0f172a;
+        --surface: #1e293b;
+        --surface2: #18233a;
+        --border: #2d3b54;
+        --text: #e8edf5;
+        --muted: #94a3b8;
+        --muted2: #64748b;
+
+        --green-bg: #102a1c;
+        --green-bd: #1e5631;
+        --red-bg: #2a1414;
+        --red-bd: #5c2323;
+        --yellow-bg: #2a2210;
+        --yellow-bd: #5c4a18;
+        --purple-bg: #1e1832;
+      }
+      [data-theme="dark"] .topbar-logo,
+      [data-theme="dark"] .topbar-btn,
+      [data-theme="dark"] .avatar-btn {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      [data-theme="dark"] .skel {
+        background: linear-gradient(
+          90deg,
+          #1e293b 25%,
+          #2d3b54 50%,
+          #1e293b 75%
+        );
+        background-size: 200%;
+      }
+      [data-theme="dark"] .chip:not(.active) {
+        background: var(--surface);
+      }
+      .theme-toggle-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: #fff;
+        transition: background 0.15s;
+      }
+      .theme-toggle-btn:active {
+        background: rgba(255, 255, 255, 0.28);
       }
       /* MORE MENU */
       .more-overlay {
@@ -470,7 +528,7 @@
           top: 0;
           bottom: 0;
           width: 3px;
-          background: #fff;
+          background: var(--surface);
           border-radius: 0 3px 3px 0;
         }
         .snav-icon {
@@ -677,7 +735,7 @@
         font-size: 12px;
         font-weight: 500;
         border: 1.5px solid var(--border);
-        background: #fff;
+        background: var(--surface);
         color: var(--muted);
         cursor: pointer;
         white-space: nowrap;
@@ -1462,7 +1520,7 @@
       }
       .dfield textarea:focus {
         border-color: var(--primary);
-        background: #fff;
+        background: var(--surface);
         box-shadow: 0 0 0 3px rgba(27, 79, 216, 0.1);
       }
       .btn-submit-close {
@@ -1791,7 +1849,7 @@
             padding: 12px;
             border-radius: 10px;
             border: 1.5px solid var(--border);
-            background: #fff;
+            background: var(--surface);
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
@@ -1969,6 +2027,14 @@
         </div>
       </div>
       <div class="topbar-actions">
+        <button
+          class="theme-toggle-btn"
+          id="themeToggleBtn"
+          onclick="toggleTheme()"
+          title="Mode Gelap/Terang"
+        >
+          <span id="themeToggleIcon">🌙</span>
+        </button>
         <button
           class="topbar-btn"
           id="pwaInstallBtn"
@@ -2910,7 +2976,7 @@
         <div
           style="
             display: flex;
-            background: #fff;
+            background: var(--surface);
             border: 1.5px solid var(--border);
             border-radius: 10px;
             overflow: hidden;
@@ -3046,7 +3112,7 @@
             id="dynSpecFilter"
             style="
               display: none;
-              background: #fff;
+              background: var(--surface);
               border: 1.5px solid var(--blue-bd, #bfdbfe);
               border-radius: 12px;
               padding: 14px;
@@ -3087,7 +3153,7 @@
                 border-radius: 8px;
                 padding: 7px 12px;
                 font-size: 12px;
-                background: #fff;
+                background: var(--surface);
                 color: var(--text);
                 font-family: &quot;Inter&quot;, sans-serif;
                 cursor: pointer;
@@ -3108,7 +3174,7 @@
                   padding: 8px 14px;
                   font-size: 13px;
                   font-family: &quot;Inter&quot;, sans-serif;
-                  background: #fff;
+                  background: var(--surface);
                   outline: none;
                   color: var(--text);
                 "
@@ -3369,7 +3435,7 @@
                 padding: 6px 14px;
                 border-radius: 8px;
                 border: 1.5px solid var(--border);
-                background: #fff;
+                background: var(--surface);
                 font-size: 12px;
                 font-weight: 600;
                 cursor: pointer;
@@ -3448,7 +3514,7 @@
             id="dynSpecFilter2"
             style="
               display: none;
-              background: #fff;
+              background: var(--surface);
               border: 1.5px solid var(--blue-bd, #bfdbfe);
               border-radius: 12px;
               padding: 14px;
@@ -3505,7 +3571,7 @@
           left: 50%;
           transform: translate(-50%, -50%) scale(0.95);
           opacity: 0;
-          background: #fff;
+          background: var(--surface);
           border-radius: 16px;
           z-index: 501;
           width: calc(100vw - 32px);
@@ -3524,7 +3590,7 @@
             gap: 10px;
             position: sticky;
             top: 0;
-            background: #fff;
+            background: var(--surface);
             z-index: 1;
           "
         >
@@ -3558,7 +3624,7 @@
               padding: 12px;
               border-radius: 10px;
               border: 1.5px solid var(--border);
-              background: #fff;
+              background: var(--surface);
               font-size: 14px;
               color: var(--muted);
               cursor: pointer;
@@ -3609,7 +3675,7 @@
           bottom: 0;
           left: 0;
           right: 0;
-          background: #fff;
+          background: var(--surface);
           border-radius: 20px 20px 0 0;
           z-index: 501;
           max-height: 80vh;
@@ -3637,7 +3703,7 @@
             gap: 10px;
             position: sticky;
             top: 0;
-            background: #fff;
+            background: var(--surface);
           "
         >
           <div
@@ -3762,7 +3828,7 @@
               padding: 6px 16px;
               border-radius: 20px;
               border: 1.5px solid var(--border);
-              background: #fff;
+              background: var(--surface);
               color: var(--muted);
               font-size: 12px;
               font-weight: 600;
@@ -3914,6 +3980,34 @@
           window.location.reload();
         }
       });
+
+      // ── DARK / LIGHT MODE ──
+      function applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        const icon = document.getElementById("themeToggleIcon");
+        if (icon) icon.textContent = theme === "dark" ? "☀️" : "🌙";
+        const btn = document.getElementById("themeToggleBtn");
+        if (btn)
+          btn.title =
+            theme === "dark" ? "Mode Terang" : "Mode Gelap";
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", theme === "dark" ? "#0f172a" : "#1B4FD8");
+      }
+      function toggleTheme() {
+        const current =
+          document.documentElement.getAttribute("data-theme") || "light";
+        const next = current === "dark" ? "light" : "dark";
+        applyTheme(next);
+        localStorage.setItem("isam_theme", next);
+      }
+      // Apply saved theme as early as possible (before login check / async init)
+      (function initTheme() {
+        const saved = localStorage.getItem("isam_theme");
+        const prefersDark =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+        applyTheme(saved || (prefersDark ? "dark" : "light"));
+      })();
 
       // ── INIT ──
       window.onload = async () => {
@@ -6582,7 +6676,7 @@
             </div>`
               : "";
 
-            return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:.15s;${borderClass}" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='${borderClass ? "inherit" : "var(--border)"}'">
+            return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:.15s;${borderClass}" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='${borderClass ? "inherit" : "var(--border)"}'">
             <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
               <div style="width:38px;height:38px;border-radius:10px;background:${isLayak ? "var(--green-bg)" : "var(--red-bg)"};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">
                 ${isTb ? "🧰" : "🔧"}
@@ -6606,13 +6700,13 @@
             ${picRow}
             <div style="display:flex;gap:6px;margin-top:8px">
               <button onclick="event.stopPropagation();openHistoryDrawer('${a.asset_id}','${a.no_id || a.no_toolbox || ""}','${a.nama_alat || ""}')"
-                style="flex:1;padding:6px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:var(--primary);font-family:'Inter',sans-serif">
+                style="flex:1;padding:6px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-size:11px;font-weight:600;cursor:pointer;color:var(--primary);font-family:'Inter',sans-serif">
                 📋 Riwayat Inspeksi
               </button>
               ${
                 a.tanggal_expired
                   ? `<button onclick="event.stopPropagation();openSertModal('${a.asset_id}')"
-                style="flex:1;padding:6px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:var(--primary);font-family:'Inter',sans-serif">
+                style="flex:1;padding:6px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-size:11px;font-weight:600;cursor:pointer;color:var(--primary);font-family:'Inter',sans-serif">
                 📝 Update Sertifikasi
               </button>`
                   : ""
@@ -6697,7 +6791,7 @@
                 .slice(0, 2)
                 .join("")
                 .toUpperCase();
-              return `<div style="background:#fff;border:1px solid var(--border);
+              return `<div style="background:var(--surface);border:1px solid var(--border);
       border-left:3px solid var(--purple);border-radius:0 12px 12px 0;
       margin-bottom:10px;overflow:hidden">
       <div style="padding:12px 14px">
@@ -6775,7 +6869,7 @@
                       s,
                       i,
                     ) => `<div onclick="setPengajuan(this,'${a.asset_id}',${i})" data-asset="${a.asset_id}" data-idx="${i}"
-                  style="flex:1;padding:6px 4px;border-radius:7px;font-size:10px;border:0.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;text-align:center;line-height:1.4">${s}</div>`,
+                  style="flex:1;padding:6px 4px;border-radius:7px;font-size:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;text-align:center;line-height:1.4">${s}</div>`,
                   )
                   .join("")}
               </div>
@@ -6799,7 +6893,7 @@
   </div>`
               : "";
 
-            return `<div id="sert-card-${a.asset_id}" style="background:#fff;border:1px solid ${bulkSelectedIds.has(a.asset_id) ? 'var(--primary)' : 'var(--border)'};border-radius:12px;margin-bottom:10px;overflow:hidden;${borderStyle}">
+            return `<div id="sert-card-${a.asset_id}" style="background:var(--surface);border:1px solid ${bulkSelectedIds.has(a.asset_id) ? 'var(--primary)' : 'var(--border)'};border-radius:12px;margin-bottom:10px;overflow:hidden;${borderStyle}">
   ${cbHtml}
   <div style="padding:12px 14px">
               <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
@@ -6956,7 +7050,7 @@
                 "','all')\" style=\"padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--primary);background:var(--primary-light,#eef3ff);color:var(--primary);cursor:pointer;font-weight:600\">Semua</div>",
               ...vals.map(
                 (v) =>
-                  `<div onclick="setDynFilter(this,'${f.key}','${v}')" style="padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer">${v}</div>`,
+                  `<div onclick="setDynFilter(this,'${f.key}','${v}')" style="padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer">${v}</div>`,
               ),
             ].join("");
             return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
@@ -7412,7 +7506,7 @@ if (fabCount) fabCount.textContent = n + ' dipilih';
                 "','all')\" style=\"padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--primary);background:var(--primary-light,#eef3ff);color:var(--primary);cursor:pointer;font-weight:600\">Semua</div>",
               ...vals.map(
                 (v) =>
-                  `<div onclick="setSpecDynFilter(this,'${f.key}','${v}')" style="padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer">${v}</div>`,
+                  `<div onclick="setSpecDynFilter(this,'${f.key}','${v}')" style="padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer">${v}</div>`,
               ),
             ].join("");
             return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
@@ -7488,7 +7582,7 @@ if (fabCount) fabCount.textContent = n + ' dipilih';
               .map(
                 (
                   f,
-                ) => `<div style="background:#fff;border-radius:6px;padding:8px 10px;border:0.5px solid var(--border)">
+                ) => `<div style="background:var(--surface);border-radius:6px;padding:8px 10px;border:0.5px solid var(--border)">
             <div style="font-size:10px;color:var(--muted)">${f.label}</div>
             <div style="font-size:14px;font-weight:600;color:${spek[f.key] ? "var(--primary)" : "var(--muted2)"}">${spek[f.key] || "—"}</div>
           </div>`,
@@ -7500,7 +7594,7 @@ if (fabCount) fabCount.textContent = n + ' dipilih';
               .slice(0, 2)
               .join("")
               .toUpperCase();
-            return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+            return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
               <div>
                 <div style="font-size:14px;font-weight:600">${a.nama_alat || "-"} · ${a.no_id || a.no_toolbox || "-"}</div>
@@ -7817,7 +7911,7 @@ if (fabCount) fabCount.textContent = n + ' dipilih';
               .map((ins, i) => {
                 const isLayak =
                   ins.status_hasil === "LAYAK" || ins.total_tidak === 0;
-                return `<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px">
+                return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
                   <div style="font-size:13px;font-weight:600">${ins.tanggal_inspeksi || "-"}</div>
                   <span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;${isLayak ? "background:var(--green-bg);color:var(--green)" : "background:var(--red-bg);color:var(--red)"}">${isLayak ? "✅ Layak" : "❌ Tidak Layak"}</span>
@@ -8358,7 +8452,7 @@ function setAssetMasterKat(katId, el) {
                 font-family:'Inter',sans-serif;color:var(--green)">✅ Aktifkan</button>`
             : `<button onclick="openEditModal('${keyVal}')"
                 style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);
-                background:#fff;font-size:12px;font-weight:500;cursor:pointer;
+                background:var(--surface);font-size:12px;font-weight:500;cursor:pointer;
                 font-family:'Inter',sans-serif;color:var(--primary)">Edit</button>
                <button onclick="deleteMasterRecord('${keyVal}')"
                 style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--red-bd);
@@ -8388,7 +8482,7 @@ function renderPertanyaanCard(row, idx) {
     <div style="display:flex;gap:5px;flex-shrink:0">
       <button onclick="openEditModal('${keyVal}')"
         style="padding:5px 10px;border-radius:6px;border:1px solid var(--border);
-        background:#fff;font-size:11px;cursor:pointer;color:var(--primary);
+        background:var(--surface);font-size:11px;cursor:pointer;color:var(--primary);
         font-family:'Inter',sans-serif">Edit</button>
       <button onclick="deleteMasterRecord('${keyVal}')"
         style="padding:5px 10px;border-radius:6px;border:1px solid var(--red-bd);
@@ -8437,7 +8531,7 @@ function renderAssetMasterCard(row) {
     <div style="display:flex;gap:5px;flex-shrink:0">
       <button onclick="openEditModal('${keyVal}')"
         style="padding:5px 10px;border-radius:6px;border:1px solid var(--border);
-        background:#fff;font-size:11px;cursor:pointer;color:var(--primary);
+        background:var(--surface);font-size:11px;cursor:pointer;color:var(--primary);
         font-family:'Inter',sans-serif">Edit</button>
       <button onclick="deleteMasterRecord('${keyVal}')"
         style="padding:5px 10px;border-radius:6px;border:1px solid var(--red-bd);
@@ -8502,7 +8596,7 @@ function renderModalFields(record) {
         <label>${f.label}${f.required?' <span style="color:var(--red)">*</span>':''}</label>
         <select id="mf_${f.key}"
           style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;
-          font-size:14px;background:#fff;font-family:'Inter',sans-serif;outline:none;color:var(--text)">
+          font-size:14px;background:var(--surface);font-family:'Inter',sans-serif;outline:none;color:var(--text)">
           <option value="">-- Pilih PIC --</option>
           ${empOptions}
         </select>
@@ -8538,7 +8632,7 @@ function renderModalFields(record) {
         <label>${f.label}${f.required?' <span style="color:var(--red)">*</span>':''}</label>
         <select id="mf_${f.key}"
           style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;
-          font-size:14px;background:#fff;font-family:'Inter',sans-serif;outline:none;color:var(--text)">
+          font-size:14px;background:var(--surface);font-family:'Inter',sans-serif;outline:none;color:var(--text)">
           ${opts}
         </select>
       </div>`;
@@ -8576,11 +8670,11 @@ function renderModalFields(record) {
       return `<div class="dfield" id="wrap_mf_${f.key}" style="display:none">
         <label>${f.label}</label>
         ${f.type === 'select'
-          ? `<select id="mf_${f.key}" style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:#fff;font-family:'Inter',sans-serif;outline:none;color:var(--text)">
+          ? `<select id="mf_${f.key}" style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:var(--surface);font-family:'Inter',sans-serif;outline:none;color:var(--text)">
               ${f.options.map(o => `<option value="${o}" ${editVal===o?'selected':''}>${o||'-- Pilih --'}</option>`).join('')}
             </select>`
           : `<input id="mf_${f.key}" type="${f.type||'text'}" value="${editVal}"
-              style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:#fff;font-family:'Inter',sans-serif;outline:none;color:var(--text)">`
+              style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;background:var(--surface);font-family:'Inter',sans-serif;outline:none;color:var(--text)">`
         }
       </div>`;
     }
@@ -8666,7 +8760,7 @@ function renderModalFields(record) {
                     <label>${f.label}</label>
                     <select id="spec_${f.key}"
                       style="width:100%;border:1.5px solid var(--border);border-radius:10px;
-                      padding:12px;font-size:14px;background:#fff;
+                      padding:12px;font-size:14px;background:var(--surface);
                       font-family:'Inter',sans-serif;outline:none;color:var(--text)">
                       <option value="">-- Pilih --</option>
                       ${(f.options||[]).map(o => `<option value="${o}" ${v===o?'selected':''}>${o}</option>`).join('')}
@@ -8677,7 +8771,7 @@ function renderModalFields(record) {
                   <label>${f.label}</label>
                   <input id="spec_${f.key}" type="${f.type||'text'}" value="${v}"
                     style="width:100%;border:1.5px solid var(--border);border-radius:10px;
-                    padding:12px;font-size:14px;background:#fff;
+                    padding:12px;font-size:14px;background:var(--surface);
                     font-family:'Inter',sans-serif;outline:none;color:var(--text)">
                 </div>`;
               }).join('')}
