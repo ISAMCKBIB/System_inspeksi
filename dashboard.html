@@ -7049,35 +7049,40 @@
         buildKategoriCards();
         buildSpecKatChips();
       }
-
       function renderAssetV2() {
         const today = new Date().toISOString().split("T")[0];
         const filtered = getFilteredAssets();
-        const layak = assetsRaw.filter(
+
+        // Scope by area dulu — basis untuk semua hitungan stat
+        const scoped = assetAreaFilter === "ALL"
+          ? [...assetsRaw]
+          : assetsRaw.filter((a) => String(a.area_id) === String(assetAreaFilter));
+
+        const layak = scoped.filter(
           (a) => a.status_aset_terakhir === "LAYAK",
         ).length;
-        const tidak = assetsRaw.filter(
+        const tidak = scoped.filter(
           (a) => a.status_aset_terakhir !== "LAYAK",
         ).length;
-        const overdue = assetsRaw.filter(
+        const overdue = scoped.filter(
           (a) => a.tgl_inspeksi_due && a.tgl_inspeksi_due < today,
         ).length;
 
         // Stat cards
         const el = (id) => document.getElementById(id);
-        if (el("assetTotal2")) el("assetTotal2").textContent = assetsRaw.length;
+        if (el("assetTotal2")) el("assetTotal2").textContent = scoped.length;
         if (el("assetLayak2")) el("assetLayak2").textContent = layak;
         if (el("assetTidakLayak2")) el("assetTidakLayak2").textContent = tidak;
         if (el("assetOverdue2")) el("assetOverdue2").textContent = overdue;
         if (el("assetViewSub"))
           el("assetViewSub").textContent =
-            assetsRaw.length + " unit terdaftar · ISAM CK BIB";
+            scoped.length + " unit terdaftar · ISAM CK BIB";
 
         // Chip counts
         if (el("assetFilterCount2"))
           el("assetFilterCount2").textContent = filtered.length;
         if (el("chipAll2"))
-          el("chipAll2").textContent = "(" + assetsRaw.length + ")";
+          el("chipAll2").textContent = "(" + scoped.length + ")";
         if (el("chipLayak2")) el("chipLayak2").textContent = "(" + layak + ")";
         if (el("chipTidak2")) el("chipTidak2").textContent = "(" + tidak + ")";
         if (el("chipInspeksi2"))
@@ -7504,7 +7509,10 @@
           return "🔧";
         }
         const byKat = {};
-        assetsRaw.forEach((a) => {
+        const scopedForKat = assetAreaFilter === "ALL"
+          ? assetsRaw
+          : assetsRaw.filter((a) => String(a.area_id) === String(assetAreaFilter));
+        scopedForKat.forEach((a) => {
           const k = a.kategori_id || "lain";
           if (!byKat[k])
             byKat[k] = {
