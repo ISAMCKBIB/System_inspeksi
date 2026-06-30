@@ -2307,12 +2307,140 @@
         <div id="top5List"></div>
       </div>
 
-      <!-- VIEWER: ANALYTICS -->
-      <div class="view" id="viewAnalytics">
-        <div class="sec-hdr" style="margin-bottom: 14px">
-          <div class="sec-title">PIC dengan Temuan Overdue</div>
+      <!-- VIEWER: ASSET (READ-ONLY) -->
+      <div class="view" id="viewVAsset">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 10px;
+          "
+        >
+          <div>
+            <div style="font-size: 15px; font-weight: 600">Daftar Asset</div>
+            <div style="font-size: 12px; color: var(--muted)" id="vAssetSub">
+              Memuat data...
+            </div>
+          </div>
+          <div
+            style="
+              position: relative;
+              min-width: 200px;
+              flex: 1;
+              max-width: 280px;
+            "
+          >
+            <input
+              type="text"
+              id="vAssetSearch"
+              placeholder="🔍 Cari nama, no ID..."
+              oninput="filterVAsset(this.value)"
+              style="
+                width: 100%;
+                border: 1.5px solid var(--border);
+                border-radius: 10px;
+                padding: 9px 14px;
+                font-size: 13px;
+                font-family: &quot;Inter&quot;, sans-serif;
+                background: var(--surface);
+                outline: none;
+                color: var(--text);
+              "
+            />
+          </div>
         </div>
-        <div id="picOverdueList"></div>
+        <div class="stats-grid" style="margin-bottom: 14px">
+          <div class="stat-card c-blue">
+            <div class="stat-icon c-blue">🔧</div>
+            <div class="stat-value c-blue" id="vAssetTotal">—</div>
+            <div class="stat-label">Total Asset</div>
+          </div>
+          <div class="stat-card c-green">
+            <div class="stat-icon c-green">✅</div>
+            <div class="stat-value c-green" id="vAssetLayak">—</div>
+            <div class="stat-label">Layak</div>
+          </div>
+          <div class="stat-card c-red">
+            <div class="stat-icon c-red">❌</div>
+            <div class="stat-value c-red" id="vAssetTidak">—</div>
+            <div class="stat-label">Tidak Layak</div>
+          </div>
+        </div>
+        <div
+          style="
+            display: flex;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            width: fit-content;
+          "
+        >
+          <button
+            onclick="setVAssetArea('ALL', this)"
+            id="vAreaBtnALL"
+            style="
+              padding: 6px 16px;
+              font-size: 12px;
+              font-weight: 600;
+              border: none;
+              background: var(--primary);
+              color: #fff;
+              cursor: pointer;
+              font-family: &quot;Inter&quot;, sans-serif;
+            "
+          >
+            Semua
+          </button>
+          <button
+            onclick="setVAssetArea('AR001', this)"
+            id="vAreaBtnAR001"
+            style="
+              padding: 6px 16px;
+              font-size: 12px;
+              font-weight: 600;
+              border: none;
+              background: transparent;
+              color: var(--muted);
+              cursor: pointer;
+              font-family: &quot;Inter&quot;, sans-serif;
+            "
+          >
+            KGB
+          </button>
+          <button
+            onclick="setVAssetArea('AR002', this)"
+            id="vAreaBtnAR002"
+            style="
+              padding: 6px 16px;
+              font-size: 12px;
+              font-weight: 600;
+              border: none;
+              background: transparent;
+              color: var(--muted);
+              cursor: pointer;
+              font-family: &quot;Inter&quot;, sans-serif;
+            "
+          >
+            GRB
+          </button>
+        </div>
+        <div
+          id="vAssetKatChips"
+          style="
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            scrollbar-width: none;
+          "
+        ></div>
+        <div id="vAssetList"></div>
       </div>
 
       <!-- ADMIN HOME -->
@@ -4066,6 +4194,7 @@
             label: "Analytics",
             view: "analytics",
           },
+          { id: "vasset", icon: "🔧", label: "Asset", view: "vasset" },
           { id: "notif", icon: "🔔", label: "Notifikasi", view: "notif" },
           { id: "profil", icon: "👤", label: "Profil", view: "profil" },
         ],
@@ -4244,6 +4373,7 @@
           master: "viewMaster",
           vmonitoring: "viewVMonitoring",
           analytics: "viewAnalytics",
+          vasset: "viewVAsset",
           notif: "viewNotif",
           profil: "viewProfil",
           // Admin views
@@ -4278,6 +4408,7 @@
           master: "Master Data",
           vmonitoring: "Safety Monitoring",
           analytics: "Analytics",
+          vasset: "Daftar Asset",
           notif: "Notifikasi",
           profil: "Profil Saya",
           adminHome: "Dashboard Admin",
@@ -4295,6 +4426,7 @@
         // Load view-specific data
         if (view === "analytics") renderAnalytics();
         if (view === "vmonitoring") renderVMonitoring();
+        if (view === "vasset") loadVAsset();
         if (view === "monitoring") renderAdminMonitoring();
         // Admin views
         if (view === "adminAnalytics") renderAdminAnalytics();
@@ -4530,7 +4662,6 @@
           setTimeout(checkDailyWarning, 800);
         }
       }
-
 
       function checkDailyWarning() {
         const role = (SESSION.role || "").toUpperCase();
@@ -6718,6 +6849,155 @@
       let bulkModeActive = false;
       let activeSertAssetId = null;
       let masterKategoriCache = [];
+      let vAssetRaw = [];
+      let vAssetKatFilter = "";
+      let vAssetAreaFilter = "ALL";
+
+      async function loadVAsset() {
+        if (vAssetRaw.length) {
+          renderVAssetStats();
+          buildVAssetKatChips();
+          filterVAsset(document.getElementById("vAssetSearch")?.value || "");
+          return;
+        }
+        showLoad("Memuat asset...");
+        try {
+          const res = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({
+              action: "crudMaster",
+              action_type: "READ_ASSET",
+              caller_nik: SESSION.nik || "SYSTEM",
+            }),
+          });
+          const json = await res.json();
+          if (json.status === "ok") vAssetRaw = json.data.assets || [];
+        } catch (e) {
+          vAssetRaw = [];
+        }
+        hideLoad();
+        renderVAssetStats();
+        buildVAssetKatChips();
+        filterVAsset("");
+      }
+
+      function renderVAssetStats() {
+        const scoped = getVAssetFilteredByArea();
+        const total = scoped.length;
+        const layak = scoped.filter(
+          (a) => a.status_aset_terakhir === "LAYAK",
+        ).length;
+        const el = (id) => document.getElementById(id);
+        if (el("vAssetTotal")) el("vAssetTotal").textContent = total;
+        if (el("vAssetLayak")) el("vAssetLayak").textContent = layak;
+        if (el("vAssetTidak")) el("vAssetTidak").textContent = total - layak;
+        if (el("vAssetSub"))
+          el("vAssetSub").textContent = total + " unit terdaftar";
+      }
+
+      function buildVAssetKatChips() {
+        const el = document.getElementById("vAssetKatChips");
+        if (!el) return;
+        const scoped = getVAssetFilteredByArea();
+        const byKat = {};
+        scoped.forEach((a) => {
+          const k = a.kategori_id || "lain";
+          if (!byKat[k]) byKat[k] = { nama: a.nama_kategori || k, count: 0 };
+          byKat[k].count++;
+        });
+        const activeKat = vAssetKatFilter;
+        el.innerHTML = `
+    <div class="chip${!activeKat ? " active" : ""}" onclick="setVAssetKat('', this)">Semua</div>
+    ${Object.entries(byKat)
+      .map(
+        ([id, k]) =>
+          `<div class="chip${activeKat === id ? " active" : ""}" onclick="setVAssetKat('${id}', this)">${k.nama} (${k.count})</div>`,
+      )
+      .join("")}
+  `;
+      }
+
+      function setVAssetKat(katId, el) {
+        vAssetKatFilter = katId;
+        document
+          .querySelectorAll("#vAssetKatChips .chip")
+          .forEach((c) => c.classList.remove("active"));
+        if (el) el.classList.add("active");
+        filterVAsset(document.getElementById("vAssetSearch")?.value || "");
+      }
+
+      function setVAssetArea(areaId, el) {
+        vAssetAreaFilter = areaId;
+        document.querySelectorAll('[id^="vAreaBtn"]').forEach((b) => {
+          b.style.background = "transparent";
+          b.style.color = "var(--muted)";
+        });
+        if (el) {
+          el.style.background = "var(--primary)";
+          el.style.color = "#fff";
+        }
+        renderVAssetStats();
+        buildVAssetKatChips();
+        filterVAsset(document.getElementById("vAssetSearch")?.value || "");
+      }
+
+      function getVAssetFilteredByArea() {
+        if (vAssetAreaFilter === "ALL") return [...vAssetRaw];
+        return vAssetRaw.filter(
+          (a) => String(a.area_id) === String(vAssetAreaFilter),
+        );
+      }
+
+      function filterVAsset(q) {
+        let data = getVAssetFilteredByArea();
+        if (vAssetKatFilter)
+          data = data.filter(
+            (a) => String(a.kategori_id) === String(vAssetKatFilter),
+          );
+        if (q && q.trim()) {
+          const lq = q.toLowerCase().trim();
+          data = data.filter(
+            (a) =>
+              (a.nama_alat || "").toLowerCase().includes(lq) ||
+              (a.no_id || "").toLowerCase().includes(lq) ||
+              (a.no_toolbox || "").toLowerCase().includes(lq),
+          );
+        }
+        renderVAssetList(data);
+      }
+
+      function renderVAssetList(data) {
+        const el = document.getElementById("vAssetList");
+        if (!el) return;
+        if (!data.length) {
+          el.innerHTML =
+            '<div class="empty"><div class="empty-icon">🔧</div><div class="empty-title">Tidak ada asset</div></div>';
+          return;
+        }
+        el.innerHTML = data
+          .map((a) => {
+            const isLayak = a.status_aset_terakhir === "LAYAK";
+            return `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;
+      padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+        <div>
+          <div style="font-size:14px;font-weight:600">${a.nama_alat || "-"}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${a.no_id || a.no_toolbox || "-"} · ${a.nama_subarea || "-"}</div>
+        </div>
+        <span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;
+          ${isLayak ? "background:var(--green-bg);color:var(--green)" : "background:var(--red-bg);color:var(--red)"}">
+          ${isLayak ? "✅ Layak" : "❌ Tidak Layak"}
+        </span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--muted);border:0.5px solid var(--border)">${a.nama_kategori || "-"}</span>
+        ${a.merk ? `<span style="font-size:11px;color:var(--muted2)">${a.merk}</span>` : ""}
+      </div>
+      ${a.pic_nama ? `<div style="font-size:11px;color:var(--muted);margin-top:6px">👤 PIC: ${a.pic_nama}</div>` : ""}
+    </div>`;
+          })
+          .join("");
+      }
 
       async function loadAdminAsset() {
         showLoad("Memuat data asset...");
