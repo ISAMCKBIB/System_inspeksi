@@ -145,11 +145,25 @@ select:focus,input[type=text]:focus{border-color:var(--primary)}
     </select>
   </div>
   <div class="ctrl-group">
+    <span class="ctrl-label">Kategori:</span>
+    <select id="filterKategori" onchange="filterAssets()">
+      <option value="">Semua Kategori</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
     <span class="ctrl-label">Status:</span>
     <select id="filterStatus" onchange="filterAssets()">
       <option value="">Semua</option>
       <option value="LAYAK">✅ Layak</option>
       <option value="TIDAK LAYAK">❌ Tidak Layak</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">Print:</span>
+    <select id="filterPrint" onchange="filterAssets()">
+      <option value="">Semua</option>
+      <option value="belum">🆕 Belum Print</option>
+      <option value="sudah">✅ Sudah Print</option>
     </select>
   </div>
   <div class="ctrl-group">
@@ -202,12 +216,44 @@ let filteredAssets = [];
 let selectedIds = new Set();
 
 // ── INIT ──
+let masterKategoriList = [];
+
 window.onload = async () => {
   showLoad();
+  await loadMasterKategori();
   await loadAssets();
   hideLoad();
 };
 
+async function loadMasterKategori() {
+  try {
+    const r = await fetch(APPS_SCRIPT_URL + '?action=getMasterData&type=all');
+    const j = await r.json();
+    if (j.status === 'ok' && j.data.kategori) {
+      masterKategoriList = j.data.kategori;
+    }
+  } catch(e) {
+    console.warn('loadMasterKategori gagal:', e.message);
+  }
+  buildKategoriFilter();
+}
+
+function buildKategoriFilter() {
+  const sel = document.getElementById('filterKategori');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Semua Kategori</option>' +
+    masterKategoriList
+      .map(k => `<option value="${k.kategori_id}">${k.nama_kategori}</option>`)
+      .join('');
+}
+function getKategoriName(katId) {
+  const kat = masterKategoriList.find(k => k.kategori_id === katId);
+  return kat ? kat.nama_kategori : '-';
+}
+function getKategoriName(katId) {
+  const kat = masterKategoriList.find(k => k.kategori_id === katId);
+  return kat ? kat.nama_kategori : '-';
+}
 async function loadAssets() {
   const srcEl = document.getElementById('dataSource');
 
@@ -303,6 +349,8 @@ function filterAssets(q) {
   const search = (q || document.getElementById('searchInput').value || '').toLowerCase();
   const area = document.getElementById('filterArea').value;
   const status = document.getElementById('filterStatus').value;
+  const printFilter = document.getElementById('filterPrint').value;
+  const kategori = document.getElementById('filterKategori').value;
 
   filteredAssets = allAssets.filter(a => {
     const matchSearch = !search ||
@@ -311,13 +359,15 @@ function filterAssets(q) {
       (a.merk||'').toLowerCase().includes(search);
     const matchArea = !area || a.nama_subarea === area;
     const matchStatus = !status || a.status_aset_terakhir === status;
-    return matchSearch && matchArea && matchStatus;
+    const isPrinted = String(a.qr_printed) === 'Y';
+    const matchPrint = !printFilter || (printFilter === 'sudah' ? isPrinted : !isPrinted);
+    const matchKategori = !kategori || String(a.kategori_id) === String(kategori);
+    return matchSearch && matchArea && matchStatus && matchPrint && matchKategori;
   });
 
   updateStats();
   renderGrid();
 }
-
 // ── RENDER GRID ──
 function renderGrid() {
   const grid = document.getElementById('assetGrid');
@@ -336,10 +386,11 @@ function renderGrid() {
         <div class="card-noid">${a.no_id||a.asset_id||'-'}</div>
         <div class="card-nama">${a.nama_alat||'-'}</div>
         <div class="card-merk">${a.merk||'-'}</div>
-        <div class="card-area">📍 ${a.nama_subarea||a.subarea_id||'-'}</div>
+        <div class="card-area">📍 ${a.nama_subarea||a.subarea_id||'-'} · ${getKategoriName(a.kategori_id)}</div>
         <span class="card-status ${a.status_aset_terakhir==='LAYAK'?'s-layak':'s-tidak'}">
           ${a.status_aset_terakhir==='LAYAK'?'✅ LAYAK':'❌ TDK LAYAK'}
         </span>
+        ${String(a.qr_printed)!=='Y' ? '<span class="card-status" style="background:#FEF3C7;color:#D97706;margin-left:4px">🆕 Belum Print</span>' : ''}
       </div>
     </div>`).join('');
 
@@ -401,15 +452,42 @@ function updateSelectBar() {
 }
 
 // ── PRINT ──
-function printSelected() {
+async function printSelected() {
   if (!selectedIds.size) { alert('Pilih asset dulu sebelum print!'); return; }
-  // Tandai card yang terpilih dengan class print-all supaya @media print tampil
   document.querySelectorAll('.asset-card').forEach(card => {
     const noId = card.id.replace('card-', '');
     if (selectedIds.has(noId)) card.classList.add('selected');
     else card.classList.remove('selected');
   });
   window.print();
+  await markAsPrinted([...selectedIds]);
+}
+
+async function markAsPrinted(noIds) {
+  const assetIds = noIds
+    .map(noId => {
+      const a = allAssets.find(x => (x.no_id || x.asset_id) === noId);
+      return a ? a.asset_id : null;
+    })
+    .filter(Boolean);
+  if (!assetIds.length) return;
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'bulkUpdateQRPrinted',
+        asset_ids: assetIds,
+        caller_nik: 'ADMIN'
+      })
+    });
+    assetIds.forEach(id => {
+      const a = allAssets.find(x => x.asset_id === id);
+      if (a) a.qr_printed = 'Y';
+    });
+    renderGrid();
+  } catch(e) {
+    console.warn('markAsPrinted gagal:', e.message);
+  }
 }
 
 function printAll() {
