@@ -395,7 +395,7 @@ function renderGrid() {
     const assetKey = a.asset_id;
     const wrap = document.getElementById('qr-wrap-' + assetKey);
     if (!wrap) return;
-    const url = FORM_URL + '?asset_id=' + encodeURIComponent(assetKey);
+    const url = FORM_URL + '?asset=' + encodeURIComponent(a.no_id || assetKey);
     try {
       new QRCode(wrap, {
         text: url,
