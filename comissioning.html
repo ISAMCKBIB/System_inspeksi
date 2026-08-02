@@ -798,8 +798,8 @@ tbody tr:hover{ background:var(--row-hover-bg); }
       <div class="tb-icon-btn" id="themeToggleBtn" title="Ganti tampilan gelap/terang" onclick="toggleTheme()" style="cursor:pointer">🌙</div>
       <div class="tb-icon-btn" title="Lihat unit Expired &amp; Near Expired" onclick="goToCommissioningFiltered('Expired')" style="cursor:pointer">🔔<span class="badge-dot" id="notifCount">0</span></div>
       <div class="user-chip">
-        <div class="avatar">A</div>
-        <div class="un"><b>Abdul Azis</b><small>Administrator</small></div>
+        <div class="avatar" id="userChipAvatar">A</div>
+        <div class="un"><b id="userChipName">Abdul Azis</b><small id="userChipRole">Administrator</small></div>
       </div>
     </div>
 
@@ -1135,7 +1135,38 @@ function markRowForFlash(key){
 }
 let DB = {};
 let FETCH_HAD_ERROR = false;
-let CURRENT_USER_NAME = 'Abdul Azis (Admin)'; // dipakai untuk mencatat siapa yang melakukan perubahan di Activity Log
+let CURRENT_USER_NAME = 'Abdul Azis (Admin)'; // fallback kalau tidak ada session login (dipakai untuk mencatat siapa yang melakukan perubahan di Activity Log)
+
+/* ── Sinkronisasi user login (msm_session) ──
+   Sama seperti dashboard.html: setelah login di index.html, data user disimpan di
+   localStorage 'msm_session'. Sebelumnya file ini tidak membaca session itu sama sekali,
+   sehingga header selalu menampilkan nama dummy "Abdul Azis" walau yang login user lain.
+   Fungsi ini membaca session yang sama dan menyinkronkan nama/role di chip header + CURRENT_USER_NAME. */
+function syncLoggedInUser(){
+  try{
+    const raw = localStorage.getItem('msm_session') || sessionStorage.getItem('msm_session');
+    if(!raw) return;
+    const s = JSON.parse(raw);
+    if(!s || !s.nama) return;
+
+    const roleLabel = s.role === 'ADMIN' ? 'Administrator'
+                     : s.role === 'PIC'   ? 'PIC'
+                     : s.role === 'VIEWER'? 'Viewer'
+                     : (s.role || 'User');
+
+    CURRENT_USER_NAME = `${s.nama} (${roleLabel})`;
+
+    const nameEl = document.getElementById('userChipName');
+    const roleEl = document.getElementById('userChipRole');
+    const avatarEl = document.getElementById('userChipAvatar');
+    if(nameEl) nameEl.textContent = s.nama;
+    if(roleEl) roleEl.textContent = roleLabel;
+    if(avatarEl) avatarEl.textContent = s.nama.trim().charAt(0).toUpperCase() || 'U';
+  }catch(e){
+    console.warn('syncLoggedInUser error:', e);
+  }
+}
+syncLoggedInUser();
 
 async function fetchSheetByName(sheetName, timeoutMs){
   const controller = new AbortController();
