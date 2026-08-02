@@ -155,7 +155,7 @@
         opacity: 1;
         pointer-events: all;
       }
-      .more-menu-title {
+         .more-menu-title {
         font-size: 11px;
         font-weight: 700;
         color: var(--muted2);
@@ -163,7 +163,7 @@
         letter-spacing: 1px;
         padding: 8px 12px 4px;
       }
-      .more-menu-grid {
+      . {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 4px;
@@ -1903,7 +1903,12 @@
         >
           <div class="more-menu-icon">🗺️</div>
           <div class="more-menu-label">KPI Area</div>
-        </button>
+        <button
+    class="more-menu-item"
+    onclick="window.location.href='comissioning.html','_blank">
+    <div class="more-menu-icon">🛠️</div>
+    <div class="more-menu-label">Commissioning</div>
+</button>
         <button
           class="more-menu-item"
           onclick="triggerViewFromMore('adminKPIPIC')"
@@ -4180,7 +4185,7 @@
 
     <script>
       const APPS_SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbxXYIMZh1r63PBehuExXDXJ8NqAHrJ5AwhivLGh5XcFYD61TTNCo_YWS5j2HLIczJur0Q/exec";
+        "https://script.google.com/macros/s/AKfycbyNU-pRMPcmFBC0qzmcN2QxDa73K8JhkTTBsPcSi1kw8PyJMei5KJgqH25gdocyu_cB/exec";
       let SESSION = null,
         allTemuan = [],
         closeFotos = [],
@@ -6165,6 +6170,12 @@
           label: "Asset Monitoring",
           view: "adminAsset",
         },
+        {
+           id: "comissioning",
+           icon: "🛠️",
+           label: "Comissioning",
+          href: "comissioning.html",
+        },
         { id: "jadwal2", icon: "📅", label: "Jadwal Inspeksi", view: "jadwal" },
         {
           id: "actlog",
@@ -6216,17 +6227,23 @@
           </button>`,
         ).join("");
         // Sidebar
-        let html = "";
-        NAV_ADMIN_SIDEBAR.forEach((n, i) => {
-          if (n.section) {
-            html += `<div class="snav-section">${n.section}</div>`;
-            return;
-          }
-          html += `<div class="snav-item${i === 1 ? " active" : ""}" id="snav-${n.id}" onclick="triggerView('${n.view}',null,'${n.id}')">
-            <span class="snav-icon">${n.icon}</span>${n.label}
-            ${n.badge ? `<span class="snav-badge" id="${n.badge}2" style="display:none">0</span>` : ""}
-          </div>`;
-        });
+       let html = "";
+NAV_ADMIN_SIDEBAR.forEach((n, i) => {
+  if (n.section) {
+    html += `<div class="snav-section">${n.section}</div>`;
+    return;
+  }
+  if (n.href) {
+    html += `<a href="${n.href}" target="_blank" class="snav-item" id="snav-${n.id}" style="text-decoration:none">
+      <span class="snav-icon">${n.icon}</span>${n.label}
+    </a>`;
+    return;
+  }
+  html += `<div class="snav-item${i === 1 ? " active" : ""}" id="snav-${n.id}" onclick="triggerView('${n.view}',null,'${n.id}')">
+    <span class="snav-icon">${n.icon}</span>${n.label}
+    ${n.badge ? `<span class="snav-badge" id="${n.badge}2" style="display:none">0</span>` : ""}
+  </div>`;
+});
         document.getElementById("sidebarNav").innerHTML = html;
       }
 
