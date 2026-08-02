@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ISAM CK BIB - Preparation Commissioning (Viewer)</title>
+<style>
+:root{
+  --navy-900:#0b1642;
+  --navy-800:#10205c;
+  --navy-700:#152a72;
+  --blue-600:#1f4fd6;
+  --blue-500:#2f6bff;
+  --orange:#f39c2b;
+  --orange-bg:#fef3e2;
+  --red:#e0473f;
+  --red-bg:#fdecec;
+  --green:#1fa251;
+  --green-bg:#e8f8ee;
+  --gray-bg:#f4f6fb;
+  --border:#e7ebf3;
+  --text-900:#101828;
+  --text-600:#4a5674;
+  --text-400:#8a93ab;
+  --surface:#ffffff;
+  --transition-smooth: all .25s ease;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Segoe UI', Roboto, Arial, sans-serif;
+  background:var(--gray-bg);
+  color:var(--text-900);
+  font-size:14px;
+  overflow-x:hidden;
+}
+
+/* ===== TOPBAR (persis gaya comissioning.html) ===== */
+.topbar{
+  background:linear-gradient(90deg, var(--navy-900), var(--navy-700));
+  color:#fff; padding:12px 22px; display:flex; align-items:center; gap:12px;
+  flex-wrap:wrap;
+}
+.topbar .titles{ margin-right:auto; }
+.topbar .titles h1{ font-size:17px; font-weight:700; }
+.topbar .titles .crumb{ font-size:12px; color:#a9b3d8; }
+.tb-control{
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+  color:#fff; border-radius:8px; padding:7px 12px; font-size:12.5px;
+  display:flex; align-items:center; gap:8px; white-space:nowrap;
+}
+.tb-badge{
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+  color:#fff; border-radius:8px; padding:7px 12px; font-size:12px; font-weight:600;
+  display:flex; align-items:center; gap:6px; white-space:nowrap;
+}
+
+.content{ padding:20px 22px 40px; overflow-x:hidden; }
+
+/* ===== STAT CARDS ===== */
+.stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:18px;}
+.stat-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 18px; transition:var(--transition-smooth); }
+.stat-card .lbl{ font-size:11.5px; font-weight:700; letter-spacing:.4px; color:var(--text-400); display:flex; align-items:center; gap:6px;}
+.stat-card.orange .lbl{color:var(--orange)}
+.stat-card.red .lbl{color:var(--red)}
+.stat-card.green .lbl{color:var(--green)}
+.stat-card.blue .lbl{color:var(--blue-600)}
+.stat-card .val{ font-size:30px; font-weight:800; margin-top:4px; }
+.stat-card .unit{ font-size:12px; color:var(--text-400); font-weight:600;}
+.stat-card .sub{ font-size:11.5px; margin-top:6px; color:var(--text-400);}
+
+/* ===== NEED PREP PANEL ===== */
+.need-prep-panel{
+  background:linear-gradient(135deg, #fff4e5, #ffe8d1); border:1px solid var(--orange);
+  border-radius:12px; padding:14px 18px; margin-bottom:18px;
+}
+.need-prep-panel .np-title{ font-size:13px; font-weight:800; color:#9a5b0f; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+.need-prep-row{
+  display:flex; align-items:center; gap:12px; background:var(--surface); border-radius:8px;
+  padding:9px 12px; margin-bottom:6px; font-size:12.5px; flex-wrap:wrap;
+}
+.need-prep-row:last-child{ margin-bottom:0; }
+.need-prep-row .np-badge{ font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:6px; white-space:nowrap; }
+.need-prep-row .np-badge.exp{ background:var(--red-bg); color:var(--red); }
+.need-prep-row .np-badge.near{ background:var(--orange-bg); color:var(--orange); }
+.need-prep-scroll{ max-height:400px; overflow-y:auto; padding-right:4px; scroll-behavior:smooth; }
+.need-prep-scroll::-webkit-scrollbar{ width:6px; }
+.need-prep-scroll::-webkit-scrollbar-thumb{ background:rgba(0,0,0,.2); border-radius:4px; }
+
+.btn{ border:none; border-radius:8px; padding:9px 16px; font-size:13px; font-weight:600; cursor:default; display:flex; align-items:center; gap:6px;}
+.btn-primary{ background:var(--blue-600); color:#fff;}
+
+.empty-state{ text-align:center; padding:40px 20px; color:var(--text-400);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="titles">
+    <h1>Preparation Commissioning</h1>
+    <div class="crumb">Commissioning &gt; Preparation</div>
+  </div>
+  <div class="tb-control" id="lastUpdatedInfo" title="Waktu terakhir data ditarik dari spreadsheet">🕓 -</div>
+  <div class="tb-control">📅 <span id="tbDate"></span></div>
+  <div class="tb-control">🕒 <span id="tbTime"></span></div>
+  <div class="tb-control" id="connStatus" title="Status koneksi ke Google Apps Script">⏳ Memuat...</div>
+  <div class="tb-badge" title="Halaman ini khusus tampilan, tidak bisa diedit">👁️ Viewer (Read Only)</div>
+</div>
+
+<div class="content">
+  <div class="stat-grid" id="prepStats"></div>
+  <div id="needPrepPanel"></div>
+</div>
+
+<script>
+/* =====================================================================
+   KONFIGURASI SUMBER DATA (GOOGLE APPS SCRIPT WEB APP)
+   Pakai API_URL yang SAMA dengan comissioning.html supaya datanya nyambung
+   ke spreadsheet yang sama persis. Halaman ini READ-ONLY: cuma GET data,
+   tidak ada fungsi addRow/updateRow sama sekali.
+===================================================================== */
+const CONFIG = {
+  API_URL: "https://script.google.com/macros/s/AKfycbwNX8mg4p64OlekGpTsK55AeuPW4MDNpu8lEBuf6CUJi40Wmcdhr0-ZGkY8-ayvXGqQaQ/exec",
+  SCRIPTS: {
+    commissioning: { sheet: "Commissioning" },
+    preparation:   { sheet: "Preparation_Tracking" }
+  }
+};
+
+const AUTO_REFRESH_MS = 5 * 60 * 1000;   // refresh data tiap 5 menit
+const AUTO_SCROLL_STEP_MS = 10000;       // scroll turun tiap 10 detik (sesuai request)
+
+let DB = {};
+let DEMO_MODE = true;
+let FETCH_HAD_ERROR = false;
+
+/* ---------- DATA DEMO (dipakai kalau Apps Script gagal dihubungi) ---------- */
+const DEMO_DATA = {
+  commissioning: [
+    {unitId:"CO4536",model:"HD 4536",sn:"CAT00HD7854536",site:"BIB",area:"GRB",reg:"BIB/CKT/2026/VII/120931",mulai:"29 Jul 2025",selesai:"28 Agu 2026",status:"Aktif"},
+    {unitId:"CO4536",model:"HD 4536",sn:"CAT00HD7854536",site:"TIA",area:"GRB",reg:"TIA/CKT/2026/VII/009872",mulai:"07 Sep 2025",selesai:"06 Sep 2026",status:"Near Expired"},
+    {unitId:"EX1021",model:"EX 1021",sn:"CAT0336GCL1021",site:"BIB",area:"KGB",reg:"BIB/CKT/2026/VI/110552",mulai:"10 Jun 2025",selesai:"09 Jun 2026",status:"Aktif"},
+    {unitId:"WT0213",model:"HINO 500",sn:"HINO500WT0213",site:"BIB",area:"GRB",reg:"BIB/CKT/2026/VI/120211",mulai:"23 Jul 2025",selesai:"22 Jul 2026",status:"Aktif"},
+    {unitId:"DT045",model:"CAT D8T",sn:"CATD8TDT045",site:"TIA",area:"STK",reg:"TIA/CKT/2026/VI/009884",mulai:"12 Jul 2025",selesai:"11 Jul 2026",status:"Aktif"}
+  ],
+  preparation: [
+    {unitId:"C04536",model:"HD 4536",sn:"CAT00HD78S4536",site:"BIB",area:"GRB",foto:true,checklist:true,bast:false,history:false,progress:60,status:"Waiting Admin",prioritas:"Tinggi",hari:3},
+    {unitId:"EX1021",model:"EX 1021",sn:"CAT0336GCL1021",site:"BIB",area:"KGB",foto:true,checklist:true,bast:true,history:false,progress:80,status:"Waiting History",prioritas:"Tinggi",hari:2},
+    {unitId:"WT0213",model:"HINO 500",sn:"HINO500WT0213",site:"BIB",area:"KGB",foto:true,checklist:true,bast:true,history:true,progress:100,status:"Ready ZIP",prioritas:"Sedang",hari:1},
+    {unitId:"FV100",model:"HINO 500",sn:"HINO500FV100",site:"TIA",area:"GRB",foto:true,checklist:true,bast:true,history:false,progress:80,status:"Waiting History",prioritas:"Sedang",hari:1},
+    {unitId:"PM120",model:"PUMP",sn:"PUMP120PM120",site:"BIB",area:"FUEL",foto:true,checklist:true,bast:true,history:true,progress:100,status:"Ready ZIP",prioritas:"Rendah",hari:0},
+    {unitId:"DT045",model:"CAT D8T",sn:"CATD8TDT045",site:"TIA",area:"STK",foto:true,checklist:false,bast:false,history:false,progress:25,status:"Belum Lengkap",prioritas:"Tinggi",hari:5},
+    {unitId:"GD060",model:"CAT 140K",sn:"CAT140KGD060",site:"BIB",area:"KGB",foto:true,checklist:true,bast:false,history:false,progress:50,status:"Waiting Admin",prioritas:"Tinggi",hari:4},
+    {unitId:"HD7857",model:"HD 785",sn:"CAT00HD78X57",site:"BIB",area:"KGB",foto:true,checklist:true,bast:true,history:false,progress:80,status:"Waiting History",prioritas:"Sedang",hari:2},
+    {unitId:"CO2314",model:"HD 785",sn:"CAT00HD78S2314",site:"TIA",area:"GRB",foto:true,checklist:true,bast:false,history:false,progress:50,status:"Waiting Admin",prioritas:"Rendah",hari:1},
+    {unitId:"TR100",model:"TRAILER",sn:"TRL000TR100",site:"TIA",area:"GRB",foto:true,checklist:true,bast:true,history:true,progress:100,status:"Ready ZIP",prioritas:"Rendah",hari:0}
+  ]
+};
+
+/* ---------- HELPERS (disalin dari comissioning.html) ---------- */
+function pick(obj, keys){
+  if(!obj) return '';
+  for(const k of keys){
+    if(obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
+  }
+  return '';
+}
+function getCurrentCommissioning(){ return DB.commissioning || []; }
+function escJs(v){ return String(v==null?'':v).replace(/'/g,"\\'"); }
+
+const PREP_STAGES = [
+  { key:'Belum Lengkap',    label:'Dokumen belum lengkap' },
+  { key:'Waiting Admin',    label:'Menunggu BAST' },
+  { key:'Waiting History',  label:'Menunggu history maintenance' },
+  { key:'Ready ZIP',        label:'Dokumen lengkap' },
+  { key:'Diajukan',         label:'Diajukan ke Portal BIB' },
+  { key:'Disetujui',        label:'Disetujui' },
+  { key:'Waiting Sticker',  label:'Waiting Sticker (OSHE CK)' },
+  { key:'Selesai',          label:'Stiker terpasang' }
+];
+function prepStageIndex(status){
+  const i = PREP_STAGES.findIndex(s=>s.key===status);
+  return i===-1 ? 0 : i;
+}
+function computePrioritasFromHari(hari){
+  if(hari>=14) return 'Tinggi';
+  if(hari>=7) return 'Sedang';
+  return 'Rendah';
+}
+function pct(part, total){
+  if(!total || isNaN(total)) return 0;
+  return Math.round((part/total)*1000)/10;
+}
+function statCard(label, value, unit, sub, colorClass, icon){
+  return `<div class="stat-card ${colorClass||''}">
+    <div class="lbl">${icon||''} ${label}</div>
+    <div class="val">${value} <span class="unit">${unit||''}</span></div>
+    <div class="sub">${sub||''}</div>
+  </div>`;
+}
+function setText(id, val){ const el=document.getElementById(id); if(el) el.textContent = val; }
+
+/* ---------- FETCH DATA DARI GOOGLE APPS SCRIPT ---------- */
+async function fetchSheetByName(sheetName, timeoutMs){
+  const controller = new AbortController();
+  const to = setTimeout(()=> controller.abort(), timeoutMs || 45000);
+  try{
+    const res = await fetch(`${CONFIG.API_URL}?sheet=${encodeURIComponent(sheetName)}`, { signal: controller.signal });
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const json = await res.json();
+    if(json && json.success === false) throw new Error(json.message || "API mengembalikan error");
+    return json.data || json;
+  }catch(err){
+    console.warn("Gagal fetch sheet", sheetName, err);
+    FETCH_HAD_ERROR = true;
+    return null;
+  }finally{
+    clearTimeout(to);
+  }
+}
+
+function setConnStatus(mode){
+  const el = document.getElementById('connStatus');
+  if(!el) return;
+  if(mode==='loading'){ el.innerHTML = '⏳ Memuat...'; el.style.color=''; }
+  else if(mode==='live'){ el.innerHTML = '🟢 Live'; el.style.color='#4ADE80'; }
+  else if(mode==='demo'){ el.innerHTML = '🟠 Mode Demo'; el.style.color='#fbbf24'; }
+  else if(mode==='error'){ el.innerHTML = '🔴 Gagal Konek'; el.style.color='#f87171'; }
+}
+
+async function loadAllData(){
+  setConnStatus('loading');
+  FETCH_HAD_ERROR = false;
+  const isConfigured = CONFIG.API_URL && !CONFIG.API_URL.startsWith("PASTE_");
+
+  const results = {};
+  if(isConfigured){
+    await Promise.all(Object.keys(CONFIG.SCRIPTS).map(async (key)=>{
+      results[key] = await fetchSheetByName(CONFIG.SCRIPTS[key].sheet);
+    }));
+  }
+
+  let anySuccess = false;
+  Object.keys(CONFIG.SCRIPTS).forEach((k)=>{
+    const data = results[k];
+    if(data !== undefined && data !== null){ anySuccess = true; }
+    DB[k] = (data !== undefined && data !== null) ? data : DEMO_DATA[k];
+  });
+
+  if(!isConfigured){ DEMO_MODE = true; setConnStatus('demo'); }
+  else if(anySuccess){ DEMO_MODE = false; setConnStatus(FETCH_HAD_ERROR ? 'error' : 'live'); }
+  else { DEMO_MODE = true; setConnStatus('error'); }
+
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  setText('lastUpdatedInfo', '🕓 Update ' + hh + ':' + mm);
+}
+
+/* ---------- RENDER: stat cards + panel "PERLU MULAI PREPARATION" ----------
+   Logika ini disalin persis dari fungsi renderPreparation() di comissioning.html,
+   hanya tombol aksinya dilepas fungsinya (view only, tidak ada onclick). */
+function renderPrep(){
+  const rows = (DB.preparation||[]).map((r)=>({
+    unitId: pick(r,['Unit_ID (FK)','Unit_ID']),
+    status: pick(r,['Status_Preparation']) || 'Belum Lengkap',
+    hari: Number(pick(r,['Hari_di_Preparation','hari']))||0
+  })).map(r=>({...r, prioritas: computePrioritasFromHari(r.hari)}));
+
+  const existingPrepUnitIds = new Set(rows.filter(r=>r.status!=='Selesai').map(r=>r.unitId));
+  const needPrepSeen = new Set();
+  const needPrep = [];
+  getCurrentCommissioning().forEach(c=>{
+    const s = String(pick(c,['Status'])||'').toLowerCase();
+    if(!s.includes('expired')) return;
+    const unitId = pick(c,['Unit_ID']);
+    if(needPrepSeen.has(unitId) || existingPrepUnitIds.has(unitId)) return;
+    needPrepSeen.add(unitId);
+    needPrep.push({ unitId, isExpired: s.includes('expired') && !s.includes('near'), site: pick(c,['Site']), area: pick(c,['Area']), sisa: pick(c,['Sisa_Hari']) });
+  });
+  needPrep.sort((a,b)=>{
+    const av = Number(a.sisa), bv = Number(b.sisa);
+    const aNan = isNaN(av), bNan = isNaN(bv);
+    if(aNan && bNan) return 0;
+    if(aNan) return 1;
+    if(bNan) return -1;
+    return av - bv;
+  });
+
+  document.getElementById('needPrepPanel').innerHTML = needPrep.length ? `
+    <div class="need-prep-panel">
+      <div class="np-title">🔔 ${needPrep.length} UNIT PERLU MULAI PREPARATION (diurutkan dari sisa hari paling sedikit / paling mendesak)</div>
+      <div class="need-prep-scroll" id="needPrepScroll">
+        ${needPrep.map(n=>`
+          <div class="need-prep-row" id="need-prep-row-${escJs(n.unitId)}">
+            <span class="np-badge ${n.isExpired?'exp':'near'}">${n.isExpired?'EXPIRED':'NEAR EXPIRED'}</span>
+            <b>${n.unitId}</b>
+            <span style="color:${Number(n.sisa)<0?'var(--red)':'var(--text-400)'};font-weight:${Number(n.sisa)<0?'700':'400'}">${n.site} / ${n.area} — sisa ${n.sisa} hari${Number(n.sisa)<0?' (sudah lewat)':''}</span>
+            <button class="btn btn-primary" style="margin-left:auto;font-size:11.5px;padding:6px 12px;">+ Mulai Preparation</button>
+          </div>`).join('')}
+      </div>
+    </div>` : `<div class="empty-state">🎉 Tidak ada unit yang perlu mulai preparation saat ini.</div>`;
+
+  const total = rows.length;
+  const belum = rows.filter(r=>prepStageIndex(r.status)===0).length;
+  const prosesApproval = rows.filter(r=>{const i=prepStageIndex(r.status); return i>=4 && i<=6;}).length;
+  const waitingSticker = rows.filter(r=>r.status==='Waiting Sticker').length;
+  const selesai = rows.filter(r=>r.status==='Selesai').length;
+  document.getElementById('prepStats').innerHTML = [
+    statCard("TOTAL UNIT", total, "Unit", "Sedang dalam proses preparation", "blue","📝"),
+    statCard("BELUM LENGKAP", belum, "Unit", `${pct(belum,total)}% dari total`, "red","⚠️"),
+    statCard("PROSES APPROVAL", prosesApproval, "Unit", "Diajukan / Disetujui / Waiting Sticker", "orange","⏳"),
+    statCard("WAITING STICKER", waitingSticker, "Unit", "Menunggu stiker fisik", "blue","📦"),
+    statCard("SELESAI", selesai, "Unit", "Stiker sudah terpasang", "green","✅")
+  ].join('');
+
+  setupAutoScroll();
+}
+
+/* ---------- AUTO-SCROLL: turun sedikit, jeda 10 detik, turun lagi.
+   Kalau sudah sampai bawah, jeda 10 detik lalu balik ke atas dan ulang terus
+   menerus. Cocok buat ditaruh di layar/TV yang tidak ada orang yang scroll manual. ---------- */
+let __scrollTimer = null;
+function setupAutoScroll(){
+  if(__scrollTimer){ clearInterval(__scrollTimer); __scrollTimer = null; }
+  const box = document.getElementById('needPrepScroll');
+  if(!box) return; // tidak ada isi (list kosong) -> tidak perlu auto-scroll
+
+  __scrollTimer = setInterval(()=>{
+    const atBottom = Math.ceil(box.scrollTop + box.clientHeight) >= box.scrollHeight;
+    if(atBottom){
+      box.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      box.scrollBy({ top: box.clientHeight, behavior: 'smooth' });
+    }
+  }, AUTO_SCROLL_STEP_MS);
+}
+
+/* ---------- JAM & TANGGAL DI TOPBAR ---------- */
+function updateClock(){
+  const now = new Date();
+  setText('tbDate', now.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}));
+  setText('tbTime', now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + ' WIB');
+}
+
+/* ---------- INIT ---------- */
+(async function init(){
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  await loadAllData();
+  renderPrep();
+
+  // Refresh data berkala (kiosk mode) supaya layar selalu menampilkan data terbaru
+  setInterval(async ()=>{
+    await loadAllData();
+    renderPrep();
+  }, AUTO_REFRESH_MS);
+})();
+</script>
+</body>
+</html>
