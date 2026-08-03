@@ -1149,33 +1149,65 @@ function markRowForFlash(key){
 }
 let DB = {};
 let FETCH_HAD_ERROR = false;
+let FAILED_SHEET_COUNT = 0;
 let CURRENT_USER_NAME = 'Abdul Azis (Admin)'; // dipakai untuk mencatat siapa yang melakukan perubahan di Activity Log
 
+function sleep_(ms){ return new Promise(r=>setTimeout(r,ms)); }
+/* Coba fetch 1x, kalau gagal TUNGGU SEBENTAR lalu coba 1x lagi sebelum benar-benar
+   dianggap error. Kebanyakan "gagal koneksi" itu cuma gangguan sesaat (Apps Script lagi
+   "bangun tidur"/cold-start, atau internet sempat putus-nyambung) - dengan retry ini,
+   gangguan sesaat itu sembuh sendiri TANPA perlu nampilin notifikasi merah yang bikin
+   panik, terutama buat orang yang bukan pembuat sistemnya dan nggak tau itu wajar. */
 async function fetchSheetByName(sheetName, timeoutMs){
-  const controller = new AbortController();
-  const to = setTimeout(()=> controller.abort(), timeoutMs || 45000);
+  const attempt = async ()=>{
+    const controller = new AbortController();
+    const to = setTimeout(()=> controller.abort(), timeoutMs || 45000);
+    try{
+      const res = await fetch(`${CONFIG.API_URL}?sheet=${encodeURIComponent(sheetName)}`, { signal: controller.signal });
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const json = await res.json();
+      if(json && json.success === false) throw new Error(json.message || "API mengembalikan error");
+      return json.data || json;
+    }finally{
+      clearTimeout(to);
+    }
+  };
   try{
-    const res = await fetch(`${CONFIG.API_URL}?sheet=${encodeURIComponent(sheetName)}`, { signal: controller.signal });
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    const json = await res.json();
-    if(json && json.success === false) throw new Error(json.message || "API mengembalikan error");
-    return json.data || json;
+    return await attempt();
   }catch(err){
-    console.warn("Gagal fetch sheet", sheetName, err);
-    FETCH_HAD_ERROR = true;
-    return null;
-  }finally{
-    clearTimeout(to);
+    console.warn("Percobaan pertama gagal untuk sheet", sheetName, "- mencoba lagi sekali...", err);
+    await sleep_(1200);
+    try{
+      return await attempt();
+    }catch(err2){
+      console.warn("Percobaan kedua juga gagal untuk sheet", sheetName, err2);
+      FETCH_HAD_ERROR = true;
+      FAILED_SHEET_COUNT++;
+      return null;
+    }
   }
 }
 
-function setConnStatus(mode){
+function setConnStatus(mode, extra){
   const el = document.getElementById('connStatus');
   if(!el) return;
+  el.style.cursor = 'default';
+  el.onclick = null;
   if(mode==='loading'){ el.innerHTML = '⏳ Memuat...'; el.style.color=''; }
   else if(mode==='live'){ el.innerHTML = '🟢 Live'; el.style.color='var(--green)'; }
-  else if(mode==='demo'){ el.innerHTML = '🟠 Mode Demo'; el.style.color='var(--orange)'; }
-  else if(mode==='error'){ el.innerHTML = '🔴 Gagal Konek'; el.style.color='var(--red)'; }
+  else if(mode==='demo'){
+    el.innerHTML = '🟠 Mode Demo ⓘ'; el.style.color='var(--orange)'; el.style.cursor='help';
+    el.onclick = ()=> alert('MODE DEMO\n\nSistem belum berhasil tersambung ke Google Sheets sama sekali - yang ditampilkan ini contoh data (bukan data asli).\n\nIni bisa terjadi kalau:\n- Belum ada koneksi internet\n- Alamat/URL Apps Script belum diisi dengan benar\n\nCoba klik tombol 🔄 Refresh di sebelah ikon ini. Kalau terus muncul, hubungi admin sistem.');
+  }
+  else if(mode==='partial'){
+    const n = extra || 0;
+    el.innerHTML = `🟡 ${n} Data Gagal Dimuat ⓘ`; el.style.color='#b8860b'; el.style.cursor='help';
+    el.onclick = ()=> alert('SEBAGIAN DATA GAGAL DIMUAT\n\nSebagian besar data sudah berhasil dimuat dan aman dipakai. Cuma ada '+n+' bagian data yang sempat gagal dimuat (biasanya karena koneksi sempat lambat sesaat).\n\nCoba klik tombol 🔄 Refresh di sebelah ikon ini untuk coba muat ulang.\n\nKalau masih muncul terus-menerus, hubungi admin sistem.');
+  }
+  else if(mode==='error'){
+    el.innerHTML = '🔴 Tidak Terhubung ⓘ'; el.style.color='var(--red)'; el.style.cursor='help';
+    el.onclick = ()=> alert('TIDAK TERHUBUNG KE SPREADSHEET\n\nSistem sama sekali belum berhasil mengambil data dari Google Sheets - yang ditampilkan ini contoh data (bukan data asli), JANGAN dijadikan acuan.\n\nCoba klik tombol 🔄 Refresh di sebelah ikon ini. Kalau masih gagal, hubungi admin sistem.');
+  }
 }
 
 /* ---------- LOADING FEATURE (splash screen dengan progress) ---------- */
@@ -1206,6 +1238,7 @@ function hideAppLoader(){
 async function loadAllData(){
   setConnStatus('loading');
   FETCH_HAD_ERROR = false;
+  FAILED_SHEET_COUNT = 0;
   const keys = Object.keys(CONFIG.SCRIPTS);
   const isConfigured = CONFIG.API_URL && !CONFIG.API_URL.startsWith("PASTE_");
 
@@ -1218,13 +1251,22 @@ async function loadAllData(){
 
   const sheetResults = {};
   if(isConfigured){
-    await Promise.all(uniqueSheetNames.map(async (sheetName, i) => {
-      const stepLabel = LOADER_STEPS[Math.min(i, LOADER_STEPS.length-1)];
-      setLoaderProgress((done/total)*90, stepLabel);
-      sheetResults[sheetName] = await fetchSheetByName(sheetName);
-      done++;
-      setLoaderProgress((done/total)*90, LOADER_STEPS[Math.min(done, LOADER_STEPS.length-1)]);
-    }));
+    /* PENTING: JANGAN tembak semua sheet sekaligus bersamaan (Promise.all polos) -
+       kalau sheetnya banyak (sekarang 16+), itu bisa MELEBIHI batas jumlah eksekusi
+       bersamaan yang diizinkan Google Apps Script, bikin SEMUA request gagal 404
+       serentak (persis kayak yang kejadian). Solusinya: proses beberapa sheet
+       sekaligus per "gelombang" kecil (BATCH_SIZE), bukan semuanya bareng. */
+    const BATCH_SIZE = 4;
+    for(let i=0; i<uniqueSheetNames.length; i+=BATCH_SIZE){
+      const batch = uniqueSheetNames.slice(i, i+BATCH_SIZE);
+      await Promise.all(batch.map(async (sheetName)=>{
+        const stepLabel = LOADER_STEPS[Math.min(done, LOADER_STEPS.length-1)];
+        setLoaderProgress((done/total)*90, stepLabel);
+        sheetResults[sheetName] = await fetchSheetByName(sheetName);
+        done++;
+        setLoaderProgress((done/total)*90, LOADER_STEPS[Math.min(done, LOADER_STEPS.length-1)]);
+      }));
+    }
   }
 
   let anySuccess = false;
@@ -1240,7 +1282,7 @@ async function loadAllData(){
     setConnStatus('demo');
   } else if(anySuccess){
     DEMO_MODE = false;
-    setConnStatus(FETCH_HAD_ERROR ? 'error' : 'live');
+    setConnStatus(FETCH_HAD_ERROR ? 'partial' : 'live', FAILED_SHEET_COUNT);
   } else {
     DEMO_MODE = true;
     setConnStatus('error');
@@ -1672,6 +1714,9 @@ async function startPreparationForUnit(unitId){
   }
 }
 async function advancePrepStage(prepId, unitId, toStatus, dateField, skipUndo){
+  if(prepActionBusy.has(prepId)) return false; // lagi diproses, abaikan klik tambahan
+  prepActionBusy.add(prepId);
+
   const prevRaw = DB.preparation.find(p=>pick(p,['Prep_ID'])===prepId);
   const prevStatus = prevRaw ? (pick(prevRaw,['Status_Preparation'])||'Belum Lengkap') : '?';
   const prevDateField = prevRaw ? pick(prevRaw,[dateField]) : '';
@@ -1682,7 +1727,9 @@ async function advancePrepStage(prepId, unitId, toStatus, dateField, skipUndo){
   /* OPTIMISTIC UPDATE: ubah data lokal + render tabelnya SEKARANG JUGA, sebelum nunggu
      server jawab. Ini yang bikin tombol & status langsung sinkron tanpa jeda - sebelumnya
      manualRefresh() jalan di belakang layar (tanpa await) sementara toast sudah muncul
-     duluan, jadi sempat kelihatan "belum sinkron" selama beberapa detik. */
+     duluan, jadi sempat kelihatan "belum sinkron" selama beberapa detik. Tombolnya sendiri
+     terkunci (lihat prepActionBusy) sampai server BENERAN konfirmasi, jadi klik buru-buru
+     nggak bisa numpuk jadi 2 perubahan status sekaligus. */
   if(prevRaw){
     prevRaw['Status_Preparation'] = toStatus;
     prevRaw[dateField] = data[dateField];
@@ -1691,6 +1738,7 @@ async function advancePrepStage(prepId, unitId, toStatus, dateField, skipUndo){
   }
 
   const result = await crudPost('updateRow', { sheet:'Preparation_Tracking', pk: prepId, data });
+  prepActionBusy.delete(prepId);
   if(result.success){
     logActivity('Update Status', `${unitId}: ${prevStatus} -> ${toStatus}`);
     if(toStatus==='Selesai'){
@@ -2341,6 +2389,10 @@ function setPrepViewTab(tab){
   renderPreparation();
 }
 let selectedPrepUnits = new Set(); // isinya sekarang Prep_ID (unik per baris), bukan Unit_ID
+/* Prep_ID mana yang lagi "diproses" (nunggu server konfirmasi) - dipakai buat KUNCI
+   tombol aksinya sementara, supaya kalau user nggak sabar klik-klik cepat sebelum data
+   beneran tersimpan, klik keduanya nggak nyangkut/numpuk jadi 2 perubahan status sekaligus. */
+let prepActionBusy = new Set();
 function togglePrepRow(prepId, checked){
   if(checked) selectedPrepUnits.add(prepId); else selectedPrepUnits.delete(prepId);
   updatePrepBulkBar();
@@ -2546,8 +2598,11 @@ function renderPreparation(){
   const stageIdx = prepStageIndex(r.status);
   const next = prepNextAction(r.status);
   let actionBtn;
+  const isBusy = prepActionBusy.has(r.prepId);
   if(r.status==='Selesai'){
     actionBtn = `<span class="pill green" style="white-space:nowrap">✓ Selesai</span>`;
+  } else if(isBusy){
+    actionBtn = `<button class="stage-btn" disabled style="font-size:11.5px;padding:6px 10px;white-space:nowrap;border-radius:8px;opacity:.6;cursor:wait;background:var(--text-400);">⏳ Menyimpan...</button>`;
   } else if(next){
     actionBtn = `<button class="stage-btn ${next.cls}" style="font-size:11.5px;padding:6px 10px;white-space:nowrap;border-radius:8px;cursor:pointer;" onclick="advancePrepStage('${escJs(r.prepId)}','${escJs(r.unitId)}','${escJs(next.to)}','${next.field}')">${next.label}</button>`;
   } else {
