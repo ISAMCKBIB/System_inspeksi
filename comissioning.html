@@ -1235,7 +1235,26 @@ function hideAppLoader(){
   }, 250);
 }
 
-async function loadAllData(){
+/* Sheet yang PALING PENTING buat Dashboard tampil pertama kali - dimuat duluan dan
+   DITUNGGU. Sheet lainnya (Users, Export_History, Photo_Log, dll - yang cuma kepake
+   di halaman tertentu, jarang dibuka pertama kali) dimuat BELAKANGAN di latar
+   belakang, TANPA bikin user nunggu. Ini yang bikin dashboard kelihatan cepat muncul,
+   walau totalnya nyambung ke 16 sheet sekaligus. */
+const PRIORITY_SHEET_KEYS = ['masterUnit','jenisUnit','area','commissioning','preparation'];
+
+async function fetchSheetsBatched_(sheetNames, batchSize, onEach){
+  const results = {};
+  for(let i=0; i<sheetNames.length; i+=batchSize){
+    const batch = sheetNames.slice(i, i+batchSize);
+    await Promise.all(batch.map(async (sheetName)=>{
+      results[sheetName] = await fetchSheetByName(sheetName);
+      if(onEach) onEach();
+    }));
+  }
+  return results;
+}
+
+async function loadAllData(quickStart){
   setConnStatus('loading');
   FETCH_HAD_ERROR = false;
   FAILED_SHEET_COUNT = 0;
@@ -1243,35 +1262,38 @@ async function loadAllData(){
   const isConfigured = CONFIG.API_URL && !CONFIG.API_URL.startsWith("PASTE_");
 
   // Kumpulkan NAMA SHEET yang unik dulu -> beberapa key (mis. commissioning & expired)
-  // memakai sheet Google Sheets yang sama, jadi cukup di-fetch SEKALI saja per sheet
-  // supaya tidak membebani Apps Script dengan request duplikat yang menyebabkan timeout.
+  // memakai sheet Google Sheets yang sama, jadi cukup di-fetch SEKALI saja per sheet.
   const uniqueSheetNames = [...new Set(keys.map(k => CONFIG.SCRIPTS[k].sheet))];
-  const total = uniqueSheetNames.length;
-  let done = 0;
+  const prioritySheetNames = quickStart
+    ? [...new Set(PRIORITY_SHEET_KEYS.map(k=>CONFIG.SCRIPTS[k].sheet))]
+    : uniqueSheetNames;
+  const backgroundSheetNames = quickStart
+    ? uniqueSheetNames.filter(s=>!prioritySheetNames.includes(s))
+    : [];
 
-  const sheetResults = {};
+  const total = prioritySheetNames.length;
+  let done = 0;
+  const BATCH_SIZE = 6; // sempat diturunkan ke 4 karena diduga soal concurrency, tapi
+                        // ternyata akar masalahnya beda (lihat catatan di fetchSheetByName) -
+                        // jadi dinaikkan lagi biar nggak lebih lambat dari perlunya.
+
+  let sheetResults = {};
   if(isConfigured){
-    /* PENTING: JANGAN tembak semua sheet sekaligus bersamaan (Promise.all polos) -
-       kalau sheetnya banyak (sekarang 16+), itu bisa MELEBIHI batas jumlah eksekusi
-       bersamaan yang diizinkan Google Apps Script, bikin SEMUA request gagal 404
-       serentak (persis kayak yang kejadian). Solusinya: proses beberapa sheet
-       sekaligus per "gelombang" kecil (BATCH_SIZE), bukan semuanya bareng. */
-    const BATCH_SIZE = 4;
-    for(let i=0; i<uniqueSheetNames.length; i+=BATCH_SIZE){
-      const batch = uniqueSheetNames.slice(i, i+BATCH_SIZE);
-      await Promise.all(batch.map(async (sheetName)=>{
-        const stepLabel = LOADER_STEPS[Math.min(done, LOADER_STEPS.length-1)];
-        setLoaderProgress((done/total)*90, stepLabel);
-        sheetResults[sheetName] = await fetchSheetByName(sheetName);
-        done++;
-        setLoaderProgress((done/total)*90, LOADER_STEPS[Math.min(done, LOADER_STEPS.length-1)]);
-      }));
-    }
+    sheetResults = await fetchSheetsBatched_(prioritySheetNames, BATCH_SIZE, ()=>{
+      done++;
+      setLoaderProgress((done/total)*90, LOADER_STEPS[Math.min(done, LOADER_STEPS.length-1)]);
+    });
   }
 
   let anySuccess = false;
   keys.forEach((k)=>{
     const sheetName = CONFIG.SCRIPTS[k].sheet;
+    if(quickStart && backgroundSheetNames.includes(sheetName)){
+      // Belum dimuat (bagian background) - pakai data demo dulu sebagai placeholder,
+      // nanti otomatis ke-timpa data asli begitu background fetch selesai.
+      if(DB[k]===undefined) DB[k] = DEMO_DATA[k];
+      return;
+    }
     const data = sheetResults[sheetName];
     if(data !== undefined && data !== null){ anySuccess = true; }
     DB[k] = (data !== undefined && data !== null) ? data : DEMO_DATA[k];
@@ -1286,6 +1308,24 @@ async function loadAllData(){
   } else {
     DEMO_MODE = true;
     setConnStatus('error');
+  }
+
+  // Susulan: muat sisa sheet (yang jarang kepake pas pertama buka) di LATAR BELAKANG,
+  // tanpa bikin loading screen nunggu ini. Begitu selesai, DB langsung ke-update diam-diam.
+  if(quickStart && isConfigured && backgroundSheetNames.length){
+    fetchSheetsBatched_(backgroundSheetNames, BATCH_SIZE).then(bgResults=>{
+      keys.forEach(k=>{
+        const sheetName = CONFIG.SCRIPTS[k].sheet;
+        if(!backgroundSheetNames.includes(sheetName)) return;
+        const data = bgResults[sheetName];
+        if(data !== undefined && data !== null){ DB[k] = data; }
+      });
+      console.log('Data latar belakang (sheet sekunder) selesai dimuat.');
+      // Kalau user kebetulan udah pindah ke halaman yang butuh data ini SEBELUM selesai
+      // dimuat (misal User Management), refresh otomatis biar nggak nyangkut nampilin
+      // data demo/placeholder - tanpa user perlu klik refresh manual.
+      if(currentPageKey) renderPage(currentPageKey);
+    });
   }
 
   /* DATA TRUST: catat kapan terakhir data ditarik, supaya admin tahu data segar atau basi */
@@ -4150,7 +4190,7 @@ function updateNotif(){
 ===================================================================== */
 (async function init(){
   applySavedTheme();
-  await loadAllData();
+  await loadAllData(true); // quickStart: muat sheet penting dulu, sisanya nyusul di background
   /* DB.unitTypes murni referensi lokal (pilihan icon), TIDAK tersambung ke Google Sheets manapun.
      Diinisialisasi terpisah di sini supaya halaman Pengaturan > Umum tidak crash. */
   if(!DB.unitTypes) DB.unitTypes = DEMO_DATA.unitTypes.slice();
