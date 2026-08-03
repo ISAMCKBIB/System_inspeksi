@@ -1270,7 +1270,7 @@ async function loadAllData(){
     const hh = String(now.getHours()).padStart(2,'0');
     const mm = String(now.getMinutes()).padStart(2,'0');
     lastUpdatedEl.innerText = '🕓 Update ' + hh + ':' + mm;
-    lastUpdatedEl.title = 'Data terakhir ditarik dari spreadsheet pukul ' + hh + ':' + mm + ' WIB';
+    lastUpdatedEl.title = 'Data terakhir ditarik dari spreadsheet pukul ' + hh + ':' + mm + ' WITA';
   }
 
   setLoaderProgress(100, "Menyelesaikan");
@@ -1448,8 +1448,8 @@ const DEMO_DATA = {
   reminderSettings: {
     autoReminder:true,
     status:"Aktif",
-    terakhirDikirim:"22 Jul 2026 08:00 WIB",
-    berikutnya:"23 Jul 2026 08:00 WIB",
+    terakhirDikirim:"22 Jul 2026 08:00 WITA",
+    berikutnya:"23 Jul 2026 08:00 WITA",
     jadwal:[
       {label:"H-90 Hari",checked:true,value:90},
       {label:"H-60 Hari",checked:true,value:60},
@@ -1473,10 +1473,10 @@ const DEMO_DATA = {
       {nama:"Admin Commissioning",role:"Admin",email:"admin.commissioning@ck.co.id",checked:true}
     ],
     expiredReminder:true,
-    jadwalPengiriman:[{label:"08:00 WIB",checked:true},{label:"13:00 WIB",checked:true},{label:"16:00 WIB",checked:true}],
+    jadwalPengiriman:[{label:"08:00 WITA",checked:true},{label:"13:00 WITA",checked:true},{label:"16:00 WITA",checked:true}],
     customizeTime:"18:00",
     customizeOn:false,
-    summary:{totalTerkirim:145,berhasil:144,berhasilPct:99.3,gagal:1,gagalPct:0.7,lastSend:"08:00 WIB",lastSendDate:"22 Jul 2026"},
+    summary:{totalTerkirim:145,berhasil:144,berhasilPct:99.3,gagal:1,gagalPct:0.7,lastSend:"08:00 WITA",lastSendDate:"22 Jul 2026"},
     escalation:[
       {range:"H-30 s/d H-14", target:"PIC", note:"Menerima reminder"},
       {range:"H-7 s/d H-1", target:"PIC + Supervisor Area", note:"Menerima reminder"},
@@ -1927,7 +1927,7 @@ function updateClock(){
   const now = new Date();
   const months=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
   document.getElementById('tbDate').innerText = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-  document.getElementById('tbTime').innerText = now.toTimeString().slice(0,5)+" WIB";
+  document.getElementById('tbTime').innerText = now.toTimeString().slice(0,5)+" WITA";
 }
 setInterval(updateClock,1000*30); updateClock();
 
