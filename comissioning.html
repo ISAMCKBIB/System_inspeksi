@@ -221,6 +221,14 @@ tbody tr:hover{ background:var(--row-hover-bg); }
 .cfg-banner b{cursor:pointer; color:var(--blue-600); text-decoration:underline;}
 
 .page{ display:none; }
+.page.active{ display:block; animation:page-fade-in .3s ease; }
+@keyframes page-fade-in{
+  from{ opacity:0; transform:translateY(6px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+@media (prefers-reduced-motion: reduce){
+  .page.active{ animation:none; }
+}
 .page.active{ display:block; }
 
 ::-webkit-scrollbar{ height:8px; width:8px;}
@@ -239,7 +247,8 @@ tbody tr:hover{ background:var(--row-hover-bg); }
 .check-badge.yes{ background:var(--green-bg); color:var(--green);}
 .check-badge.no{ background:var(--red-bg); color:var(--red);}
 .progress-track{ background:#eef0f5; height:6px; border-radius:4px; width:80px; overflow:hidden;}
-.progress-fill{ height:100%; border-radius:4px; background:var(--blue-600);}
+.progress-fill{ height:100%; border-radius:4px; background:var(--blue-600); width:var(--fill-w,0); animation:fill-bar .7s ease .3s backwards; }
+@keyframes fill-bar{ from{ width:0; } to{ width:var(--fill-w,0); } }
 .progress-pct{ font-size:11.5px; color:var(--text-600); margin-bottom:4px; display:block;}
 
 /* ===== SETTINGS / PENGATURAN ===== */
@@ -492,8 +501,10 @@ tbody tr:hover{ background:var(--row-hover-bg); }
 .need-prep-scroll::-webkit-scrollbar{ width:6px; }
 .need-prep-scroll::-webkit-scrollbar-thumb{ background:rgba(0,0,0,.2); border-radius:4px; }
 
-.jenis-card{ flex:1; min-width:130px; background:var(--gray-bg); border-radius:10px; padding:12px 14px; transition:var(--transition-smooth); }
+.jenis-card{ flex:1; min-width:130px; background:var(--gray-bg); border-radius:10px; padding:12px 14px; transition:var(--transition-smooth); animation:card-fade-in .4s ease backwards; }
 .jenis-card:hover{ transform:translateY(-2px); box-shadow:0 6px 16px rgba(16,24,64,.08); }
+@keyframes card-fade-in{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+.row-enter{ animation:card-fade-in .35s ease backwards; }
 .jenis-card .jc-num{ font-size:20px; font-weight:800; }
 .jenis-card .jc-lb{ font-size:11px; color:var(--text-600); margin:2px 0 8px; }
 .jenis-card .jc-pct{ font-size:10.5px; color:var(--text-400); margin-top:4px; }
@@ -644,6 +655,9 @@ tbody tr:hover{ background:var(--row-hover-bg); }
   .stat-card, .panel, .btn, .jenis-card, .nav-item, tbody tr{ transition:none !important; }
   .stat-card:hover, .jenis-card:hover, .btn:hover{ transform:none !important; }
   .forecast-bar{ animation:none !important; height:var(--bar-h) !important; }
+  .jenis-card{ animation:none !important; }
+  .row-enter{ animation:none !important; }
+  .progress-fill{ animation:none !important; width:var(--fill-w,0) !important; }
 }
 
 /* Bar grafik Proyeksi Expired tumbuh dari 0 ke tinggi aslinya, satu-satu berurutan
@@ -798,8 +812,8 @@ tbody tr:hover{ background:var(--row-hover-bg); }
       <div class="tb-icon-btn" id="themeToggleBtn" title="Ganti tampilan gelap/terang" onclick="toggleTheme()" style="cursor:pointer">🌙</div>
       <div class="tb-icon-btn" title="Lihat unit Expired &amp; Near Expired" onclick="goToCommissioningFiltered('Expired')" style="cursor:pointer">🔔<span class="badge-dot" id="notifCount">0</span></div>
       <div class="user-chip">
-        <div class="avatar" id="userChipAvatar">A</div>
-        <div class="un"><b id="userChipName">Abdul Azis</b><small id="userChipRole">Administrator</small></div>
+        <div class="avatar">A</div>
+        <div class="un"><b>Abdul Azis</b><small>Administrator</small></div>
       </div>
     </div>
 
@@ -1135,38 +1149,7 @@ function markRowForFlash(key){
 }
 let DB = {};
 let FETCH_HAD_ERROR = false;
-let CURRENT_USER_NAME = 'Abdul Azis (Admin)'; // fallback kalau tidak ada session login (dipakai untuk mencatat siapa yang melakukan perubahan di Activity Log)
-
-/* ── Sinkronisasi user login (msm_session) ──
-   Sama seperti dashboard.html: setelah login di index.html, data user disimpan di
-   localStorage 'msm_session'. Sebelumnya file ini tidak membaca session itu sama sekali,
-   sehingga header selalu menampilkan nama dummy "Abdul Azis" walau yang login user lain.
-   Fungsi ini membaca session yang sama dan menyinkronkan nama/role di chip header + CURRENT_USER_NAME. */
-function syncLoggedInUser(){
-  try{
-    const raw = localStorage.getItem('msm_session') || sessionStorage.getItem('msm_session');
-    if(!raw) return;
-    const s = JSON.parse(raw);
-    if(!s || !s.nama) return;
-
-    const roleLabel = s.role === 'ADMIN' ? 'Administrator'
-                     : s.role === 'PIC'   ? 'PIC'
-                     : s.role === 'VIEWER'? 'Viewer'
-                     : (s.role || 'User');
-
-    CURRENT_USER_NAME = `${s.nama} (${roleLabel})`;
-
-    const nameEl = document.getElementById('userChipName');
-    const roleEl = document.getElementById('userChipRole');
-    const avatarEl = document.getElementById('userChipAvatar');
-    if(nameEl) nameEl.textContent = s.nama;
-    if(roleEl) roleEl.textContent = roleLabel;
-    if(avatarEl) avatarEl.textContent = s.nama.trim().charAt(0).toUpperCase() || 'U';
-  }catch(e){
-    console.warn('syncLoggedInUser error:', e);
-  }
-}
-syncLoggedInUser();
+let CURRENT_USER_NAME = 'Abdul Azis (Admin)'; // dipakai untuk mencatat siapa yang melakukan perubahan di Activity Log
 
 async function fetchSheetByName(sheetName, timeoutMs){
   const controller = new AbortController();
@@ -1270,7 +1253,7 @@ async function loadAllData(){
     const hh = String(now.getHours()).padStart(2,'0');
     const mm = String(now.getMinutes()).padStart(2,'0');
     lastUpdatedEl.innerText = '🕓 Update ' + hh + ':' + mm;
-    lastUpdatedEl.title = 'Data terakhir ditarik dari spreadsheet pukul ' + hh + ':' + mm + ' WITA';
+    lastUpdatedEl.title = 'Data terakhir ditarik dari spreadsheet pukul ' + hh + ':' + mm + ' WIB';
   }
 
   setLoaderProgress(100, "Menyelesaikan");
@@ -1448,8 +1431,8 @@ const DEMO_DATA = {
   reminderSettings: {
     autoReminder:true,
     status:"Aktif",
-    terakhirDikirim:"22 Jul 2026 08:00 WITA",
-    berikutnya:"23 Jul 2026 08:00 WITA",
+    terakhirDikirim:"22 Jul 2026 08:00 WIB",
+    berikutnya:"23 Jul 2026 08:00 WIB",
     jadwal:[
       {label:"H-90 Hari",checked:true,value:90},
       {label:"H-60 Hari",checked:true,value:60},
@@ -1473,10 +1456,10 @@ const DEMO_DATA = {
       {nama:"Admin Commissioning",role:"Admin",email:"admin.commissioning@ck.co.id",checked:true}
     ],
     expiredReminder:true,
-    jadwalPengiriman:[{label:"08:00 WITA",checked:true},{label:"13:00 WITA",checked:true},{label:"16:00 WITA",checked:true}],
+    jadwalPengiriman:[{label:"08:00 WIB",checked:true},{label:"13:00 WIB",checked:true},{label:"16:00 WIB",checked:true}],
     customizeTime:"18:00",
     customizeOn:false,
-    summary:{totalTerkirim:145,berhasil:144,berhasilPct:99.3,gagal:1,gagalPct:0.7,lastSend:"08:00 WITA",lastSendDate:"22 Jul 2026"},
+    summary:{totalTerkirim:145,berhasil:144,berhasilPct:99.3,gagal:1,gagalPct:0.7,lastSend:"08:00 WIB",lastSendDate:"22 Jul 2026"},
     escalation:[
       {range:"H-30 s/d H-14", target:"PIC", note:"Menerima reminder"},
       {range:"H-7 s/d H-1", target:"PIC + Supervisor Area", note:"Menerima reminder"},
@@ -1805,11 +1788,27 @@ function buildPagination(containerId, total, perPage, current, onPage){
 function exportTableCSV(tableId, filename){
   const table = document.getElementById(tableId);
   let csv = [];
+  // Baris pertama "sep=;" itu instruksi khusus yang dikenali Excel - maksa dia pakai
+  // titik-koma sebagai pemisah kolom, apapun setting bahasa/regional Excel-nya (Excel
+  // Indonesia defaultnya baca CSV pakai ";", bukan ",", makanya sebelumnya numpuk 1 kolom).
+  csv.push('sep=;');
   table.querySelectorAll('tr').forEach(tr=>{
-    const row = [...tr.children].map(td => `"${td.innerText.replace(/"/g,'""')}"`);
-    csv.push(row.join(','));
+    const row = [...tr.children].map(td=>{
+      // Kalau ada data-export (versi teks bersih khusus buat export), pakai itu -
+      // kalau nggak ada, baru ambil dari innerText (tapi dirapikan dulu).
+      let text = td.dataset.export !== undefined ? td.dataset.export : td.innerText;
+      text = text
+        .replace(/([a-z])([A-Z])/g, '$1 $2') // pisahin kata yang numpuk tanpa spasi (misal dari stepper)
+        .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/gu, '') // buang emoji
+        .replace(/\s+/g, ' ')
+        .trim();
+      return `"${text.replace(/"/g,'""')}"`;
+    });
+    csv.push(row.join(';'));
   });
-  const blob = new Blob([csv.join('\n')], {type:'text/csv;charset=utf-8;'});
+  // \uFEFF di depan = UTF-8 BOM, biar Excel (termasuk versi Indonesia) otomatis kenali
+  // file ini UTF-8 dan nggak nampilin karakter aneh buat huruf/simbol non-standar.
+  const blob = new Blob(['\uFEFF' + csv.join('\r\n')], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = filename + '.csv'; a.click();
@@ -1927,7 +1926,7 @@ function updateClock(){
   const now = new Date();
   const months=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
   document.getElementById('tbDate').innerText = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-  document.getElementById('tbTime').innerText = now.toTimeString().slice(0,5)+" WITA";
+  document.getElementById('tbTime').innerText = now.toTimeString().slice(0,5)+" WIB";
 }
 setInterval(updateClock,1000*30); updateClock();
 
@@ -1965,7 +1964,12 @@ function renderDashboard(){
   const prepRows = filterIds ? DB.preparation.filter(p=>filterIds.has(pick(p,['Unit_ID (FK)','Unit_ID']))) : DB.preparation;
 
   const total = muRows.length;
-  const active = muRows.filter(m=>isActiveStatus(pick(m,['Status','status']))).length;
+  /* PENTING: "Active" di sini artinya status COMMISSIONING-nya "Aktif" (konsisten sama
+     Near Expired/Expired di sebelahnya, yang juga dari Commissioning). SEBELUMNYA ini
+     salah baca dari status Master_Unit (status OPERASIONAL fisik unit - konsep beda sama
+     sekali), makanya kelihatan aneh "Active 965 (100%)" bareng "Near Expired 150" padahal
+     harusnya nggak mungkin dua-duanya 100% kalau emang dari sumber yang sama. */
+  const active = expiredRows.filter(e=>isActiveStatus(pick(e,['Status','status']))).length;
   const nearExp = expiredRows.filter(e=>String(pick(e,['Status','status'])||'').toLowerCase().includes('near')).length;
   const expired = expiredRows.filter(e=>{
     const s = String(pick(e,['Status','status'])||'').toLowerCase();
@@ -2083,12 +2087,12 @@ function renderDashboard(){
     const activeJ = DB.masterUnit.filter(u=>pick(u,['Jenis_Unit'])===jenis && isActiveStatus(pick(u,['Status']))).length;
     return { jenis, total: totalJ, active: activeJ };
   }).filter(j=>j.total>0).sort((a,b)=>b.total-a.total);
-  document.getElementById('dashJenisBreakdown').innerHTML = jenisBreakdown.length ? jenisBreakdown.map(j=>`
-    <div class="jenis-card">
+  document.getElementById('dashJenisBreakdown').innerHTML = jenisBreakdown.length ? jenisBreakdown.map((j,i)=>`
+    <div class="jenis-card" style="animation-delay:${i*60}ms">
       <div style="margin-bottom:4px;">${iconHtmlForJenis(j.jenis)}</div>
       <div class="jc-num">${j.total}</div>
       <div class="jc-lb">${j.jenis}</div>
-      <div class="progress-track"><div class="progress-fill" style="width:${pct(j.active,j.total)}%"></div></div>
+      <div class="progress-track"><div class="progress-fill" style="--fill-w:${pct(j.active,j.total)}%"></div></div>
       <div class="jc-pct">${pct(j.active,j.total)}% aktif (${j.active}/${j.total})</div>
     </div>`).join('') : `<div class="empty-state" style="padding:16px 0;">Belum ada data jenis unit</div>`;
 
@@ -2185,7 +2189,7 @@ function renderJenisUnit(){
     const totalUnit = DB.masterUnit.filter(u=>pick(u,['Jenis_Unit'])===jenis).length;
     const aktifUnit = DB.masterUnit.filter(u=>pick(u,['Jenis_Unit'])===jenis && isActiveStatus(pick(u,['Status']))).length;
     const nonAktifUnit = totalUnit - aktifUnit;
-    return `<tr><td>${i+1}</td><td class="unit-id">${guessIconForJenis(jenis)} ${jenis}</td>
+    return `<tr class="row-enter" style="animation-delay:${i*35}ms"><td>${i+1}</td><td class="unit-id" style="display:flex;align-items:center;gap:8px;">${iconHtmlForJenis(jenis)} ${jenis}</td>
     <td>${totalUnit}</td><td>${aktifUnit}</td><td>${nonAktifUnit}</td></tr>`;
   }).join('') || `<tr><td colspan="5" class="empty-state">Belum ada data jenis unit</td></tr>`;
 }
@@ -2566,7 +2570,7 @@ function renderPreparation(){
       <span class="progress-pct">${Math.round(progress)}%</span>
       <div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div></div>
     </td>
-    <td>${prepMiniStepper(r.status)}</td>
+    <td data-export="${escJs(r.status)}">${prepMiniStepper(r.status)}</td>
     <td>${pillPrep(r.status)}</td>
     <td>${pillPrioritas(r.prioritas)}</td>
     <td>${r.hari} Hari</td>
@@ -3593,6 +3597,28 @@ function toggleJadwalPengiriman(idx){
   DB.reminderSettings.jadwalPengiriman[idx].checked = !DB.reminderSettings.jadwalPengiriman[idx].checked;
   renderSettingsReminder();
 }
+async function sendTestReminderEmail(){
+  const adminPic = DB.picReminder.find(p=>pick(p,['Role'])==='Administrator');
+  const defaultEmail = adminPic ? pick(adminPic,['Email']) : '';
+  const email = prompt('Kirim email test ke alamat mana?', defaultEmail);
+  if(!email) return;
+  showSaveToast('⏳ Mengirim email test ke '+email+'...');
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'sendTestReminder', payload:{ email } })
+    });
+    const json = await res.json();
+    if(json.success){
+      showSaveToast('✓ '+json.message);
+    }else{
+      showSaveToast('⚠ Gagal: '+(json.message||'Terjadi kesalahan'), true);
+    }
+  }catch(err){
+    showSaveToast('⚠ Gagal kirim - Code.gs belum punya action "sendTestReminder"? Cek lagi patch-nya.', true);
+  }
+}
 function saveReminderSettings(){
   alert('Jadwal & channel reminder tersimpan (mode demo - belum tersambung ke spreadsheet).\n\nCatatan: daftar Penerima Reminder diambil dari sheet Master_PIC_Reminder (real). Centang/lepas centangnya disimpan di browser ini saja, karena sheet-nya belum punya kolom Status.');
 }
@@ -3665,7 +3691,7 @@ function renderSettingsReminder(){
       <textarea class="reminder-template" id="reminderTemplate">${rs.template}</textarea>
       <div style="display:flex;gap:10px;margin-top:12px;justify-content:flex-end;">
         <button class="btn btn-outline" onclick="alert('Preview:\\n\\n'+document.getElementById('reminderTemplate').value)">👁 Preview</button>
-        <button class="btn btn-primary" onclick="alert('Test reminder terkirim ke channel yang aktif (demo).')">📨 Kirim Test</button>
+        <button class="btn btn-primary" onclick="sendTestReminderEmail()">📨 Kirim Test</button>
       </div>
     </div>`;
 
@@ -3855,9 +3881,12 @@ function renderLaporan(){
     <div class="export-card ${selectedLaporanType===c.key?'sel':''}" onclick="selectedLaporanType='${c.key}';renderLaporan()">
       <div class="t">${c.t}</div><div class="d">${c.d}</div><div class="chk">✓</div></div>`).join('');
 
-  /* Terapkan filter Site & Status (kalau dipilih) ke data Commissioning yang jadi basis laporan */
+  /* Terapkan filter Site, Status, DAN Rentang Tanggal (kalau dipilih) ke data Commissioning
+     yang jadi basis laporan. Rentang tanggal berdasarkan Tanggal_Terbit. */
   const siteFilter = document.getElementById('lapSite').value;
   const statusFilter = document.getElementById('lapStatus').value;
+  const startFilter = document.getElementById('lapStart').value; // format YYYY-MM-DD dari <input type="date">
+  const endFilter = document.getElementById('lapEnd').value;
   let comRows = getCurrentCommissioning().filter(r=>{
     if(siteFilter!=='ALL' && pick(r,['Site'])!==siteFilter) return false;
     if(statusFilter){
@@ -3865,6 +3894,12 @@ function renderLaporan(){
       if(statusFilter==='Aktif' && !(s==='active'||s==='aktif')) return false;
       if(statusFilter==='Near Expired' && !s.includes('near')) return false;
       if(statusFilter==='Expired' && !(s.includes('expired') && !s.includes('near'))) return false;
+    }
+    if(startFilter || endFilter){
+      const tglTerbit = parseFlexibleDate(pick(r,['Tanggal_Terbit']));
+      if(!tglTerbit) return false; // tanggalnya nggak valid, nggak bisa dicek rentangnya
+      if(startFilter && tglTerbit < new Date(startFilter)) return false;
+      if(endFilter && tglTerbit > new Date(endFilter+'T23:59:59')) return false;
     }
     return true;
   });
