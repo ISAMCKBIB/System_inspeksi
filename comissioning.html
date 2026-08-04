@@ -1254,6 +1254,18 @@ async function fetchSheetsBatched_(sheetNames, batchSize, onEach){
   return results;
 }
 
+/* Refresh SATU sheet doang (bukan semua 16) - dipakai buat aksi yang cuma perlu
+   sinkron 1 tabel tertentu (misal abis update status Preparation, cuma perlu sinkron
+   ulang sheet Preparation_Tracking buat ambil nilai kolom formula kayak Hari_di_Preparation
+   - nggak perlu download ulang Commissioning, Users, Photo_Log, dan 13 sheet lain yang
+   nggak berhubungan sama sekali). Jauh lebih cepat daripada manualRefresh() penuh. */
+async function refreshSingleSheet_(dbKey){
+  const sheetName = CONFIG.SCRIPTS[dbKey].sheet;
+  const data = await fetchSheetByName(sheetName);
+  if(data !== undefined && data !== null) DB[dbKey] = data;
+  if(currentPageKey) renderPage(currentPageKey);
+}
+
 async function loadAllData(quickStart){
   setConnStatus('loading');
   FETCH_HAD_ERROR = false;
@@ -1273,9 +1285,13 @@ async function loadAllData(quickStart){
 
   const total = prioritySheetNames.length;
   let done = 0;
-  const BATCH_SIZE = 6; // sempat diturunkan ke 4 karena diduga soal concurrency, tapi
-                        // ternyata akar masalahnya beda (lihat catatan di fetchSheetByName) -
-                        // jadi dinaikkan lagi biar nggak lebih lambat dari perlunya.
+  const BATCH_SIZE = 2; // hasil tes langsung (baca Commissioning cuma 5.6 detik sendirian,
+                        // tapi lewat website bisa 45+ detik/gagal) membuktikan yang bikin
+                        // lambat itu ANTREAN di Google waktu banyak request nembak bersamaan
+                        // ke web app yang SAMA, bukan lambatnya baca datanya sendiri. Jadi
+                        // sengaja dibikin lebih konservatif lagi - 2 sekaligus - biar nggak
+                        // numpuk antrean. Total waktu muat jadi lebih lama, tapi jauh lebih
+                        // STABIL (nggak ada lagi gagal 404/timeout serentak yang bikin macet).
 
   let sheetResults = {};
   if(isConfigured){
@@ -1747,7 +1763,7 @@ async function startPreparationForUnit(unitId){
     DB.preparation.push(data);
     document.getElementById('need-prep-row-'+unitId)?.remove();
     renderPreparation();
-    manualRefresh(); // tetap refresh penuh di belakang layar untuk sinkron sama data server yang sebenarnya (termasuk kolom formula)
+    refreshSingleSheet_('preparation'); // cuma sinkron sheet Preparation_Tracking, bukan semua 16 sheet
   }else{
     showSaveToast('⚠ Gagal memulai preparation: '+(result.message||'Terjadi kesalahan'), true);
     if(btn){ btn.disabled = false; btn.innerText = '+ Mulai Preparation'; }
@@ -1799,7 +1815,7 @@ async function advancePrepStage(prepId, unitId, toStatus, dateField, skipUndo){
         logActivity('Batalkan Update Status', `${unitId}: kembali ke ${prevStatus}`);
         showSaveToast('↩️ Dibatalkan, kembali ke '+prevStatus);
       });
-      manualRefresh(); // tetap sinkron ke server di belakang layar (buat kolom formula, dll), tapi tampilan sudah benar duluan
+      refreshSingleSheet_('preparation'); // cuma sinkron sheet Preparation_Tracking (buat kolom formula, dll) - jauh lebih cepat dari refresh 16 sheet sekaligus
     }
     return true;
   }else{
@@ -2486,7 +2502,7 @@ async function bulkAdvancePrepStage(toStatus, dateField){
     if(result===true) successCount++;
   }
   selectedPrepUnits.clear();
-  manualRefresh();
+  refreshSingleSheet_('preparation');
   showSaveToast(`✓ ${successCount}/${prepIds.length} unit berhasil diperbarui ke ${toStatus}`);
 }
 function resetPrepFilters(){
@@ -3028,22 +3044,31 @@ function showUndoToast(msg, undoFn){
    Dipakai oleh Master Unit, Commissioning, dan User Management.
    Memanggil endpoint doPost Apps Script: action addRow / updateRow / deleteRow
 ===================================================================== */
-async function crudPost(action, payload){
+async function crudPost(action, payload, timeoutMs){
   if(!CONFIG.API_URL || CONFIG.API_URL.startsWith('PASTE_')){
     showSaveToast('⚠ Apps Script belum terhubung (mode demo) - perubahan tidak tersimpan ke spreadsheet', true);
     return { success:false, message:'Belum terhubung ke Apps Script (mode demo)' };
   }
+  // PENTING: kasih batas waktu (timeout) - tanpa ini, kalau server Apps Script lagi
+  // lambat/nggak respon sama sekali, tombol "Menyimpan..." bisa nyangkut SELAMANYA
+  // tanpa pernah dikasih tau gagal, karena fetch() polos nggak ada batas waktu bawaan.
+  const controller = new AbortController();
+  const to = setTimeout(()=> controller.abort(), timeoutMs || 30000);
   try{
     const res = await fetch(CONFIG.API_URL, {
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ action, payload })
+      body: JSON.stringify({ action, payload }),
+      signal: controller.signal
     });
     if(!res.ok) throw new Error('HTTP '+res.status);
     return await res.json();
   }catch(err){
     console.warn('crudPost error', action, err);
-    return { success:false, message: err.message };
+    const isTimeout = err.name === 'AbortError';
+    return { success:false, message: isTimeout ? 'Server terlalu lama merespons (lebih dari 30 detik) - kemungkinan Apps Script lagi lambat/sibuk. Coba lagi sebentar.' : err.message };
+  }finally{
+    clearTimeout(to);
   }
 }
 
@@ -3325,7 +3350,7 @@ function startInlineEdit(td){
       logActivity('Edit Inline', `${commId}: ${field} = "${newValue}"`);
       showSaveToast('✓ Tersimpan');
       markRowForFlash(commId);
-      manualRefresh();
+      refreshSingleSheet_('commissioning');
     }else{
       showSaveToast('⚠ Gagal simpan: '+(result.message||'Terjadi kesalahan'), true);
       renderCommissioning();
