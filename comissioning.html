@@ -976,7 +976,7 @@ tbody tr:hover{ background:var(--row-hover-bg); }
               <option>Belum Lengkap</option>
               <option>Waiting Admin</option>
               <option>Waiting History</option>
-              <option>Ready ZIP</option>
+              <option value="Ready ZIP">Dokumen Lengkap</option>
               <option>Diajukan</option>
               <option>Disetujui</option>
               <option>Waiting Sticker</option>
@@ -1832,7 +1832,7 @@ async function advancePrepStage(prepId, unitId, toStatus, dateField, skipUndo){
 
 function pillPrep(status){
   if(status==="Selesai") return `<span class="pill stage-4">✓ ${status}</span>`;
-  if(status==="Ready ZIP") return `<span class="pill green">${status}</span>`;
+  if(status==="Ready ZIP") return `<span class="pill green">Dokumen Lengkap</span>`;
   if(status==="Belum Lengkap") return `<span class="pill red">${status}</span>`;
   const next = prepNextAction(status);
   if(next) return `<span class="pill ${next.cls}">${status}</span>`;
@@ -2698,9 +2698,10 @@ function renderPreparation(){
 
   /* FUNNEL PROGRES TAHAP - isi ruang kosong bawah + kasih gambaran distribusi semua unit per tahap */
   const funnelStages = ['Belum Lengkap','Waiting Admin','Waiting History','Ready ZIP','Diajukan','Disetujui','Waiting Sticker','Selesai'];
+  const funnelLabels = { 'Ready ZIP':'Dokumen Lengkap' }; // istilah internal -> label yang ramah dibaca user
   document.getElementById('prepFunnel').innerHTML = funnelStages.map(s=>{
     const n = rows.filter(r=>r.status===s).length;
-    return `<div class="funnel-item"><div class="fn-num">${n}</div><div class="fn-lb">${s}</div></div>`;
+    return `<div class="funnel-item"><div class="fn-num">${n}</div><div class="fn-lb">${funnelLabels[s]||s}</div></div>`;
   }).join('');
 
   updatePrepBulkBar();
@@ -4052,7 +4053,7 @@ function renderLaporan(){
   } else if(selectedLaporanType==='preparation'){
     const prepStagesCount = ['Belum Lengkap','Waiting Admin','Waiting History','Ready ZIP','Diajukan','Disetujui','Waiting Sticker','Selesai'].map(s=>{
       const n = DB.preparation.filter(p=>(pick(p,['Status_Preparation'])||'Belum Lengkap')===s).length;
-      return {ket:s, jml:n, pct:pct(n,DB.preparation.length)};
+      return {ket: (s==='Ready ZIP' ? 'Dokumen Lengkap' : s), jml:n, pct:pct(n,DB.preparation.length)};
     });
     rowsDetail = prepStagesCount.map((r,i)=>`<tr><td>${i+1}</td><td>${r.ket}</td><td>${r.jml}</td><td>${r.pct}%</td></tr>`).join('');
   } else if(selectedLaporanType==='expired'){
