@@ -61,17 +61,18 @@ html[data-theme="dark"] .info-box{ background:#182544; border-color:#2c3e6b; col
 html[data-theme="dark"] .cfg-banner,
 html[data-theme="dark"] [style*="background:#fff8e6"]{ background:#3a2f0f !important; border-color:#5c4a1a !important; color:#e8cf7a !important; }
 *{box-sizing:border-box; margin:0; padding:0;}
+html, body{ height:100%; }
 body{
   font-family:'Segoe UI', Roboto, Arial, sans-serif;
   background:var(--gray-bg);
   color:var(--text-900);
   font-size:14px;
-  overflow-x:hidden; /* jaring pengaman: cegah seluruh halaman ikut geser ke samping kalau ada elemen lebar */
+  overflow:hidden; /* body sendiri nggak discroll - yang scroll cuma .content di bawah */
 }
 a{text-decoration:none; color:inherit;}
 
 /* ===== LAYOUT ===== */
-.app{ display:flex; min-height:100vh; }
+.app{ display:flex; height:100vh; }
 
 /* ===== SIDEBAR ===== */
 .sidebar{
@@ -109,11 +110,11 @@ a{text-decoration:none; color:inherit;}
 .back-btn{ display:flex; align-items:center; gap:8px; color:#c4cce9; font-size:13px; cursor:pointer;}
 
 /* ===== MAIN ===== */
-.main{ flex:1; min-width:0; display:flex; flex-direction:column;}
+.main{ flex:1; min-width:0; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
 .topbar{
   background:linear-gradient(90deg, var(--navy-900), var(--navy-700));
   color:#fff; padding:12px 22px; display:flex; align-items:center; gap:16px;
-  flex-wrap:wrap;
+  flex-wrap:wrap; flex:none; /* topbar nggak ikut menyusut/scroll - tingginya tetap */
 }
 .topbar .hamburger{ cursor:pointer; font-size:18px; padding:6px; }
 .topbar .titles{ margin-right:auto; }
@@ -133,7 +134,7 @@ a{text-decoration:none; color:inherit;}
 .user-chip .un b{ display:block; font-size:12.5px; }
 .user-chip .un small{ color:#a9b3d8; font-size:10.5px; }
 
-.content{ padding:20px 22px 40px; overflow-x:hidden; }
+.content{ padding:20px 22px 40px; overflow-x:hidden; overflow-y:auto; flex:1; min-height:0; }
 .breadcrumb{ font-size:12.5px; color:var(--text-400); margin-bottom:14px; }
 .breadcrumb b{ color:var(--text-900); }
 
@@ -2001,6 +2002,10 @@ function goToPage(key){
   document.getElementById('pageTitle').innerText = PAGE_META[key].title;
   document.getElementById('pageCrumb').innerHTML = PAGE_META[key].crumb;
   renderPage(key);
+  // .content sekarang area yang scroll (bukan body) - reset ke atas tiap pindah halaman,
+  // biar nggak "nyangkut" di posisi scroll halaman sebelumnya.
+  const contentEl = document.querySelector('.content');
+  if(contentEl) contentEl.scrollTop = 0;
 }
 function isMobileView(){ return window.innerWidth <= 900; }
 function closeMobileSidebar(){
@@ -2391,11 +2396,11 @@ function renderCommissioning(){
   const unitIdsWithCommissioning = new Set(DB.commissioning.map(c=>pick(c,['Unit_ID'])));
   const missingUnits = DB.masterUnit.filter(m=>!unitIdsWithCommissioning.has(pick(m,['Unit_ID'])));
   document.getElementById('missingCommissioningList').innerHTML = missingUnits.length
-    ? missingUnits.slice(0,10).map(m=>`
+    ? `<div style="max-height:280px;overflow-y:auto;">${missingUnits.map(m=>`
         <div class="alert-item" style="cursor:pointer" onclick="openCommissioningModal(null,false,'${escJs(pick(m,['Unit_ID']))}')">
           <div class="alert-ic" style="background:var(--red-bg);color:var(--red)">❗</div>
           <div><b>${pick(m,['Unit_ID'])}</b><br><small>${pick(m,['Model_Unit'])} — belum ada commissioning sama sekali, klik untuk isi</small></div>
-        </div>`).join('') + (missingUnits.length>10 ? `<div style="text-align:center;font-size:11.5px;color:var(--text-400);margin-top:8px;">+${missingUnits.length-10} unit lainnya</div>` : '')
+        </div>`).join('')}</div>`
     : `<div class="empty-state" style="padding:12px 0;">✅ Semua unit di Master Unit sudah punya data commissioning</div>`;
 
   /* REGISTRATION NO KOSONG - baris commissioning yang SUDAH ada tapi Registration_No-nya
@@ -2598,13 +2603,14 @@ function renderPreparation(){
   document.getElementById('needCommissioningPanel').innerHTML = needCommissioning.length ? `
     <div class="need-prep-panel" style="background:linear-gradient(135deg,#e8f4ff,#d6ebff);border-color:var(--blue-600);">
       <div class="np-title" style="color:var(--blue-600);">📝 ${needCommissioning.length} UNIT SUDAH SELESAI PREPARATION — BELUM ADA COMMISSIONING BARU</div>
-      ${needCommissioning.slice(0,8).map(n=>`
-        <div class="need-prep-row">
-          <b>${n.unitId}</b>
-          <span style="color:var(--text-400)">${n.site} / ${n.area} — selesai ${n.tanggalSelesai||'-'}</span>
-          <button class="btn btn-outline" style="margin-left:auto;font-size:11.5px;padding:6px 12px;" onclick="openCommissioningModal(null,false,'${escJs(n.unitId)}')">+ Input Commissioning Baru</button>
-        </div>`).join('')}
-      ${needCommissioning.length>8 ? `<div style="text-align:center;font-size:11.5px;color:var(--blue-600);margin-top:8px;">+${needCommissioning.length-8} unit lainnya</div>` : ''}
+      <div style="max-height:340px;overflow-y:auto;">
+        ${needCommissioning.map(n=>`
+          <div class="need-prep-row">
+            <b>${n.unitId}</b>
+            <span style="color:var(--text-400)">${n.site} / ${n.area} — selesai ${n.tanggalSelesai||'-'}</span>
+            <button class="btn btn-outline" style="margin-left:auto;font-size:11.5px;padding:6px 12px;" onclick="openCommissioningModal(null,false,'${escJs(n.unitId)}')">+ Input Commissioning Baru</button>
+          </div>`).join('')}
+      </div>
     </div>` : '';
 
   const total = rows.length;
