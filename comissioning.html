@@ -813,9 +813,9 @@ tbody tr:hover{ background:var(--row-hover-bg); }
       <div class="tb-icon-btn" id="themeToggleBtn" title="Ganti tampilan gelap/terang" onclick="toggleTheme()" style="cursor:pointer">🌙</div>
       <div class="tb-icon-btn" title="Lihat unit Expired &amp; Near Expired" onclick="goToCommissioningFiltered('Expired')" style="cursor:pointer">🔔<span class="badge-dot" id="notifCount">0</span></div>
       <div class="user-chip">
-        <div class="avatar">A</div>
-        <div class="un"><b>Abdul Azis</b><small>Administrator</small></div>
-      </div>
+  <div class="avatar" id="topUserAvatar">?</div>
+  <div class="un"><b id="topUserName">Memuat...</b><small id="topUserRole">-</small></div>
+</div>
     </div>
 
     <div class="content">
@@ -1151,7 +1151,35 @@ function markRowForFlash(key){
 let DB = {};
 let FETCH_HAD_ERROR = false;
 let FAILED_SHEET_COUNT = 0;
-let CURRENT_USER_NAME = 'Abdul Azis (Admin)'; // dipakai untuk mencatat siapa yang melakukan perubahan di Activity Log
+let CURRENT_USER_NAME = 'Pengguna'; // akan diganti otomatis oleh loadSessionUser()
+
+/* Ambil data user yang sedang login dari sesi yang sama dipakai dashboard.html
+   (localStorage/sessionStorage key: 'msm_session'), lalu terapkan ke topbar
+   supaya nama/role di sini SELALU sesuai akun yang login, bukan hardcoded. */
+function loadSessionUser(){
+  try{
+    const raw = localStorage.getItem('msm_session') || sessionStorage.getItem('msm_session');
+    if(!raw){
+      // Tidak ada sesi sama sekali -> lempar balik ke halaman login
+      window.location.href = 'index.html';
+      return;
+    }
+    const session = JSON.parse(raw);
+    const nama = session.nama || 'Pengguna';
+    const role = session.role || 'User';
+    CURRENT_USER_NAME = nama + ' (' + role + ')';
+
+    const avatarEl = document.getElementById('topUserAvatar');
+    const nameEl = document.getElementById('topUserName');
+    const roleEl = document.getElementById('topUserRole');
+    if(avatarEl) avatarEl.innerText = nama.charAt(0).toUpperCase();
+    if(nameEl) nameEl.innerText = nama;
+    if(roleEl) roleEl.innerText = role;
+  }catch(err){
+    console.warn('Gagal memuat sesi user, kembali ke login', err);
+    window.location.href = 'index.html';
+  }
+}
 
 function sleep_(ms){ return new Promise(r=>setTimeout(r,ms)); }
 /* Coba fetch 1x, kalau gagal TUNGGU SEBENTAR lalu coba 1x lagi sebelum benar-benar
@@ -4221,6 +4249,7 @@ function updateNotif(){
    INIT
 ===================================================================== */
 (async function init(){
+  loadSessionUser();
   applySavedTheme();
   await loadAllData(true); // quickStart: muat sheet penting dulu, sisanya nyusul di background
   /* DB.unitTypes murni referensi lokal (pilihan icon), TIDAK tersambung ke Google Sheets manapun.
