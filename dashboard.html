@@ -19,31 +19,31 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <style>
       :root {
-        /* ── Corporate Blue & White ── */
-        --primary: #1b4fd8; /* biru utama */
-        --primary-dark: #1338b0;
-        --primary-light: #eef3ff;
-        --secondary: #0ea5e9; /* biru muda accent */
-        --bg: #f0f4ff;
+        /* ── Disamakan dengan palet comissioning.html (navy/blue/orange) ── */
+        --primary: #1f4fd6; /* = comissioning --blue-600 */
+        --primary-dark: #10205c; /* = comissioning --navy-800 */
+        --primary-light: #eaf0ff; /* = comissioning .pill.blue bg */
+        --secondary: #2f6bff; /* = comissioning --blue-500 */
+        --bg: #f4f6fb; /* = comissioning --gray-bg */
         --surface: #ffffff;
-        --surface2: #f7f9ff;
-        --border: #d4dcef;
-        --text: #0f1a3c;
-        --muted: #5a6a8a;
-        --muted2: #8fa0be;
+        --surface2: #f9fbff; /* = comissioning --row-hover-bg */
+        --border: #e7ebf3; /* = comissioning --border */
+        --text: #101828; /* = comissioning --text-900 */
+        --muted: #4a5674; /* = comissioning --text-600 */
+        --muted2: #8a93ab; /* = comissioning --text-400 */
 
-        /* Status */
-        --green: #16a34a;
-        --green-bg: #f0fdf4;
-        --green-bd: #bbf7d0;
-        --red: #dc2626;
-        --red-bg: #fef2f2;
-        --red-bd: #fecaca;
-        --yellow: #d97706;
-        --yellow-bg: #fffbeb;
-        --yellow-bd: #fde68a;
-        --purple: #7c3aed;
-        --purple-bg: #f5f3ff;
+        /* Status - disamakan dengan comissioning.html */
+        --green: #1fa251;
+        --green-bg: #e8f8ee;
+        --green-bd: #bfe8cf;
+        --red: #e0473f;
+        --red-bg: #fdecec;
+        --red-bd: #f5c6c2;
+        --yellow: #f39c2b; /* = comissioning --orange */
+        --yellow-bg: #fef3e2; /* = comissioning --orange-bg */
+        --yellow-bd: #fbdba0;
+        --purple: #8b5cf6;
+        --purple-bg: #f1ebfe;
 
         /* Layout */
         --nav-h: 64px;
@@ -67,27 +67,27 @@
           color 0.2s ease;
       }
 
-      /* ── DARK MODE ── */
+      /* ── DARK MODE - disamakan dengan comissioning.html ── */
       [data-theme="dark"] {
-        --primary: #3b82f6;
-        --primary-dark: #2563eb;
-        --primary-light: #1e293b;
-        --secondary: #38bdf8;
-        --bg: #0f172a;
-        --surface: #1e293b;
-        --surface2: #18233a;
-        --border: #2d3b54;
-        --text: #e8edf5;
-        --muted: #94a3b8;
-        --muted2: #64748b;
+        --primary: #2f6bff; /* accent tetap terang di dark mode, seperti comissioning */
+        --primary-dark: #1f4fd6;
+        --primary-light: #182544; /* = comissioning .info-box dark bg */
+        --secondary: #5b8dff;
+        --bg: #0f1420; /* = comissioning --gray-bg dark */
+        --surface: #161c2c; /* = comissioning --surface dark */
+        --surface2: #1c2439; /* = comissioning --row-hover-bg dark */
+        --border: #2a3348; /* = comissioning --border dark */
+        --text: #eef1f8; /* = comissioning --text-900 dark */
+        --muted: #aab2c8; /* = comissioning --text-600 dark */
+        --muted2: #6b7590; /* = comissioning --text-400 dark */
 
-        --green-bg: #102a1c;
+        --green-bg: #123322;
         --green-bd: #1e5631;
-        --red-bg: #2a1414;
+        --red-bg: #3a1a1a;
         --red-bd: #5c2323;
-        --yellow-bg: #2a2210;
-        --yellow-bd: #5c4a18;
-        --purple-bg: #1e1832;
+        --yellow-bg: #3a2c14; /* = comissioning --orange-bg dark */
+        --yellow-bd: #5c4a1a;
+        --purple-bg: #241b3d;
       }
       [data-theme="dark"] .topbar-logo,
       [data-theme="dark"] .topbar-btn,
@@ -3104,7 +3104,7 @@
             <button
               onclick="exportAssetPDF()"
               style="
-                background: #dc2626;
+                background: var(--red);
                 color: #fff;
                 border: none;
                 border-radius: 8px;
@@ -7626,7 +7626,7 @@ NAV_ADMIN_SIDEBAR.forEach((n, i) => {
                   .join("")}
               </div>
               <button onclick="openSertModal('${a.asset_id}')"
-                style="width:100%;padding:8px;border-radius:8px;background:${isExpired ? "var(--red)" : "#d97706"};color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px">
+                style="width:100%;padding:8px;border-radius:8px;background:${isExpired ? "var(--red)" : "var(--yellow)"};color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px">
                 ✏️ Update Sertifikasi
               </button>
             </div>`
