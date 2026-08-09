@@ -2020,6 +2020,36 @@ function guessIconForJenis(jenisName){
   const match = ICON_LIBRARY.find(ic => ic.key!=='lainnya' && (n.includes(ic.key.replace(/_/g,' ')) || n.includes(ic.label.toLowerCase())));
   return match ? match.icon : '🚚';
 }
+function iconFor(key){
+  const f = ICON_LIBRARY.find(i=>i.key===key);
+  return f ? f.icon : "⋯";
+}
+/* Sama seperti guessIconForJenis, tapi coba tampilkan GAMBAR (dari folder icons/, misal
+   hasil download dari Flaticon) dulu - kalau gambarnya belum ada/gagal dimuat (404), otomatis
+   balik tampilin emoji seperti biasa. Disamakan persis dengan comissioning.html supaya
+   ikon yang tampil di monitoring selalu sama dengan yang di commissioning. */
+function iconHtmlForJenis(jenisName){
+  const n = String(jenisName||'').toLowerCase();
+  const match = ICON_LIBRARY.find(ic => ic.key!=='lainnya' && (n.includes(ic.key.replace(/_/g,' ')) || n.includes(ic.label.toLowerCase())));
+  const emojiFallback = match ? match.icon : '🚚';
+  const candidates = [];
+  if(jenisName) candidates.push(`icons/${jenisName}.png`);
+  if(match){ candidates.push(`icons/${match.label}.png`); candidates.push(`icons/${match.key}.png`); }
+  candidates.push(`icons/lainnya.png`);
+  const uid = 'icn'+Math.random().toString(36).slice(2,9);
+  window.__iconFallback = window.__iconFallback || {};
+  window.__iconFallback[uid] = { queue: candidates.slice(1).map(c=>encodeURI(c)), emoji: emojiFallback };
+  return `<img id="${uid}" src="${encodeURI(candidates[0])}" alt="icon" style="width:26px;height:26px;object-fit:contain;" onerror="tryNextIconSrc('${uid}', this)">`;
+}
+function tryNextIconSrc(uid, img){
+  const state = window.__iconFallback && window.__iconFallback[uid];
+  if(state && state.queue.length){
+    img.src = state.queue.shift();
+  } else {
+    img.outerHTML = `<span style="font-size:22px;line-height:1;">${state ? state.emoji : '🚚'}</span>`;
+    if(state) delete window.__iconFallback[uid];
+  }
+}
 
 let DEMO_MODE = true;
 function applySavedTheme(){
@@ -2313,12 +2343,29 @@ function renderDashboard(){
   const prepRows = DB.preparation || [];
 
   const total = muRows.length;
-  const active = muRows.filter(m=>isActiveStatus(pick(m,['Status','status']))).length;
-  const nearExp = expiredRows.filter(e=>String(pick(e,['Status','status'])||'').toLowerCase().includes('near')).length;
-  const expired = expiredRows.filter(e=>{
-    const s = String(pick(e,['Status','status'])||'').toLowerCase();
-    return s.includes('expired') && !s.includes('near');
-  }).length;
+  /* PENTING: 1 unit bisa punya SAMPAI 2 baris Commissioning (BIB & TIA sekaligus) -
+     jadi kalau dihitung per BARIS commissioning, angka Near Expired/Expired bisa lebih
+     besar dari jumlah unit fisiknya sendiri. Perbaikannya: kelompokkan dulu per UNIT
+     (bukan per baris), ambil status PALING PARAH dari unit itu (Expired paling parah,
+     baru Near Expired, baru Aktif) - jadi tiap unit fisik cuma dihitung SEKALI.
+     (Logic ini disamakan persis dengan comissioning.html supaya angkanya selalu match.) */
+  const statusByUnit = {};
+  const rankStatus = (s)=>{
+    s = String(s||'').toLowerCase();
+    if(s.includes('expired') && !s.includes('near')) return 3; // paling parah
+    if(s.includes('near')) return 2;
+    if(s==='active'||s==='aktif') return 1;
+    return 0;
+  };
+  expiredRows.forEach(e=>{
+    const uid = pick(e,['Unit_ID','unitId']);
+    const rank = rankStatus(pick(e,['Status','status']));
+    if(!statusByUnit[uid] || rank > statusByUnit[uid]) statusByUnit[uid] = rank;
+  });
+  const unitRanks = Object.values(statusByUnit);
+  const active = unitRanks.filter(r=>r===1).length;
+  const nearExp = unitRanks.filter(r=>r===2).length;
+  const expired = unitRanks.filter(r=>r===3).length;
   const waitingSticker = prepRows.filter(p=>pick(p,['Status_Preparation','status'])==='Waiting Sticker').length;
   const health = total? Math.round((active/total)*1000)/10 : 0;
 
@@ -2494,7 +2541,7 @@ function renderDashboard(){
   }).filter(j=>j.total>0).sort((a,b)=>b.total-a.total);
   document.getElementById('dashJenisBreakdown').innerHTML = jenisBreakdown.length ? jenisBreakdown.map(j=>`
     <div class="jenis-card">
-      <div style="margin-bottom:4px;font-size:22px;">${guessIconForJenis(j.jenis)}</div>
+      <div style="margin-bottom:4px;font-size:22px;">${iconHtmlForJenis(j.jenis)}</div>
       <div class="jc-num">${j.total}</div>
       <div class="jc-lb">${j.jenis}</div>
       <div class="progress-track"><div class="progress-fill" style="width:${pct(j.active,j.total)}%"></div></div>
