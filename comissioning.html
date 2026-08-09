@@ -510,6 +510,10 @@ tbody tr:hover{ background:var(--row-hover-bg); }
 .jenis-card .jc-lb{ font-size:11px; color:var(--text-600); margin:2px 0 8px; }
 .jenis-card .jc-pct{ font-size:10.5px; color:var(--text-400); margin-top:4px; }
 
+/* Elemen yang disembunyikan di Mode Read-Only (?readonly=1) - lihat READ_ONLY_MODE di JS */
+body.readonly-mode .ro-hide{ display:none !important; }
+body.readonly-mode .readonly-banner{ display:flex !important; }
+
 /* =====================================================================
    RESPONSIVE / MOBILE
 ===================================================================== */
@@ -775,24 +779,24 @@ tbody tr:hover{ background:var(--row-hover-bg); }
     <div class="nav-scroll">
       <div class="nav-item active" data-page="dashboard"><span class="ic">🏠</span><span class="nav-label">Dashboard</span></div>
 
-      <div class="group-title">DATA MASTER</div>
-      <div class="nav-item" data-page="masterUnit"><span class="ic">📋</span><span class="nav-label">Master Unit</span></div>
-      <div class="nav-item" data-page="jenisUnit"><span class="ic">🚚</span><span class="nav-label">Jenis Unit</span></div>
-      <div class="nav-item" data-page="area"><span class="ic">📍</span><span class="nav-label">Area</span></div>
+      <div class="group-title ro-hide">DATA MASTER</div>
+      <div class="nav-item ro-hide" data-page="masterUnit"><span class="ic">📋</span><span class="nav-label">Master Unit</span></div>
+      <div class="nav-item ro-hide" data-page="jenisUnit"><span class="ic">🚚</span><span class="nav-label">Jenis Unit</span></div>
+      <div class="nav-item ro-hide" data-page="area"><span class="ic">📍</span><span class="nav-label">Area</span></div>
 
       <div class="group-title">COMMISSIONING</div>
       <div class="nav-item" data-page="commissioning"><span class="ic">🗂️</span><span class="nav-label">Commissioning</span></div>
-      <div class="nav-item" data-page="preparation"><span class="ic">📝</span><span class="nav-label">Preparation</span></div>
+      <div class="nav-item ro-hide" data-page="preparation"><span class="ic">📝</span><span class="nav-label">Preparation</span></div>
 
-      <div class="group-title">REPORT</div>
-      <div class="nav-item" data-page="laporan"><span class="ic">📊</span><span class="nav-label">Laporan</span></div>
-      <div class="nav-item" data-page="exportData"><span class="ic">⬇️</span><span class="nav-label">Export Data</span></div>
+      <div class="group-title ro-hide">REPORT</div>
+      <div class="nav-item ro-hide" data-page="laporan"><span class="ic">📊</span><span class="nav-label">Laporan</span></div>
+      <div class="nav-item ro-hide" data-page="exportData"><span class="ic">⬇️</span><span class="nav-label">Export Data</span></div>
 
-      <div class="group-title">SETTINGS</div>
-      <div class="nav-item" data-page="userManagement"><span class="ic">👤</span><span class="nav-label">User Management</span></div>
-      <div class="nav-item" data-page="pengaturan"><span class="ic">⚙️</span><span class="nav-label">Pengaturan</span></div>
+      <div class="group-title ro-hide">SETTINGS</div>
+      <div class="nav-item ro-hide" data-page="userManagement"><span class="ic">👤</span><span class="nav-label">User Management</span></div>
+      <div class="nav-item ro-hide" data-page="pengaturan"><span class="ic">⚙️</span><span class="nav-label">Pengaturan</span></div>
     </div>
-    <div class="sidebar-footer">
+    <div class="sidebar-footer ro-hide">
       <div class="back-btn"><span>↩️</span><span>Kembali ke Fitur</span></div>
     </div>
   </div>
@@ -812,13 +816,20 @@ tbody tr:hover{ background:var(--row-hover-bg); }
       <div class="tb-icon-btn" id="refreshBtn" title="Refresh data dari spreadsheet" onclick="manualRefresh()" style="cursor:pointer">🔄</div>
       <div class="tb-icon-btn" id="themeToggleBtn" title="Ganti tampilan gelap/terang" onclick="toggleTheme()" style="cursor:pointer">🌙</div>
       <div class="tb-icon-btn" title="Lihat unit Expired &amp; Near Expired" onclick="goToCommissioningFiltered('Expired')" style="cursor:pointer">🔔<span class="badge-dot" id="notifCount">0</span></div>
-      <div class="user-chip">
-  <div class="avatar" id="topUserAvatar">?</div>
-  <div class="un"><b id="topUserName">Memuat...</b><small id="topUserRole">-</small></div>
-</div>
+      <div class="user-chip ro-hide">
+        <div class="avatar">A</div>
+        <div class="un"><b>Abdul Azis</b><small>Administrator</small></div>
+      </div>
+      <div class="user-chip" id="viewerChip" style="display:none;">
+        <div class="avatar" style="background:var(--green)">V</div>
+        <div class="un"><b>Viewer</b><small>Read Only</small></div>
+      </div>
     </div>
 
-    <div class="content">
+    <div class="content ro-banner-wrap">
+      <div class="readonly-banner" style="display:none;background:linear-gradient(90deg,var(--blue-600),var(--blue-500));color:#fff;padding:8px 16px;border-radius:8px;margin-bottom:14px;align-items:center;gap:8px;font-size:12.5px;font-weight:600;">
+        📺 Mode Monitoring (Read Only) — data otomatis diperbarui berkala, tidak untuk mengubah data
+      </div>
 
       <!-- ============ DASHBOARD ============ -->
       <div class="page active" id="page-dashboard">
@@ -936,7 +947,7 @@ tbody tr:hover{ background:var(--row-hover-bg); }
               </select>
               <button class="btn btn-primary" onclick="renderCommissioning()">🔎 Filter</button>
               <button class="btn btn-outline" onclick="document.getElementById('comSearch').value='';document.getElementById('comSiteFilter').value='';document.getElementById('comStatusFilter').value='';renderCommissioning()">↻ Reset</button>
-              <button class="btn btn-primary" style="margin-left:auto" onclick="openCommissioningModal(null)">+ Tambah Komisioning</button>
+              <button class="btn btn-primary ro-hide" style="margin-left:auto" onclick="openCommissioningModal(null)">+ Tambah Komisioning</button>
             </div>
             <div class="panel-title">DAFTAR KOMISIONING</div>
             <div class="table-scroll-wrap com-table-scroll">
@@ -1118,6 +1129,12 @@ const CONFIG = {
 };
 
 let DEMO_MODE = true;
+/* MODE READ-ONLY: aktif kalau URL-nya ditambah ?readonly=1 (dipakai buat tampilan
+   TV/monitoring publik - lihat monitoring.html). Di mode ini: semua tombol edit/hapus/
+   tambah disembunyikan, sidebar cuma nampilin Dashboard & Commissioning (menu lain yang
+   sifatnya "kerja" disembunyikan), dan data auto-refresh berkala tanpa perlu ada yang
+   mencet apa-apa - karena memang didesain buat dilihat banyak orang tanpa interaksi. */
+const READ_ONLY_MODE = new URLSearchParams(window.location.search).get('readonly') === '1';
 /* Dark mode / Light mode - preferensi disimpan di browser (localStorage), jadi tetap
    kepilih walau reload halaman atau buka lagi besok. */
 function applySavedTheme(){
@@ -1151,35 +1168,7 @@ function markRowForFlash(key){
 let DB = {};
 let FETCH_HAD_ERROR = false;
 let FAILED_SHEET_COUNT = 0;
-let CURRENT_USER_NAME = 'Pengguna'; // akan diganti otomatis oleh loadSessionUser()
-
-/* Ambil data user yang sedang login dari sesi yang sama dipakai dashboard.html
-   (localStorage/sessionStorage key: 'msm_session'), lalu terapkan ke topbar
-   supaya nama/role di sini SELALU sesuai akun yang login, bukan hardcoded. */
-function loadSessionUser(){
-  try{
-    const raw = localStorage.getItem('msm_session') || sessionStorage.getItem('msm_session');
-    if(!raw){
-      // Tidak ada sesi sama sekali -> lempar balik ke halaman login
-      window.location.href = 'index.html';
-      return;
-    }
-    const session = JSON.parse(raw);
-    const nama = session.nama || 'Pengguna';
-    const role = session.role || 'User';
-    CURRENT_USER_NAME = nama + ' (' + role + ')';
-
-    const avatarEl = document.getElementById('topUserAvatar');
-    const nameEl = document.getElementById('topUserName');
-    const roleEl = document.getElementById('topUserRole');
-    if(avatarEl) avatarEl.innerText = nama.charAt(0).toUpperCase();
-    if(nameEl) nameEl.innerText = nama;
-    if(roleEl) roleEl.innerText = role;
-  }catch(err){
-    console.warn('Gagal memuat sesi user, kembali ke login', err);
-    window.location.href = 'index.html';
-  }
-}
+let CURRENT_USER_NAME = 'Abdul Azis (Admin)'; // dipakai untuk mencatat siapa yang melakukan perubahan di Activity Log
 
 function sleep_(ms){ return new Promise(r=>setTimeout(r,ms)); }
 /* Coba fetch 1x, kalau gagal TUNGGU SEBENTAR lalu coba 1x lagi sebelum benar-benar
@@ -2101,17 +2090,29 @@ function renderDashboard(){
   const prepRows = filterIds ? DB.preparation.filter(p=>filterIds.has(pick(p,['Unit_ID (FK)','Unit_ID']))) : DB.preparation;
 
   const total = muRows.length;
-  /* PENTING: "Active" di sini artinya status COMMISSIONING-nya "Aktif" (konsisten sama
-     Near Expired/Expired di sebelahnya, yang juga dari Commissioning). SEBELUMNYA ini
-     salah baca dari status Master_Unit (status OPERASIONAL fisik unit - konsep beda sama
-     sekali), makanya kelihatan aneh "Active 965 (100%)" bareng "Near Expired 150" padahal
-     harusnya nggak mungkin dua-duanya 100% kalau emang dari sumber yang sama. */
-  const active = expiredRows.filter(e=>isActiveStatus(pick(e,['Status','status']))).length;
-  const nearExp = expiredRows.filter(e=>String(pick(e,['Status','status'])||'').toLowerCase().includes('near')).length;
-  const expired = expiredRows.filter(e=>{
-    const s = String(pick(e,['Status','status'])||'').toLowerCase();
-    return s.includes('expired') && !s.includes('near');
-  }).length;
+  /* PENTING: 1 unit bisa punya SAMPAI 2 baris Commissioning (BIB & TIA sekaligus) -
+     jadi kalau dihitung per BARIS commissioning, angka Active/Near Expired/Expired bisa
+     lebih dari jumlah unit fisiknya sendiri (kejadian nyata: "Active 1100 (114%)" padahal
+     Total Unit cuma 965 - matematisnya nggak masuk akal). Perbaikannya: kelompokkan dulu
+     per UNIT (bukan per baris), ambil status PALING PARAH dari unit itu (Expired paling
+     parah, baru Near Expired, baru Aktif) - jadi tiap unit fisik cuma dihitung SEKALI. */
+  const statusByUnit = {};
+  const rankStatus = (s)=>{
+    s = String(s||'').toLowerCase();
+    if(s.includes('expired') && !s.includes('near')) return 3; // paling parah
+    if(s.includes('near')) return 2;
+    if(s==='active'||s==='aktif') return 1;
+    return 0;
+  };
+  expiredRows.forEach(e=>{
+    const uid = pick(e,['Unit_ID','unitId']);
+    const rank = rankStatus(pick(e,['Status','status']));
+    if(!statusByUnit[uid] || rank > statusByUnit[uid]) statusByUnit[uid] = rank;
+  });
+  const unitRanks = Object.values(statusByUnit);
+  const active = unitRanks.filter(r=>r===1).length;
+  const nearExp = unitRanks.filter(r=>r===2).length;
+  const expired = unitRanks.filter(r=>r===3).length;
   const waitingSticker = prepRows.filter(p=>pick(p,['Status_Preparation','status'])==='Waiting Sticker').length;
   const health = total? Math.round((active/total)*1000)/10 : 0;
 
@@ -2412,10 +2413,10 @@ function renderCommissioning(){
     const flashCls = commId && commId===window.__flashRowKey ? ' class="row-flash"' : '';
     return `<tr${flashCls}><td>${i+1}</td><td class="unit-id">${unitId}</td><td>${mu?pick(mu,['Model_Unit']):''}</td><td>${mu?pick(mu,['Serial_Number']):''}</td>
     <td><span class="pill blue">${pick(r,['Site'])}</span></td><td>${pick(r,['Area'])}</td>
-    <td class="inline-edit-cell" data-comm-id="${escJs(commId)}" data-field="Registration_No" onclick="startInlineEdit(this)" title="Klik untuk edit">${pick(r,['Registration_No']) || '<span style="color:var(--text-300);font-style:italic;">+ isi Reg. No</span>'}</td>
+    <td class="${READ_ONLY_MODE?'':'inline-edit-cell'}" data-comm-id="${escJs(commId)}" data-field="Registration_No" ${READ_ONLY_MODE?'':'onclick="startInlineEdit(this)" title="Klik untuk edit"'}>${pick(r,['Registration_No']) || (READ_ONLY_MODE?'-':'<span style="color:var(--text-300);font-style:italic;">+ isi Reg. No</span>')}</td>
     <td>${pick(r,['Tanggal_Terbit'])}</td><td>${pick(r,['Masa_Berlaku'])}</td>
     <td style="color:${Number(sisa)<0?'var(--red)':Number(sisa)<=30?'var(--orange)':'inherit'}">${sisa} Hari</td>
-    <td>${pillFor(pick(r,['Status']))}</td><td><button class="icon-btn blue" title="Lihat Detail (read-only)" onclick="viewCommissioning('${escJs(commId)}')">👁</button><button class="icon-btn blue" title="Edit" onclick="openCommissioningModal('${escJs(commId)}')">✏️</button><button class="icon-btn red" title="Hapus" onclick="deleteCommissioning('${escJs(commId)}')">🗑</button></td></tr>`;
+    <td>${pillFor(pick(r,['Status']))}</td><td><button class="icon-btn blue" title="Lihat Detail (read-only)" onclick="viewCommissioning('${escJs(commId)}')">👁</button>${READ_ONLY_MODE?'':`<button class="icon-btn blue" title="Edit" onclick="openCommissioningModal('${escJs(commId)}')">✏️</button><button class="icon-btn red" title="Hapus" onclick="deleteCommissioning('${escJs(commId)}')">🗑</button>`}</td></tr>`;
   }).join('') || `<tr><td colspan="12" class="empty-state">Tidak ada data</td></tr>`;
 
   /* UNIT BELUM ADA COMMISSIONING - unit yang sudah ada di Master Unit tapi belum
@@ -2599,7 +2600,7 @@ function renderPreparation(){
             <span class="np-badge ${n.isExpired?'exp':'near'}">${n.isExpired?'EXPIRED':'NEAR EXPIRED'}</span>
             <b>${n.unitId}</b>
             <span style="color:${Number(n.sisa)<0?'var(--red)':'var(--text-400)'};font-weight:${Number(n.sisa)<0?'700':'400'}">${n.site} / ${n.area} — sisa ${n.sisa} hari${Number(n.sisa)<0?' (sudah lewat)':''}</span>
-            <button class="btn btn-primary" id="btn-start-prep-${escJs(n.unitId)}" style="margin-left:auto;font-size:11.5px;padding:6px 12px;" onclick="startPreparationForUnit('${escJs(n.unitId)}')">+ Mulai Preparation</button>
+            <button class="btn btn-primary ro-hide" id="btn-start-prep-${escJs(n.unitId)}" style="margin-left:auto;font-size:11.5px;padding:6px 12px;" onclick="startPreparationForUnit('${escJs(n.unitId)}')">+ Mulai Preparation</button>
           </div>`).join('')}
       </div>
     </div>` : '';
@@ -2636,7 +2637,7 @@ function renderPreparation(){
           <div class="need-prep-row">
             <b>${n.unitId}</b>
             <span style="color:var(--text-400)">${n.site} / ${n.area} — selesai ${n.tanggalSelesai||'-'}</span>
-            <button class="btn btn-outline" style="margin-left:auto;font-size:11.5px;padding:6px 12px;" onclick="openCommissioningModal(null,false,'${escJs(n.unitId)}')">+ Input Commissioning Baru</button>
+            <button class="btn btn-outline ro-hide" style="margin-left:auto;font-size:11.5px;padding:6px 12px;" onclick="openCommissioningModal(null,false,'${escJs(n.unitId)}')">+ Input Commissioning Baru</button>
           </div>`).join('')}
       </div>
     </div>` : '';
@@ -4249,8 +4250,12 @@ function updateNotif(){
    INIT
 ===================================================================== */
 (async function init(){
-  loadSessionUser();
   applySavedTheme();
+  if(READ_ONLY_MODE){
+    document.body.classList.add('readonly-mode');
+    document.getElementById('viewerChip').style.display = 'flex';
+    document.querySelector('.readonly-banner').style.display = 'flex';
+  }
   await loadAllData(true); // quickStart: muat sheet penting dulu, sisanya nyusul di background
   /* DB.unitTypes murni referensi lokal (pilihan icon), TIDAK tersambung ke Google Sheets manapun.
      Diinisialisasi terpisah di sini supaya halaman Pengaturan > Umum tidak crash. */
@@ -4262,10 +4267,21 @@ function updateNotif(){
   applyPrepOverridesFromStorage();
   populateTopFilters();
   updateNotif();
-  renderDashboard();
+  // Kalau dibuka via ?readonly=1&page=commissioning, langsung buka halaman itu (berguna
+  // buat bikin 2 layar TV terpisah: satu Dashboard, satu Daftar Komisioning)
+  const wantedPage = wantedPageInit();
+  if(READ_ONLY_MODE && wantedPage) goToPage(wantedPage); else renderDashboard();
   animateStatCounters();
   hideAppLoader();
+  if(READ_ONLY_MODE){
+    // TV nggak ada yang mencet refresh manual - jadi data disegarkan sendiri tiap 5 menit.
+    setInterval(()=>{ manualRefresh(); }, 5*60*1000);
+  }
 })();
+function wantedPageInit(){
+  const p = new URLSearchParams(window.location.search).get('page');
+  return (p && document.getElementById('page-'+p)) ? p : null;
+}
 </script>
 </body>
 </html>
