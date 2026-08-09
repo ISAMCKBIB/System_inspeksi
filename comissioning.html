@@ -817,8 +817,8 @@ body.readonly-mode .readonly-banner{ display:flex !important; }
       <div class="tb-icon-btn" id="themeToggleBtn" title="Ganti tampilan gelap/terang" onclick="toggleTheme()" style="cursor:pointer">🌙</div>
       <div class="tb-icon-btn" title="Lihat unit Expired &amp; Near Expired" onclick="goToCommissioningFiltered('Expired')" style="cursor:pointer">🔔<span class="badge-dot" id="notifCount">0</span></div>
       <div class="user-chip ro-hide">
-        <div class="avatar">A</div>
-        <div class="un"><b>Abdul Azis</b><small>Administrator</small></div>
+        <div class="avatar" id="navUserAvatar">A</div>
+        <div class="un"><b id="navUserName">Abdul Azis</b><small id="navUserRole">Administrator</small></div>
       </div>
       <div class="user-chip" id="viewerChip" style="display:none;">
         <div class="avatar" style="background:var(--green)">V</div>
@@ -1168,7 +1168,49 @@ function markRowForFlash(key){
 let DB = {};
 let FETCH_HAD_ERROR = false;
 let FAILED_SHEET_COUNT = 0;
-let CURRENT_USER_NAME = 'Abdul Azis (Admin)'; // dipakai untuk mencatat siapa yang melakukan perubahan di Activity Log
+let CURRENT_USER_NAME = 'Guest'; // diisi ulang oleh applyLoggedInUser() dari sesi login asli (msm_session)
+let CURRENT_USER_ROLE = '';
+
+/* Baca sesi login yang sama dengan dashboard.html (key: msm_session di localStorage/sessionStorage).
+   Sebelumnya halaman ini SAMA SEKALI tidak mengecek sesi - siapa pun yang buka URL ini langsung
+   dianggap "Abdul Azis / Administrator" dengan akses penuh edit/hapus, walau belum pernah login. */
+function getLoggedInSession(){
+  const raw = localStorage.getItem('msm_session') || sessionStorage.getItem('msm_session');
+  if(!raw) return null;
+  try{
+    const s = JSON.parse(raw);
+    // Sesi kadaluarsa setelah 8 jam - sama seperti aturan di dashboard.html
+    if((new Date() - new Date(s.login_at)) / 3600000 > 8) return null;
+    return s;
+  }catch(e){ return null; }
+}
+
+/* Terapkan identitas user yang benar-benar login ke navbar & CURRENT_USER_NAME (dipakai untuk
+   mencatat siapa yang melakukan perubahan di Activity Log). Kalau tidak ada sesi valid dan
+   halaman ini TIDAK dibuka dalam mode read-only (?readonly=1), paksa kembali ke halaman login -
+   supaya tidak ada lagi akses admin "gratis" tanpa login. */
+function applyLoggedInUser(){
+  const session = getLoggedInSession();
+  if(!session){
+    if(!READ_ONLY_MODE){
+      window.location.href = 'index.html';
+    }
+    return false;
+  }
+  const nama = session.nama || session.nik || 'User';
+  const role = (session.role || '').toUpperCase();
+  const roleLabel = role === 'ADMIN' ? 'Administrator' : (role || 'User');
+  CURRENT_USER_NAME = nama + (roleLabel ? ' (' + roleLabel + ')' : '');
+  CURRENT_USER_ROLE = role;
+
+  const avatarEl = document.getElementById('navUserAvatar');
+  const nameEl = document.getElementById('navUserName');
+  const roleEl = document.getElementById('navUserRole');
+  if(avatarEl) avatarEl.innerText = nama.trim().charAt(0).toUpperCase() || 'U';
+  if(nameEl) nameEl.innerText = nama;
+  if(roleEl) roleEl.innerText = roleLabel;
+  return true;
+}
 
 function sleep_(ms){ return new Promise(r=>setTimeout(r,ms)); }
 /* Coba fetch 1x, kalau gagal TUNGGU SEBENTAR lalu coba 1x lagi sebelum benar-benar
@@ -4251,6 +4293,7 @@ function updateNotif(){
 ===================================================================== */
 (async function init(){
   applySavedTheme();
+  if(!applyLoggedInUser()) return; // redirect ke index.html kalau belum login (kecuali mode readonly)
   if(READ_ONLY_MODE){
     document.body.classList.add('readonly-mode');
     document.getElementById('viewerChip').style.display = 'flex';
