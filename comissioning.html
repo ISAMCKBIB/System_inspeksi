@@ -3228,8 +3228,12 @@ async function handleBIBImportFile(event){
       throw new Error('Tidak ketemu sheet "MONITORING SETIKER KOMISIONING" atau "TIA." di file ini. Pastikan nama tab di Excel belum diubah.');
     }
 
+    // PENTING: sumber pencocokan unit HARUS kolom "ID CK" (mis. "CO2200", "XCD1235"),
+    // bukan "ID BIB" (mis. "HD 2200") - karena format Unit_ID di sheet Master_Unit
+    // mengikuti pola ID CK, bukan ID BIB. Kalau tetap pakai ID BIB, banyak unit yang
+    // angkanya sama tapi jadi salah tebak / gak ketemu sama sekali.
     const bibRows = bibSheetName ? extractBIBRows_(wb.Sheets[bibSheetName], {
-      colNoLambung: ['ID BIB','No Lambung','No Lambung BIB'],
+      colNoLambung: ['ID CK','ID BIB','No Lambung','No Lambung BIB'],
       colRegistration: ['Registration No.','Registration No'],
       colTanggalTerbit: ['Tanggal Komisioning'],
       colMasaBerlaku: ['Masa Berlaku'],
