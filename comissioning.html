@@ -691,6 +691,7 @@ body.readonly-mode .readonly-banner{ display:flex !important; }
 </head>
 <body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <!-- ===================== APP LOADER (splash / loading feature) ===================== -->
 <div id="appLoader">
@@ -731,6 +732,21 @@ body.readonly-mode .readonly-banner{ display:flex !important; }
     </div>
     <div class="modal-body" id="crudModalBody"></div>
     <div class="modal-foot" id="crudModalFoot"></div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: IMPORT EXCEL DARI PORTAL BIB ===================== -->
+<div class="modal-overlay" id="bibImportOverlay" onclick="if(event.target===this && !window.__bibImportBusy) closeBIBImportModal();">
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-head">
+      <div>
+        <h3>📥 Import Excel dari Portal BIB</h3>
+        <div class="sub" id="bibImportSub">Data akan dicocokkan per unit lalu tanggalnya ditimpa otomatis</div>
+      </div>
+      <button class="modal-close" onclick="closeBIBImportModal()">✕</button>
+    </div>
+    <div class="modal-body" id="bibImportBody">Memproses file...</div>
+    <div class="modal-foot" id="bibImportFoot"></div>
   </div>
 </div>
 
@@ -947,7 +963,9 @@ body.readonly-mode .readonly-banner{ display:flex !important; }
               </select>
               <button class="btn btn-primary" onclick="renderCommissioning()">🔎 Filter</button>
               <button class="btn btn-outline" onclick="document.getElementById('comSearch').value='';document.getElementById('comSiteFilter').value='';document.getElementById('comStatusFilter').value='';renderCommissioning()">↻ Reset</button>
-              <button class="btn btn-primary ro-hide" style="margin-left:auto" onclick="openCommissioningModal(null)">+ Tambah Komisioning</button>
+              <button class="btn btn-outline ro-hide" style="margin-left:auto" onclick="openBIBImportPicker()">📥 Import Excel BIB</button>
+              <input type="file" id="bibImportFileInput" accept=".xlsx,.xls" style="display:none" onchange="handleBIBImportFile(event)">
+              <button class="btn btn-primary ro-hide" onclick="openCommissioningModal(null)">+ Tambah Komisioning</button>
             </div>
             <div class="panel-title">DAFTAR KOMISIONING</div>
             <div class="table-scroll-wrap com-table-scroll">
@@ -3154,6 +3172,226 @@ async function crudPost(action, payload, timeoutMs){
   }finally{
     clearTimeout(to);
   }
+}
+
+/* =====================================================================
+   IMPORT EXCEL DARI PORTAL BIB (Commissioning)
+   Alur: user pilih file .xlsx -> diparsing di browser (SheetJS) -> hasil
+   parsing (array baris per site) dikirim ke Apps Script lewat action
+   'importBIBExcel' -> Apps Script yang cocokkan ke Master_Unit & timpa
+   Tanggal_Terbit/Masa_Berlaku di sheet Commissioning -> hasilnya
+   ditampilkan di sini, lalu data di-refresh dari server.
+
+   PENTING: fungsi handleImportBIBExcel_ di sisi Apps Script (Code.gs)
+   HARUS ditambahkan manual dan didaftarkan di switch-case doPost dengan
+   action 'importBIBExcel' - lihat file terpisah yang dikasih untuk kode
+   lengkapnya di sisi server.
+===================================================================== */
+
+// Nama sheet di Excel BIB yang dicari (dicocokkan secara fleksibel - lihat findSheetNameLike_)
+const BIB_IMPORT_SHEET_CANDIDATES = ['MONITORING SETIKER KOMISIONING', 'MONITORING STIKER KOMISIONING'];
+const TIA_IMPORT_SHEET_CANDIDATES = ['TIA.', 'TIA'];
+
+function openBIBImportPicker(){
+  document.getElementById('bibImportFileInput').value = '';
+  document.getElementById('bibImportFileInput').click();
+}
+
+function openBIBImportModal(){
+  document.getElementById('bibImportOverlay').classList.add('show');
+}
+function closeBIBImportModal(){
+  if(window.__bibImportBusy) return; // jangan bisa ditutup pas lagi proses ke server
+  document.getElementById('bibImportOverlay').classList.remove('show');
+}
+
+async function handleBIBImportFile(event){
+  const file = event.target.files && event.target.files[0];
+  if(!file) return;
+
+  openBIBImportModal();
+  document.getElementById('bibImportSub').textContent = file.name;
+  document.getElementById('bibImportBody').innerHTML = '<div style="text-align:center;padding:24px 0;">⏳ Membaca & mem-parsing file Excel...</div>';
+  document.getElementById('bibImportFoot').innerHTML = '';
+
+  try{
+    const buffer = await file.arrayBuffer();
+    const wb = XLSX.read(buffer, { type:'array', cellDates:true });
+
+    const bibSheetName = findSheetNameLike_(wb, BIB_IMPORT_SHEET_CANDIDATES);
+    const tiaSheetName = findSheetNameLike_(wb, TIA_IMPORT_SHEET_CANDIDATES);
+
+    if(!bibSheetName && !tiaSheetName){
+      throw new Error('Tidak ketemu sheet "MONITORING SETIKER KOMISIONING" atau "TIA." di file ini. Pastikan nama tab di Excel belum diubah.');
+    }
+
+    const bibRows = bibSheetName ? extractBIBRows_(wb.Sheets[bibSheetName], {
+      colNoLambung: ['ID BIB','No Lambung','No Lambung BIB'],
+      colRegistration: ['Registration No.','Registration No'],
+      colTanggalTerbit: ['Tanggal Komisioning'],
+      colMasaBerlaku: ['Masa Berlaku'],
+      colArea: ['Posisi Unit']
+    }) : [];
+
+    const tiaRows = tiaSheetName ? extractBIBRows_(wb.Sheets[tiaSheetName], {
+      colNoLambung: ['No lambung BIB','No Lambung BIB','No Lambung'],
+      colRegistration: [],
+      colTanggalTerbit: [],
+      colMasaBerlaku: ['Masa Berlaku'],
+      colArea: ['PIT']
+    }) : [];
+
+    if(bibRows.length===0 && tiaRows.length===0){
+      throw new Error('Sheet ketemu tapi tidak ada baris data yang valid (kolom No Lambung/ID kosong semua).');
+    }
+
+    // Tampilkan preview singkat sebelum kirim ke server
+    document.getElementById('bibImportBody').innerHTML = `
+      <div style="padding:4px 0;">
+        <div class="modal-readonly-row"><span>Sheet BIB terdeteksi</span><span>${bibSheetName ? '✅ '+bibSheetName+' ('+bibRows.length+' baris)' : '⚠ tidak ada'}</span></div>
+        <div class="modal-readonly-row"><span>Sheet TIA terdeteksi</span><span>${tiaSheetName ? '✅ '+tiaSheetName+' ('+tiaRows.length+' baris)' : '⚠ tidak ada'}</span></div>
+        <p style="margin-top:14px;color:var(--text-muted,#666);font-size:13px;">
+          Setiap unit akan dicocokkan berdasarkan angka ID ke data Master Unit.
+          Kalau ketemu, <b>Tanggal_Terbit & Masa_Berlaku akan ditimpa</b> dengan data terbaru dari file ini.
+          Unit yang gak ketemu padanannya akan ditampilkan di bawah untuk dicek manual.
+        </p>
+      </div>`;
+    window.__bibImportPendingPayload = { bibRows, tiaRows };
+    document.getElementById('bibImportFoot').innerHTML = `
+      <button class="btn btn-outline" onclick="closeBIBImportModal()">Batal</button>
+      <button class="btn btn-primary" id="bibImportConfirmBtn" onclick="submitBIBImport_()">✅ Lanjut, Timpa Data</button>`;
+
+  }catch(err){
+    console.error('BIB import parse error', err);
+    document.getElementById('bibImportBody').innerHTML = `<div style="color:#c0392b;padding:12px 0;">❌ ${err.message}</div>`;
+    document.getElementById('bibImportFoot').innerHTML = `<button class="btn btn-outline" onclick="closeBIBImportModal()">Tutup</button>`;
+  }
+}
+
+async function submitBIBImport_(){
+  const payload = window.__bibImportPendingPayload;
+  if(!payload){ closeBIBImportModal(); return; }
+  window.__bibImportBusy = true;
+  document.getElementById('bibImportBody').innerHTML = '<div style="text-align:center;padding:24px 0;">⏳ Mengirim & mencocokkan data ke server, mohon tunggu...</div>';
+  document.getElementById('bibImportFoot').innerHTML = '';
+
+  const result = await crudPost('importBIBExcel', payload, 60000);
+  window.__bibImportBusy = false;
+  window.__bibImportPendingPayload = null;
+
+  if(!result || result.success===false){
+    document.getElementById('bibImportBody').innerHTML = `<div style="color:#c0392b;padding:12px 0;">❌ Gagal: ${result && result.message ? result.message : 'Tidak ada respons dari server'}</div>`;
+    document.getElementById('bibImportFoot').innerHTML = `<button class="btn btn-outline" onclick="closeBIBImportModal()">Tutup</button>`;
+    return;
+  }
+
+  const { updated=0, added=0, unmatched=[] } = result;
+  let unmatchedHtml = '';
+  if(unmatched.length>0){
+    unmatchedHtml = `<div style="margin-top:12px;max-height:180px;overflow:auto;border:1px solid var(--border,#ddd);border-radius:8px;padding:8px;font-size:12.5px;">
+      ${unmatched.map(u=>`<div style="padding:3px 0;border-bottom:1px dashed #eee;">⚠ <b>${u.noLambung||u.no_lambung||''}</b> (${u.site||''}) - tidak ketemu padanan Unit_ID</div>`).join('')}
+    </div>`;
+  }
+
+  document.getElementById('bibImportBody').innerHTML = `
+    <div style="text-align:center;padding:8px 0 4px;">
+      <div style="font-size:34px;">✅</div>
+      <div style="font-size:15px;margin-top:6px;">Sync selesai</div>
+    </div>
+    <div class="modal-readonly-row"><span>Baris diupdate</span><span><b>${updated}</b></span></div>
+    <div class="modal-readonly-row"><span>Baris baru ditambah</span><span><b>${added}</b></span></div>
+    <div class="modal-readonly-row"><span>Gak ketemu Unit_ID</span><span><b>${unmatched.length}</b></span></div>
+    ${unmatchedHtml}`;
+  document.getElementById('bibImportFoot').innerHTML = `<button class="btn btn-primary" onclick="closeBIBImportModal()">Tutup</button>`;
+
+  showSaveToast(`✅ Import BIB selesai - ${updated} diupdate, ${added} baru, ${unmatched.length} gak ketemu`, false);
+
+  // Refresh data commissioning dari server biar tabel langsung update
+  await loadAllData();
+  if(typeof renderCommissioning === 'function') renderCommissioning();
+}
+
+/** Cari nama sheet di workbook yang cocok (case-insensitive, trim titik/spasi) dengan salah satu kandidat */
+function findSheetNameLike_(wb, candidates){
+  const normalize = s => String(s).toLowerCase().replace(/[.\s]+/g,' ').trim();
+  const wanted = candidates.map(normalize);
+  for(const name of wb.SheetNames){
+    if(wanted.includes(normalize(name))) return name;
+  }
+  return null;
+}
+
+/** Cari index baris header (0-based) di dalam array 2D yang memuat SEMUA kolom wajib */
+function findHeaderRowIdx_(rows2d, requiredCols){
+  const limit = Math.min(rows2d.length, 10);
+  for(let r=0; r<limit; r++){
+    const cells = (rows2d[r]||[]).map(v=>String(v||'').trim());
+    if(requiredCols.every(c => cells.includes(c))) return r;
+  }
+  return -1;
+}
+
+/** Ambil angka dari sebuah string, contoh "HD 4176" -> "4176" (leading zero dibuang) */
+function extractNumericKey_(str){
+  const m = String(str||'').match(/(\d+)/);
+  if(!m) return null;
+  return m[1].replace(/^0+/,'') || '0';
+}
+
+/** Format value tanggal dari SheetJS (Date object / serial / string) jadi 'YYYY-MM-DD' */
+function formatExcelDate_(v){
+  if(!v) return '';
+  if(v instanceof Date && !isNaN(v)) return v.toISOString().slice(0,10);
+  const s = String(v).trim();
+  return s;
+}
+
+/**
+ * Ubah sheet Excel (worksheet SheetJS) jadi array of {noLambung, registrationNo, tanggalTerbit, masaBerlaku, area}
+ * berdasarkan daftar kemungkinan nama kolom (karena kadang header berubah dikit antar file BIB).
+ */
+function extractBIBRows_(worksheet, colMap){
+  const rows2d = XLSX.utils.sheet_to_json(worksheet, { header:1, raw:false, defval:'' });
+  const findCol = candidates => {
+    for(const c of candidates){
+      const idx = findHeaderRowIdx_(rows2d, [c]);
+      if(idx>-1) return { idx, colName:c };
+    }
+    return null;
+  };
+
+  // Coba cari header row pakai kolom "No Lambung" dulu (wajib ada)
+  let headerRowIdx = -1, colNoLambungName = null;
+  for(const c of colMap.colNoLambung){
+    const idx = findHeaderRowIdx_(rows2d, [c]);
+    if(idx>-1){ headerRowIdx = idx; colNoLambungName = c; break; }
+  }
+  if(headerRowIdx===-1) return [];
+
+  const headers = rows2d[headerRowIdx].map(v=>String(v||'').trim());
+  const pickIdx = candidates => { for(const c of candidates){ const i=headers.indexOf(c); if(i>-1) return i; } return -1; };
+
+  const iNoLambung = headers.indexOf(colNoLambungName);
+  const iRegistration = pickIdx(colMap.colRegistration||[]);
+  const iTanggalTerbit = pickIdx(colMap.colTanggalTerbit||[]);
+  const iMasaBerlaku = pickIdx(colMap.colMasaBerlaku||[]);
+  const iArea = pickIdx(colMap.colArea||[]);
+
+  const out = [];
+  for(let r=headerRowIdx+1; r<rows2d.length; r++){
+    const row = rows2d[r] || [];
+    const noLambung = String(row[iNoLambung]||'').trim();
+    if(!noLambung) continue;
+    out.push({
+      noLambung,
+      numericKey: extractNumericKey_(noLambung),
+      registrationNo: iRegistration>-1 ? String(row[iRegistration]||'').trim() : '',
+      tanggalTerbit: iTanggalTerbit>-1 ? formatExcelDate_(row[iTanggalTerbit]) : '',
+      masaBerlaku: iMasaBerlaku>-1 ? formatExcelDate_(row[iMasaBerlaku]) : '',
+      area: iArea>-1 ? String(row[iArea]||'').trim() : ''
+    });
+  }
+  return out;
 }
 
 /* =====================================================================
