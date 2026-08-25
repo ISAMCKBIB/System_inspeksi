@@ -3275,37 +3275,28 @@ async function handleBIBImportFile(event){
   }
 }
 
-async function submitBIBImport_(){
-  const payload = window.__bibImportPendingPayload;
-  if(!payload){ closeBIBImportModal(); return; }
-  window.__bibImportBusy = true;
-  document.getElementById('bibImportBody').innerHTML = '<div style="text-align:center;padding:24px 0;">⏳ Mengirim & mencocokkan data ke server, mohon tunggu...</div>';
-  document.getElementById('bibImportFoot').innerHTML = '';
-
-  const result = await crudPost('importBIBExcel', payload, 60000);
-  window.__bibImportBusy = false;
-  window.__bibImportPendingPayload = null;
-
-  if(!result || result.success===false){
-    document.getElementById('bibImportBody').innerHTML = `<div style="color:#c0392b;padding:12px 0;">❌ Gagal: ${result && result.message ? result.message : 'Tidak ada respons dari server'}</div>`;
-    document.getElementById('bibImportFoot').innerHTML = `<button class="btn btn-outline" onclick="closeBIBImportModal()">Tutup</button>`;
-    return;
-  }
-
-  const { updated=0, added=0, unmatched=[] } = result;
-  function renderUnmatchedRow_(u, idx){
+function escapeHtml_(str){
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+ 
+// ── PINDAH ke top-level (sebelumnya nested di dalam submitBIBImport_) ──
+function renderUnmatchedRow_(u, idx){
   return `<div style="padding:6px 0;border-bottom:1px dashed #eee;display:flex;justify-content:space-between;align-items:center;gap:8px;">
-    <span>⚠ <b>${u.noLambung||''}</b> (${u.area||''})</span>
+    <span>⚠ <b>${escapeHtml_(u.noLambung||'')}</b> (${escapeHtml_(u.area||'')})</span>
     <button class="btn btn-outline" style="font-size:11px;padding:4px 10px;" onclick="openQuickAddUnitModal_(${idx})">+ Tambah Unit</button>
   </div>`;
 }
-
+ 
+// ── PINDAH ke top-level (sebelumnya nested di dalam submitBIBImport_) ──
 function openQuickAddUnitModal_(idx){
   const u = window.__unmatchedFromImport[idx];
   if(!u) return;
  
-  // Tebak Unit_ID dari noLambung (biasanya sudah pas untuk data BIB,
-  // untuk data TIA formatnya bisa beda - makanya tetap bisa diedit user)
   const guessedUnitId = String(u.noLambung||'').toUpperCase().replace(/\s+/g,'');
  
   const formHtml = `
@@ -3315,7 +3306,7 @@ function openQuickAddUnitModal_(idx){
         Cukup lengkapi info unitnya di bawah ini.
       </p>
       <label style="font-size:12px;font-weight:600;">Unit ID</label>
-      <input type="text" id="qaUnitId" value="${guessedUnitId}" style="width:100%;padding:8px;margin:4px 0 10px;border:1px solid #ccc;border-radius:6px;">
+      <input type="text" id="qaUnitId" value="${escapeHtml_(guessedUnitId)}" style="width:100%;padding:8px;margin:4px 0 10px;border:1px solid #ccc;border-radius:6px;">
       <label style="font-size:12px;font-weight:600;">Model Unit</label>
       <input type="text" id="qaModelUnit" placeholder="misal: 773E" style="width:100%;padding:8px;margin:4px 0 10px;border:1px solid #ccc;border-radius:6px;">
       <label style="font-size:12px;font-weight:600;">Serial Number</label>
@@ -3333,6 +3324,7 @@ function openQuickAddUnitModal_(idx){
     <button class="btn btn-primary" onclick="submitQuickAddUnit_(${idx})">✅ Tambahkan</button>`;
 }
  
+// ── PINDAH ke top-level (sebelumnya nested di dalam submitBIBImport_) ──
 async function submitQuickAddUnit_(idx){
   const u = window.__unmatchedFromImport[idx];
   const unitId = document.getElementById('qaUnitId').value.trim();
@@ -3359,13 +3351,13 @@ async function submitQuickAddUnit_(idx){
   });
  
   if(!result || result.success===false){
-    document.getElementById('bibImportBody').innerHTML = `<div style="color:#c0392b;padding:12px 0;">❌ ${result && result.message ? result.message : 'Gagal menyimpan'}</div>`;
+    document.getElementById('bibImportBody').innerHTML = `<div style="color:#c0392b;padding:12px 0;">❌ ${escapeHtml_(result && result.message ? result.message : 'Gagal menyimpan')}</div>`;
     document.getElementById('bibImportFoot').innerHTML = `<button class="btn btn-outline" onclick="closeBIBImportModal()">Tutup</button>`;
     return;
   }
  
   showSaveToast(`✅ Unit ${unitId} berhasil ditambahkan`, false);
-  window.__unmatchedFromImport.splice(idx, 1); // buang dari daftar unmatched di memori
+  window.__unmatchedFromImport.splice(idx, 1);
  
   document.getElementById('bibImportBody').innerHTML = `<div style="text-align:center;padding:16px 0;">✅ Berhasil ditambahkan. Sisa ${window.__unmatchedFromImport.length} unit belum dicocokkan.</div>`;
   document.getElementById('bibImportFoot').innerHTML = `<button class="btn btn-primary" onclick="closeBIBImportModal()">Tutup</button>`;
@@ -3373,24 +3365,49 @@ async function submitQuickAddUnit_(idx){
   await loadAllData();
   if(typeof renderCommissioning === 'function') renderCommissioning();
 }
+ 
+// ── submitBIBImport_ - SEKARANG BERSIH, tidak ada lagi fungsi ke-nest di dalamnya ──
+async function submitBIBImport_(){
+  const payload = window.__bibImportPendingPayload;
+  if(!payload){ closeBIBImportModal(); return; }
+  window.__bibImportBusy = true;
+  document.getElementById('bibImportBody').innerHTML = '<div style="text-align:center;padding:24px 0;">⏳ Mengirim & mencocokkan data ke server, mohon tunggu...</div>';
+  document.getElementById('bibImportFoot').innerHTML = '';
+ 
+  const result = await crudPost('importBIBExcel', payload, 60000);
+  window.__bibImportBusy = false;
+  window.__bibImportPendingPayload = null;
+ 
+  if(!result || result.success===false){
+    document.getElementById('bibImportBody').innerHTML = `<div style="color:#c0392b;padding:12px 0;">❌ Gagal: ${escapeHtml_(result && result.message ? result.message : 'Tidak ada respons dari server')}</div>`;
+    document.getElementById('bibImportFoot').innerHTML = `<button class="btn btn-outline" onclick="closeBIBImportModal()">Tutup</button>`;
+    return;
+  }
+ 
+  const { updated=0, added=0, unmatched=[] } = result;
+ 
+  window.__unmatchedFromImport = unmatched; // ← FIX: baris yang kemarin hilang
+ 
+  let unmatchedHtml = '';
+  if(unmatched.length>0){
+    unmatchedHtml = `<div style="margin-top:12px;max-height:220px;overflow:auto;border:1px solid var(--border,#ddd);border-radius:8px;padding:8px;font-size:12.5px;">
+      ${unmatched.map((u,idx)=>renderUnmatchedRow_(u,idx)).join('')}
+    </div>`;
+  }
+ 
   document.getElementById('bibImportBody').innerHTML = `
-    <div style="text-align:center;padding:8px 0 4px;">
-      <div style="font-size:34px;">✅</div>
-      <div style="font-size:15px;margin-top:6px;">Sync selesai</div>
+    <div style="text-align:center;padding:8px 0 16px;">
+      <div style="font-size:32px;">✅</div>
+      <div style="font-size:14px;margin-top:8px;"><b>${updated}</b> unit diupdate, <b>${added}</b> unit baru ditambahkan</div>
+      ${unmatched.length>0 ? `<div style="color:#c0392b;font-size:12.5px;margin-top:4px;">${unmatched.length} unit belum ketemu padanannya</div>` : ''}
     </div>
-    <div class="modal-readonly-row"><span>Baris diupdate</span><span><b>${updated}</b></span></div>
-    <div class="modal-readonly-row"><span>Baris baru ditambah</span><span><b>${added}</b></span></div>
-    <div class="modal-readonly-row"><span>Gak ketemu Unit_ID</span><span><b>${unmatched.length}</b></span></div>
     ${unmatchedHtml}`;
   document.getElementById('bibImportFoot').innerHTML = `<button class="btn btn-primary" onclick="closeBIBImportModal()">Tutup</button>`;
-
-  showSaveToast(`✅ Import BIB selesai - ${updated} diupdate, ${added} baru, ${unmatched.length} gak ketemu`, false);
-
-  // Refresh data commissioning dari server biar tabel langsung update
+ 
   await loadAllData();
   if(typeof renderCommissioning === 'function') renderCommissioning();
 }
-
+ 
 /** Cari nama sheet di workbook yang cocok (case-insensitive, trim titik/spasi) dengan salah satu kandidat */
 function findSheetNameLike_(wb, candidates){
   const normalize = s => String(s).toLowerCase().replace(/[.\s]+/g,' ').trim();
