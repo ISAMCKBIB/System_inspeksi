@@ -3183,7 +3183,7 @@ async function crudPost(action, payload, timeoutMs){
    parsing (array baris per site) dikirim ke Apps Script lewat action
    'importBIBExcel' -> Apps Script yang cocokkan ke Master_Unit & timpa
    Tanggal_Terbit/Masa_Berlaku di sheet Commissioning -> hasilnya
-   ditampilkan di sini, lalu data di-refresh dari server.
+   ditampilkan di sini, lalu data di-refresh dafri server.
 
    PENTING: fungsi handleImportBIBExcel_ di sisi Apps Script (Code.gs)
    HARUS ditambahkan manual dan didaftarkan di switch-case doPost dengan
@@ -3293,13 +3293,86 @@ async function submitBIBImport_(){
   }
 
   const { updated=0, added=0, unmatched=[] } = result;
-  let unmatchedHtml = '';
-  if(unmatched.length>0){
-    unmatchedHtml = `<div style="margin-top:12px;max-height:180px;overflow:auto;border:1px solid var(--border,#ddd);border-radius:8px;padding:8px;font-size:12.5px;">
-      ${unmatched.map(u=>`<div style="padding:3px 0;border-bottom:1px dashed #eee;">⚠ <b>${u.noLambung||u.no_lambung||''}</b> (${u.site||''}) - tidak ketemu padanan Unit_ID</div>`).join('')}
-    </div>`;
-  }
+  function renderUnmatchedRow_(u, idx){
+  return `<div style="padding:6px 0;border-bottom:1px dashed #eee;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+    <span>⚠ <b>${u.noLambung||''}</b> (${u.area||''})</span>
+    <button class="btn btn-outline" style="font-size:11px;padding:4px 10px;" onclick="openQuickAddUnitModal_(${idx})">+ Tambah Unit</button>
+  </div>`;
+}
 
+function openQuickAddUnitModal_(idx){
+  const u = window.__unmatchedFromImport[idx];
+  if(!u) return;
+ 
+  // Tebak Unit_ID dari noLambung (biasanya sudah pas untuk data BIB,
+  // untuk data TIA formatnya bisa beda - makanya tetap bisa diedit user)
+  const guessedUnitId = String(u.noLambung||'').toUpperCase().replace(/\s+/g,'');
+ 
+  const formHtml = `
+    <div style="padding:4px 0;">
+      <p style="font-size:12.5px;color:var(--text-muted,#666);margin-bottom:12px;">
+        Data tanggal komisioning & site sudah otomatis kepakai dari hasil import tadi.
+        Cukup lengkapi info unitnya di bawah ini.
+      </p>
+      <label style="font-size:12px;font-weight:600;">Unit ID</label>
+      <input type="text" id="qaUnitId" value="${guessedUnitId}" style="width:100%;padding:8px;margin:4px 0 10px;border:1px solid #ccc;border-radius:6px;">
+      <label style="font-size:12px;font-weight:600;">Model Unit</label>
+      <input type="text" id="qaModelUnit" placeholder="misal: 773E" style="width:100%;padding:8px;margin:4px 0 10px;border:1px solid #ccc;border-radius:6px;">
+      <label style="font-size:12px;font-weight:600;">Serial Number</label>
+      <input type="text" id="qaSerialNumber" placeholder="opsional" style="width:100%;padding:8px;margin:4px 0 10px;border:1px solid #ccc;border-radius:6px;">
+      <label style="font-size:12px;font-weight:600;">Jenis Unit</label>
+      <input type="text" id="qaJenisUnit" placeholder="misal: Dump Truck" style="width:100%;padding:8px;margin:4px 0 10px;border:1px solid #ccc;border-radius:6px;">
+      <label style="font-size:12px;font-weight:600;">Tahun</label>
+      <input type="text" id="qaTahun" placeholder="misal: 2024" style="width:100%;padding:8px;margin:4px 0 10px;border:1px solid #ccc;border-radius:6px;">
+      <div id="qaErrorMsg" style="color:#c0392b;font-size:12px;margin-top:4px;"></div>
+    </div>`;
+ 
+  document.getElementById('bibImportBody').innerHTML = formHtml;
+  document.getElementById('bibImportFoot').innerHTML = `
+    <button class="btn btn-outline" onclick="closeBIBImportModal()">Batal</button>
+    <button class="btn btn-primary" onclick="submitQuickAddUnit_(${idx})">✅ Tambahkan</button>`;
+}
+ 
+async function submitQuickAddUnit_(idx){
+  const u = window.__unmatchedFromImport[idx];
+  const unitId = document.getElementById('qaUnitId').value.trim();
+  const modelUnit = document.getElementById('qaModelUnit').value.trim();
+  const jenisUnit = document.getElementById('qaJenisUnit').value.trim();
+  const serialNumber = document.getElementById('qaSerialNumber').value.trim();
+  const tahun = document.getElementById('qaTahun').value.trim();
+ 
+  if(!unitId || !modelUnit || !jenisUnit){
+    document.getElementById('qaErrorMsg').textContent = 'Unit ID, Model, dan Jenis Unit wajib diisi.';
+    return;
+  }
+ 
+  document.getElementById('bibImportBody').innerHTML = '<div style="text-align:center;padding:24px 0;">⏳ Menyimpan...</div>';
+  document.getElementById('bibImportFoot').innerHTML = '';
+ 
+  const result = await crudPost('addUnitFromImport', {
+    unitId, modelUnit, jenisUnit, serialNumber, tahun,
+    site: u.area || '',
+    area: u.area || '',
+    registrationNo: u.registrationNo || '',
+    tanggalTerbit: u.tanggalTerbit || '',
+    masaBerlaku: u.masaBerlaku || ''
+  });
+ 
+  if(!result || result.success===false){
+    document.getElementById('bibImportBody').innerHTML = `<div style="color:#c0392b;padding:12px 0;">❌ ${result && result.message ? result.message : 'Gagal menyimpan'}</div>`;
+    document.getElementById('bibImportFoot').innerHTML = `<button class="btn btn-outline" onclick="closeBIBImportModal()">Tutup</button>`;
+    return;
+  }
+ 
+  showSaveToast(`✅ Unit ${unitId} berhasil ditambahkan`, false);
+  window.__unmatchedFromImport.splice(idx, 1); // buang dari daftar unmatched di memori
+ 
+  document.getElementById('bibImportBody').innerHTML = `<div style="text-align:center;padding:16px 0;">✅ Berhasil ditambahkan. Sisa ${window.__unmatchedFromImport.length} unit belum dicocokkan.</div>`;
+  document.getElementById('bibImportFoot').innerHTML = `<button class="btn btn-primary" onclick="closeBIBImportModal()">Tutup</button>`;
+ 
+  await loadAllData();
+  if(typeof renderCommissioning === 'function') renderCommissioning();
+}
   document.getElementById('bibImportBody').innerHTML = `
     <div style="text-align:center;padding:8px 0 4px;">
       <div style="font-size:34px;">✅</div>
