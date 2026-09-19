@@ -2,7 +2,7 @@
 // Strategi: cache-first (stale-while-revalidate) untuk app shell statis,
 // network-only untuk request ke Apps Script (data harus selalu fresh)
 
-const CACHE_NAME = 'isam-cache-v3';
+const CACHE_NAME = 'isam-cache-v4'; // ⬅️ naikkan angka ini setiap kali deploy ulang app shell
 
 const APP_SHELL = [
   'index.html',
@@ -14,6 +14,8 @@ const APP_SHELL = [
   'manifest.json',
   'icon-192.png',
   'icon-512.png',
+  'icon-192-maskable.png',
+  'icon-512-maskable.png',
 ];
 
 // Domain backend Apps Script — request ke sini TIDAK boleh di-cache
@@ -21,7 +23,17 @@ const NO_CACHE_HOST = 'script.google.com';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME).then((cache) => {
+      // addAll() gagal total kalau SATU file saja 404 — pakai add() per-file
+      // supaya file yang belum sempat diupload tidak menggagalkan install SW.
+      return Promise.all(
+        APP_SHELL.map((url) =>
+          cache.add(url).catch((err) => {
+            console.warn('[SW] Gagal cache saat install:', url, err);
+          })
+        )
+      );
+    })
   );
   self.skipWaiting();
 });
@@ -56,7 +68,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // File statis (app shell) -> cache-first, lalu refresh di background
+  // Navigasi antar halaman (klik link / buka app dari homescreen) saat offline
+  // -> jatuh ke halaman yang sama di cache, baru fallback ke index.html
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((fresh) => {
+          const copy = fresh.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return fresh;
+        })
+        .catch(() =>
+          caches.match(event.request).then((cached) => cached || caches.match('index.html'))
+        )
+    );
+    return;
+  }
+
+  // File statis lain (CSS/JS/gambar/icon) -> cache-first, lalu refresh di background
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) {
