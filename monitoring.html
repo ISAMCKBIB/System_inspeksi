@@ -60,6 +60,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .date-pill:hover{border-color:var(--primary);color:var(--primary)}
 .topbar-avatar{display:flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;background:var(--surface2)}
 .topbar-avatar:hover{border-color:var(--primary);background:var(--primary-light)}
+.btn-install{display:none;align-items:center;gap:6px;padding:7px 14px;border:none;border-radius:8px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));cursor:pointer;transition:all .15s;box-shadow:0 2px 8px rgba(27,79,216,.25)}
+.btn-install:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(27,79,216,.35)}
+.btn-install.show{display:flex}
+.pwa-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120%);background:var(--text);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:transform .3s ease;max-width:90vw;text-align:center}
+.pwa-toast.show{transform:translateX(-50%) translateY(0)}
+.pwa-toast b{color:#7CC1FF}
 .av-circle{width:28px;height:28px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
 .av-texts{line-height:1.2}
 .av-name{font-size:12px;font-weight:600;color:var(--text)}
@@ -1052,6 +1058,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="topbar-sub" id="topbarSub">Live overview performa inspeksi & status asset seluruh area.</div>
   </div>
   <div class="topbar-right">
+    <button class="btn-install" id="btnInstallApp" onclick="handleInstallClick()">
+      <span>📲</span><span>Install App</span>
+    </button>
     <div class="date-pill" id="topDatePill">
       <span class="di">📅</span>
       <span id="dateRange">01 – 30 Juni 2026</span>
@@ -1895,6 +1904,66 @@ function getDemoAssets() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(e=>{}); });
 }
+</script>
+
+<!-- ===== PWA: Install App ke Home Screen ===== -->
+<div class="pwa-toast" id="pwaToast"></div>
+<script>
+(function(){
+  const btn = document.getElementById('btnInstallApp');
+  const toast = document.getElementById('pwaToast');
+  let deferredPrompt = null;
+
+  function showToast(html, ms){
+    toast.innerHTML = html;
+    toast.classList.add('show');
+    clearTimeout(window._pwaToastTimer);
+    window._pwaToastTimer = setTimeout(()=>toast.classList.remove('show'), ms || 6000);
+  }
+
+  function isStandalone(){
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true;
+  }
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+
+  if (isStandalone()) {
+    // Sudah berjalan sebagai app terinstall — tidak perlu tombol install
+    btn.classList.remove('show');
+  } else if (isIOS) {
+    // iOS/Safari tidak support beforeinstallprompt: tampilkan tombol dengan instruksi manual
+    btn.classList.add('show');
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    btn.classList.add('show');
+  });
+
+  window.handleInstallClick = async function(){
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      if (outcome === 'accepted') {
+        btn.classList.remove('show');
+        showToast('✅ ISAM berhasil ditambahkan ke layar utama.');
+      }
+      return;
+    }
+    if (isIOS) {
+      showToast('📲 Di Safari: tap ikon <b>Share</b> (kotak + panah ke atas) lalu pilih <b>"Add to Home Screen"</b>.', 8000);
+      return;
+    }
+    showToast('ℹ️ Buka menu browser (⋮) lalu pilih "Install App" / "Add to Home screen".', 7000);
+  };
+
+  window.addEventListener('appinstalled', () => {
+    btn.classList.remove('show');
+    showToast('✅ ISAM terpasang sebagai aplikasi.');
+  });
+})();
 </script>
 
 <script>
