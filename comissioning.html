@@ -3710,7 +3710,19 @@ function openCommissioningModal(commId, readonly, presetUnitId){
     readonly: !!readonly,
     addAction: 'upsertCommissioning', // cek dulu Unit_ID+Site sudah ada atau belum - timpa kalau sudah ada
     fields: [
-      {key:'Commissioning_ID', hidden:true, generator:()=>'CMS-'+Date.now()},
+      {key:'Commissioning_ID', hidden:true, generator:()=>{
+  // Cari angka terbesar dari ID format CMS-00001 (5 digit persis) yang
+  // SEDANG ADA di data saat ini, lalu +1. ID lama format panjang
+  // (CMS-1790048455790, hasil Date.now()) SENGAJA diabaikan dari
+  // perhitungan ini (karena \d{5}$ butuh PERSIS 5 digit) - jadi begitu
+  // kamu hapus semua data lama, otomatis mulai lagi dari CMS-00001.
+  const existingNums = (DB.commissioning||[]).map(c=>{
+    const m = String(pick(c,['Commissioning_ID'])||'').match(/^CMS-(\d{5})$/);
+    return m ? parseInt(m[1],10) : 0;
+  });
+  const nextNum = (existingNums.length ? Math.max(...existingNums) : 0) + 1;
+  return 'CMS-' + String(nextNum).padStart(5,'0');
+}},
       {key:'Unit_ID', label:'Unit ID', type:'select', options: unitOptions, required:true, default:presetUnitId||'', onchange:'autoFillCommissioningFromUnit(this.value)'},
       {key:'Site', label:'Site (otomatis, boleh diubah)', type:'select', options: siteOptions, required:true},
       {key:'Area', label:'Area (otomatis, boleh diubah)', type:'select', options: areaOptions, required:true},
