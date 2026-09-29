@@ -330,21 +330,26 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 @media(max-width:767px){
   body{padding-left:0;padding-bottom:70px}
   .sidebar{display:none}
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-  .bottom-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .bottom-grid{grid-template-columns:1fr;gap:12px}
   .topbar-back span{display:none}
   .date-pill span:not(.di){display:none}
   .topbar-right .topbar-avatar{display:none}
   .pbi-embed-wrap iframe{height:280px!important}
-  .topbar{padding:0 14px}
+  .topbar{padding:0 12px}
+  .page-content{padding:14px 10px 24px}
   .asset-stat-row{grid-template-columns:repeat(2,1fr)}
-  .asset-stat-cell{border-right:none;border-bottom:1px solid var(--border)}
+  .asset-stat-cell{border-right:none;border-bottom:1px solid var(--border);padding:10px 8px}
   .asset-stat-cell:nth-child(odd){border-right:1px solid var(--border)}
   .asset-stat-cell:last-child,.asset-stat-cell:nth-last-child(2):nth-child(odd){border-bottom:none}
   .bottom-grid .section-card:last-child{display:none}
-  .sert-stat-row{grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 12px}
-  .asset-toolbar{gap:8px}
-  .asset-search-wrap{min-width:140px}
+  .sert-stat-row{grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 8px}
+  .asset-toolbar{gap:8px;flex-wrap:wrap}
+  .asset-search-wrap{min-width:0;flex:1}
+  .stat-card{padding:12px 10px}
+  .sc-value{font-size:24px}
+  .sc-label{font-size:10px}
+}
 .mobile-tabbar{
   display:flex; position:fixed; left:0; right:0; bottom:0; z-index:500;
   background:var(--surface,#fff); border-top:1px solid var(--border,#e5e7eb);
@@ -528,17 +533,49 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #page-commissioning .pill.blue { background:#eaf0ff; color:var(--blue-600);}
 
 #page-commissioning .pagination { display:flex; align-items:center; gap:8px; justify-content:space-between; margin-top:14px; flex-wrap:wrap;}
-#page-commissioning .pagination .pages { display:flex; gap:4px;}
-#page-commissioning .pagination button { border:1px solid var(--border); background:var(--surface); color:var(--text-900); border-radius:6px; width:30px; height:30px; cursor:pointer; font-size:12.5px;}
+#page-commissioning .pagination .pages { display:flex; gap:4px; flex-wrap:wrap; justify-content:center;}
+#page-commissioning .pagination button { border:1px solid var(--border); background:var(--surface); color:var(--text-900); border-radius:6px; min-width:30px; height:30px; padding:0 8px; cursor:pointer; font-size:12.5px;}
 #page-commissioning .pagination button.active { background:var(--blue-600); color:#fff; border-color:var(--blue-600);}
+#page-commissioning .pagination button:disabled { opacity:.4; cursor:default;}
 #page-commissioning .pagination .info { font-size:12px; color:var(--text-400);}
+
+/* Kartu daftar komisioning — default hidden (desktop pakai tabel) */
+#dashCardList { display:none; }
+.com-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.com-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.com-card-id { font-size: 15px; font-weight: 800; color: var(--blue-600); line-height: 1.2; }
+.com-card-model { font-size: 12px; color: var(--text-400); margin-top: 2px; }
+.com-card-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+  font-size: 12px;
+}
+.com-card-meta .k { color: var(--text-400); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; display:block; margin-bottom: 1px; }
+.com-card-meta .v { color: var(--text-900); font-weight: 600; word-break: break-all; }
+.com-card-sisa.neg { color: var(--red); }
+.com-card-sisa.warn { color: var(--orange); }
 
 #page-commissioning .icon-btn { border:none; background:transparent; cursor:pointer; color:var(--text-400); font-size:14px; padding:2px;}
 #page-commissioning .icon-btn.blue { color:var(--blue-600);}
 #page-commissioning .icon-btn.red { color:var(--red);}
 
 #page-commissioning .two-col { display:grid; grid-template-columns:2fr 1fr; gap:16px; }
-@media (max-width:980px){ .two-col{ grid-template-columns:1fr; } }
+@media (max-width:980px){
+  #page-commissioning .two-col { grid-template-columns:1fr; }
+}
 
 #page-commissioning .alert-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);}
 #page-commissioning .alert-item:last-child { border-bottom:none;}
@@ -787,10 +824,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 }
 #page-commissioning #bugReportFab:hover { background:var(--navy-700); }
 
-#page-commissioning .site-tab-bar { display:flex; gap:6px; margin-bottom:12px; }
+#page-commissioning .site-tab-bar { display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+#page-commissioning .site-tab-bar::-webkit-scrollbar { display:none; }
 #page-commissioning .site-tab-bar .stab {
   padding:7px 16px; border-radius:8px; font-size:12.5px; font-weight:700; cursor:pointer;
   background:var(--gray-bg); color:var(--text-600); border:1px solid transparent;
+  white-space:nowrap; flex-shrink:0;
 }
 #page-commissioning .site-tab-bar .stab.active { background:var(--navy-900); color:#fff; }
 
@@ -842,11 +881,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 body.tv-mode #page-commissioning .need-prep-scroll { max-height: 520px; }
 body.tv-mode #page-commissioning .need-prep-panel { box-shadow: 0 4px 24px rgba(217,119,6,.18); border: 2px solid #f59e0b; }
 
-#page-commissioning .jenis-card { flex:1; min-width:130px; background:var(--gray-bg); border-radius:10px; padding:12px 14px; transition:var(--transition-smooth); }
+#page-commissioning .jenis-card { background:var(--gray-bg); border-radius:10px; padding:12px 14px; transition:var(--transition-smooth); }
 #page-commissioning .jenis-card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(16,24,64,.08); }
 #page-commissioning .jenis-card .jc-num { font-size:20px; font-weight:800; }
 #page-commissioning .jenis-card .jc-lb { font-size:11px; color:var(--text-600); margin:2px 0 8px; }
 #page-commissioning .jenis-card .jc-pct { font-size:10.5px; color:var(--text-400); margin-top:4px; }
+
+/* Container breakdown jenis unit → grid rapi */
+#dashJenisBreakdown {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
 
 /* =====================================================================
    RESPONSIVE / MOBILE
@@ -884,35 +930,82 @@ body.tv-mode #page-commissioning .need-prep-panel { box-shadow: 0 4px 24px rgba(
   #page-commissioning .user-chip .un { display:none; }
   #connStatus{ order:99; } /* pindah ke akhir supaya tidak mendorong elemen lain */
 
-  #page-commissioning .content { padding:14px 12px 30px; }
-  #page-commissioning .stat-grid { grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
-  #page-commissioning .stat-card { padding:12px 14px; }
-  #page-commissioning .stat-card .val { font-size:22px; }
-  #page-commissioning .panel { padding:14px; }
+  #page-commissioning .content { padding:12px 10px 80px; }
+  #page-commissioning .stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  #page-commissioning .stat-card { padding: 12px 10px; }
+  #page-commissioning .stat-card .val { font-size: 20px; }
+  #page-commissioning .stat-card .lbl { font-size: 10px; }
+  #page-commissioning .panel { padding: 12px; margin-bottom: 12px; }
+  #page-commissioning .panel-title { font-size: 12.5px; margin-bottom: 10px; }
 
-  /* Toolbar (search + filter + tombol) ditumpuk penuh lebar, lebih mudah disentuh */
-  #page-commissioning .toolbar { flex-direction:column; align-items:stretch; }
-  #page-commissioning .toolbar input, #page-commissioning .toolbar select, #page-commissioning .toolbar button { width:100%; }
-  #page-commissioning .toolbar button { justify-content:center; margin-left:0 !important; }
+  /* Toolbar full-width stack */
+  #page-commissioning .toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
+  #page-commissioning .toolbar input,
+  #page-commissioning .toolbar select,
+  #page-commissioning .toolbar button { width: 100%; }
+  #page-commissioning .toolbar button { justify-content: center; margin-left: 0 !important; }
 
-  /* Tabel: font lebih kecil supaya lebih banyak kolom kelihatan sebelum discroll */
-  #page-commissioning table { font-size:12px; }
-  #page-commissioning thead th, #page-commissioning tbody td { padding:8px 8px; }
+  /* Tabel lebih kompak */
+  #page-commissioning table { font-size: 11.5px; }
+  #page-commissioning thead th,
+  #page-commissioning tbody td { padding: 7px 6px; }
 
-  /* Modal tampil dari bawah, hampir penuh layar - lebih mudah dipakai jari */
-  #page-commissioning .modal-overlay { padding:0; align-items:flex-end; }
-  #page-commissioning .modal-box { max-width:100%; width:100%; border-radius:16px 16px 0 0; max-height:94vh; }
-  #page-commissioning .modal-foot { flex-wrap:wrap; }
-  #page-commissioning .modal-foot button { flex:1; justify-content:center; }
+  /* DAFTAR KOMISIONING: tabel → kartu di mobile */
+  #dashboardTableSection .table-scroll-wrap { display: none; }
+  #dashCardList { display: block; }
+  #page-commissioning .table-scroll-wrap::after { display: none; }
 
-  /* Pagination & export card ikut menumpuk rapi */
-  #page-commissioning .pagination { flex-wrap:wrap; justify-content:center; gap:8px; }
+  /* Modal bottom sheet */
+  #page-commissioning .modal-overlay { padding: 0; align-items: flex-end; }
+  #page-commissioning .modal-box { max-width: 100%; width: 100%; border-radius: 16px 16px 0 0; max-height: 94vh; }
+  #page-commissioning .modal-foot { flex-wrap: wrap; }
+  #page-commissioning .modal-foot button { flex: 1; justify-content: center; }
+
+  /* Pagination */
+  #page-commissioning .pagination { flex-wrap: wrap; justify-content: center; gap: 8px; }
+
+  /* ===== GRID OPTIMIZATION ===== */
+  /* Semua two-col jadi 1 kolom */
+  #page-commissioning .two-col,
+  #page-commissioning .settings-two,
+  #page-commissioning .settings-two-rev { grid-template-columns: 1fr !important; gap: 12px; }
+
+  /* Breakdown jenis unit: 2 kolom rapi */
+  #dashJenisBreakdown {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  #page-commissioning .jenis-card { padding: 10px 10px; }
+  #page-commissioning .jenis-card .jc-num { font-size: 17px; }
+  #page-commissioning .jenis-card .jc-lb { font-size: 10px; line-height: 1.25; }
+  #page-commissioning .jenis-card .jc-pct { font-size: 9.5px; }
+
+  /* Mini stat & icon grid */
+  #page-commissioning .mini-stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  #page-commissioning .icon-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  #page-commissioning .export-cards { grid-template-columns: 1fr; gap: 8px; }
+  #page-commissioning .settings-grid3 { grid-template-columns: 1fr; gap: 10px; }
+
+  /* Need-prep panel lebih lega di mobile */
+  #page-commissioning .need-prep-scroll { max-height: 280px; }
+  #page-commissioning .need-prep-row { font-size: 12px; padding: 8px 6px; }
+  #page-commissioning .need-prep-panel .np-title { font-size: 12px; flex-wrap: wrap; }
+
+  /* Funnel / mini items */
+  #page-commissioning .funnel-item { min-width: 0; padding: 10px 6px; }
+  #page-commissioning .funnel-item .fn-num { font-size: 18px; }
 }
 
 @media (max-width:480px){
-  #page-commissioning .topbar .titles .crumb { display:none; }
-  #page-commissioning .stat-grid { grid-template-columns:1fr 1fr; }
-  #page-commissioning .brand-text small { display:none; }
+  #page-commissioning .topbar .titles .crumb { display: none; }
+  #page-commissioning .stat-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  #page-commissioning .stat-card { padding: 10px 8px; }
+  #page-commissioning .stat-card .val { font-size: 18px; }
+  #page-commissioning .brand-text small { display: none; }
+  #dashJenisBreakdown { grid-template-columns: repeat(2, 1fr) !important; gap: 6px !important; }
+  #page-commissioning .jenis-card { padding: 8px; }
+  #page-commissioning .content { padding: 10px 8px 80px; }
+  #page-commissioning .panel { padding: 10px; }
 }
 
 /* =====================================================================
@@ -1353,7 +1446,7 @@ body.tv-mode .btn-install { display: none !important; }
         <div class="two-col">
           <div class="panel">
             <div class="panel-title">🚚 BREAKDOWN PER JENIS UNIT</div>
-            <div id="dashJenisBreakdown" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+            <div id="dashJenisBreakdown"></div>
           </div>
           <div class="panel">
             <div class="panel-title">📈 PROYEKSI EXPIRED (6 BULAN KE DEPAN)</div>
@@ -1375,6 +1468,7 @@ body.tv-mode .btn-install { display: none !important; }
                   <tbody id="dashTableBody"></tbody>
                 </table>
               </div>
+              <div id="dashCardList"></div>
               <div class="pagination" id="dashPagination"></div>
             </div>
             <div>
@@ -2335,10 +2429,23 @@ function paginate(rows, page, perPage){
 function buildPagination(containerId, total, perPage, current, onPage){
   const el = document.getElementById(containerId);
   const totalPages = Math.max(1, Math.ceil(total/perPage));
-  let html = `<div class="info">Menampilkan ${Math.min((current-1)*perPage+1,total)}-${Math.min(current*perPage,total)} dari ${total} data</div><div class="pages">`;
+  const startN = total ? Math.min((current-1)*perPage+1, total) : 0;
+  const endN = Math.min(current*perPage, total);
+  let html = `<div class="info">Menampilkan ${startN}–${endN} dari ${total} data</div><div class="pages">`;
   html += `<button ${current<=1?'disabled':''} onclick="(${onPage})(${current-1})">‹</button>`;
-  for(let p=1;p<=Math.min(totalPages,5);p++){
+  let from = Math.max(1, current - 2);
+  let to = Math.min(totalPages, from + 4);
+  from = Math.max(1, to - 4);
+  if(from > 1){
+    html += `<button onclick="(${onPage})(1)">1</button>`;
+    if(from > 2) html += `<button disabled>…</button>`;
+  }
+  for(let p=from; p<=to; p++){
     html += `<button class="${p===current?'active':''}" onclick="(${onPage})(${p})">${p}</button>`;
+  }
+  if(to < totalPages){
+    if(to < totalPages-1) html += `<button disabled>…</button>`;
+    html += `<button onclick="(${onPage})(${totalPages})">${totalPages}</button>`;
   }
   html += `<button ${current>=totalPages?'disabled':''} onclick="(${onPage})(${current+1})">›</button></div>`;
   el.innerHTML = html;
@@ -2592,15 +2699,41 @@ function renderDashboard(){
     <tr>
       <td>${(dashPage-1)*perPage+i+1}</td>
       <td class="unit-id">${r.unitId}</td>
-      <td>${r.model2}</td>
+      <td>${r.model2||'—'}</td>
       ${midCols}
-      <td>${r.area}</td>
-      <td>${r.reg}</td>
-      <td>${r.selesai}</td>
+      <td>${r.area||'—'}</td>
+      <td>${r.reg||'—'}</td>
+      <td>${r.selesai||'—'}</td>
       <td style="color:${Number(r.sisa)<0?'var(--red)':Number(r.sisa)<=30?'var(--orange)':'inherit'}">${r.sisa} Hari</td>
       <td>${pillFor(r.status)}</td>
     </tr>`;
   }).join('') || `<tr><td colspan="9" class="empty-state">Tidak ada data untuk Site ${dashSiteTab==='ALL'?'ini':dashSiteTab}</td></tr>`;
+
+  const cardEl = document.getElementById('dashCardList');
+  if(cardEl){
+    cardEl.innerHTML = pageRows.length ? pageRows.map((r,i)=>{
+      const sisaN = Number(r.sisa);
+      const sisaCls = sisaN<0 ? 'neg' : (sisaN<=30 ? 'warn' : '');
+      const sisaTxt = isNaN(sisaN) ? (r.sisa||'—') : (sisaN + ' hari');
+      return `
+      <div class="com-card">
+        <div class="com-card-top">
+          <div>
+            <div class="com-card-id">${(dashPage-1)*perPage+i+1}. ${r.unitId||'—'}</div>
+            <div class="com-card-model">${r.model2||'Model tidak tercatat'}</div>
+          </div>
+          ${pillFor(r.status)}
+        </div>
+        <div class="com-card-meta">
+          ${dashSiteTab==='ALL' ? `<div><span class="k">Site</span><span class="v">${r.site||'—'}</span></div>` : ''}
+          <div><span class="k">Area</span><span class="v">${r.area||'—'}</span></div>
+          <div><span class="k">Reg. No</span><span class="v">${r.reg||'—'}</span></div>
+          <div><span class="k">Masa Berlaku</span><span class="v">${r.selesai||'—'}</span></div>
+          <div><span class="k">Sisa Hari</span><span class="v com-card-sisa ${sisaCls}">${sisaTxt}</span></div>
+        </div>
+      </div>`;
+    }).join('') : `<div class="empty-state" style="padding:20px 0;">Tidak ada data untuk Site ${dashSiteTab==='ALL'?'ini':dashSiteTab}</div>`;
+  }
 
   const stuckUnits = prepRows.filter(p=>{
     const st = pick(p,['Status_Preparation']);
