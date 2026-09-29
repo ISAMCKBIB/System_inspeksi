@@ -65,8 +65,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .btn-install{display:none;align-items:center;gap:6px;padding:7px 14px;border:none;border-radius:8px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));cursor:pointer;transition:all .15s;box-shadow:0 2px 8px rgba(27,79,216,.25)}
 .btn-install:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(27,79,216,.35)}
 .btn-install.show{display:flex}
-.pwa-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120%);background:var(--text);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:transform .3s ease;max-width:90vw;text-align:center}
-.pwa-toast.show{transform:translateX(-50%) translateY(0)}
+.pwa-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120%);background:var(--text);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:transform .3s ease, visibility .3s;max-width:90vw;text-align:center;visibility:hidden;pointer-events:none}
+.pwa-toast.show{transform:translateX(-50%) translateY(0);visibility:visible;pointer-events:auto}
 .pwa-toast b{color:#7CC1FF}
 .av-circle{width:28px;height:28px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
 .av-texts{line-height:1.2}
@@ -317,8 +317,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .lo-msg{font-size:14px;font-weight:600;color:var(--text)}
 
 /* Toast */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e293b;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all .3s;z-index:9999;white-space:nowrap}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e293b;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;visibility:hidden;transition:all .3s;z-index:9999;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);visibility:visible;pointer-events:auto}
 #toast.success{background:#166534}
 #toast.error{background:#991b1b}
 #toast.warn{background:#92400e}
@@ -837,6 +837,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #page-commissioning .need-prep-scroll { max-height:340px; overflow-y:auto; padding-right:4px; }
 #page-commissioning .need-prep-scroll::-webkit-scrollbar { width:6px; }
 #page-commissioning .need-prep-scroll::-webkit-scrollbar-thumb { background:rgba(0,0,0,.2); border-radius:4px; }
+
+/* TV mode: perbesar panel unit perlu preparation supaya lebih banyak terlihat */
+body.tv-mode #page-commissioning .need-prep-scroll { max-height: 520px; }
+body.tv-mode #page-commissioning .need-prep-panel { box-shadow: 0 4px 24px rgba(217,119,6,.18); border: 2px solid #f59e0b; }
 
 #page-commissioning .jenis-card { flex:1; min-width:130px; background:var(--gray-bg); border-radius:10px; padding:12px 14px; transition:var(--transition-smooth); }
 #page-commissioning .jenis-card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(16,24,64,.08); }
@@ -2706,17 +2710,22 @@ function setupAutoScroll(elId, timerKey){
 /* =====================================================================
    TV / KIOSK AUTO-ROTATE
 ===================================================================== */
-const TV_INTERVAL_SEC = 30;
+const TV_INTERVAL_MONITORING = 30;   // detik di halaman Monitoring
+const TV_INTERVAL_COMMISSIONING = 50; // detik di halaman Commissioning (lebih lama, fokus ke unit perlu preparation)
 let tvTimer = null;
 let tvCountdown = null;
-let tvRemaining = TV_INTERVAL_SEC;
+let tvRemaining = TV_INTERVAL_COMMISSIONING;
 let tvPaused = false;
-let tvCurrentPage = 'monitoring';
+let tvCurrentPage = 'commissioning';
 
 function isTvMode() {
   const params = new URLSearchParams(window.location.search);
   const mode = (params.get('mode') || '').toLowerCase();
   return mode === 'tv' || mode === 'kiosk';
+}
+
+function getTvIntervalForPage(page) {
+  return page === 'commissioning' ? TV_INTERVAL_COMMISSIONING : TV_INTERVAL_MONITORING;
 }
 
 function updateTvUI() {
@@ -2738,17 +2747,40 @@ function updateTvUI() {
   }
 }
 
+/** Scroll ke panel paling penting di Commissioning */
+function focusCommissioningPriorityPanel() {
+  // Tunggu sebentar supaya DOM panel sudah ter-render
+  setTimeout(function() {
+    const panel = document.getElementById('needPrepHero');
+    if (panel && panel.innerHTML.trim()) {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // Fallback: scroll ke atas halaman commissioning
+      const page = document.getElementById('page-commissioning');
+      if (page) page.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 350);
+}
+
 function tvSwitchPage() {
   tvCurrentPage = tvCurrentPage === 'monitoring' ? 'commissioning' : 'monitoring';
   switchAppPage(tvCurrentPage);
-  tvRemaining = TV_INTERVAL_SEC;
+  tvRemaining = getTvIntervalForPage(tvCurrentPage);
   updateTvUI();
+
+  // Saat masuk Commissioning → langsung fokus ke panel "UNIT PERLU MULAI PREPARATION"
+  if (tvCurrentPage === 'commissioning') {
+    focusCommissioningPriorityPanel();
+  } else {
+    // Monitoring: scroll ke atas
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 function startTvRotate() {
   stopTvRotate();
   tvPaused = false;
-  tvRemaining = TV_INTERVAL_SEC;
+  tvRemaining = getTvIntervalForPage(tvCurrentPage);
   updateTvUI();
 
   tvCountdown = setInterval(function() {
@@ -2770,7 +2802,7 @@ function stopTvRotate() {
 function toggleTvPause() {
   tvPaused = !tvPaused;
   if (!tvPaused) {
-    tvRemaining = TV_INTERVAL_SEC;
+    tvRemaining = getTvIntervalForPage(tvCurrentPage);
   }
   updateTvUI();
 }
@@ -2788,16 +2820,37 @@ function initTvMode() {
     <button class="tv-btn" id="tvPauseBtn" onclick="toggleTvPause()" title="Pause auto-rotate">⏸</button>
     <div class="tv-info">
       <span class="tv-label">Auto Rotate</span>
-      <span class="tv-status" id="tvStatus">Monitoring</span>
-      <span class="tv-countdown" id="tvCountdown">Ganti dalam 30d</span>
+      <span class="tv-status" id="tvStatus">Commissioning</span>
+      <span class="tv-countdown" id="tvCountdown">Ganti dalam 50d</span>
     </div>
   `;
   document.body.appendChild(ctrl);
 
-  // Start on Commissioning first (lebih kritis biasanya)
+  // Start on Commissioning first + fokus ke panel prioritas
   tvCurrentPage = 'commissioning';
   switchAppPage('commissioning');
+  focusCommissioningPriorityPanel();
   startTvRotate();
+
+  // Di TV mode, percepat auto-scroll list unit (setiap 5 detik, bukan 8)
+  // Override interval yang sudah jalan setelah data ter-render
+  setTimeout(function() {
+    if (window.__needPrepScrollTimer) {
+      clearInterval(window.__needPrepScrollTimer);
+      window.__needPrepScrollTimer = setInterval(function() {
+        const el = document.getElementById('needPrepScrollViewer');
+        if (!el || el.scrollHeight <= el.clientHeight + 2) return;
+        const row = el.querySelector('.need-prep-row');
+        const rowH = row ? (row.offsetHeight + 6) : 50;
+        const maxScroll = el.scrollHeight - el.clientHeight;
+        if (el.scrollTop + rowH >= maxScroll - 2) {
+          el.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          el.scrollTo({ top: el.scrollTop + rowH, behavior: 'smooth' });
+        }
+      }, 5000);
+    }
+  }, 2000);
 }
 
 /* =====================================================================
