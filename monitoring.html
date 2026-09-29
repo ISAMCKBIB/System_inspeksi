@@ -43,6 +43,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .snav-item.active{background:rgba(255,255,255,.16);color:#fff}
 .snav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#fff;border-radius:0 3px 3px 0}
 .snav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.mobile-tabbar{ display:none; }
+
 .sidebar-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,.1)}
 .sidebar-safe{background:rgba(255,255,255,.07);border-radius:10px;padding:10px 12px}
 .sf-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
@@ -343,6 +345,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .sert-stat-row{grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 12px}
   .asset-toolbar{gap:8px}
   .asset-search-wrap{min-width:140px}
+.mobile-tabbar{
+  display:flex; position:fixed; left:0; right:0; bottom:0; z-index:500;
+  background:var(--surface,#fff); border-top:1px solid var(--border,#e5e7eb);
+  box-shadow:0 -2px 12px rgba(0,0,0,.06);
+}
+.mobile-tabbar a{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:8px 4px 10px; text-decoration:none; color:var(--text-400,#94a3b8);
+  font-size:10.5px; font-weight:600;
+}
+.mobile-tabbar a .mt-icon{ font-size:19px; line-height:1; }
+.mobile-tabbar a.active{ color:var(--blue-600,#1f4fd6); }
 }
 
 /* ===== Commissioning page styles (scoped) ===== */
@@ -1948,6 +1962,8 @@ function switchAppPage(page) {
   var commEl = document.getElementById('page-commissioning');
   var navMon = document.getElementById('navMonitoring');
   var navComm = document.getElementById('navCommissioning');
+  var mtNavMon = document.getElementById('mtNavMonitoring');
+  var mtNavComm = document.getElementById('mtNavCommissioning');
   var title = document.getElementById('topbarTitle');
   var sub = document.getElementById('topbarSub');
   var datePill = document.getElementById('topDatePill');
@@ -1957,6 +1973,8 @@ function switchAppPage(page) {
     if (commEl) commEl.style.display = 'block';
     if (navMon) navMon.classList.remove('active');
     if (navComm) navComm.classList.add('active');
+    if (mtNavMon) mtNavMon.classList.remove('active');
+    if (mtNavComm) mtNavComm.classList.add('active');
     if (title) title.textContent = 'Commissioning Monitoring';
     if (sub) sub.textContent = 'Live overview status komisioning unit (Read Only).';
     if (datePill) datePill.style.display = 'none';
@@ -1965,6 +1983,8 @@ function switchAppPage(page) {
     if (monEl) monEl.style.display = 'block';
     if (navComm) navComm.classList.remove('active');
     if (navMon) navMon.classList.add('active');
+    if (mtNavComm) mtNavComm.classList.remove('active');
+    if (mtNavMon) mtNavMon.classList.add('active');
     if (title) title.textContent = 'Dashboard Monitoring';
     if (sub) sub.textContent = 'Live overview performa inspeksi & status asset seluruh area.';
     if (datePill) datePill.style.display = '';
@@ -2667,5 +2687,10 @@ function setupAutoScroll(elId, timerKey){
 
 </script>
 
+<nav class="mobile-tabbar">
+  <a href="index.html"><span class="mt-icon">🏠</span>Dashboard</a>
+  <a href="#" id="mtNavMonitoring" class="active" onclick="switchAppPage('monitoring');return false;"><span class="mt-icon">📊</span>Monitoring</a>
+  <a href="#" id="mtNavCommissioning" onclick="switchAppPage('commissioning');return false;"><span class="mt-icon">📦</span>Commissioning</a>
+</nav>
 </body>
 </html>
