@@ -13,8 +13,9 @@
   3. Upload/hosting file ini di mana saja (Netlify, GitHub Pages, subdomain, dsb).
 
   PERUBAHAN (fix dari temuan):
-  - Popup pilih sumber foto (Kamera/Galeri) tidak lagi muncul otomatis setelah
-    upload. PIC mengetuk kotak sisi berikutnya secara manual.
+  - Popup pilih sumber foto (Kamera/Galeri) sekarang otomatis lanjut ke sisi
+    berikutnya yang belum diisi (Depan -> Belakang -> Kiri -> Kanan), sampai
+    ke-4 foto terisi, baru berhenti (tidak ada popup lagi).
   - BARU: Verifikasi foto otomatis (cek blur/gelap/duplikat di browser + cek
     kriteria isi foto oleh AI lewat Apps Script action 'verifyPhoto').
     Pengaturan ada di objek VERIFY (cari "VERIFIKASI FOTO OTOMATIS").
@@ -165,6 +166,18 @@
     .footer-actions .btn-secondary{order:1;} .footer-actions .btn-primary{order:2;}
     .btn-primary:disabled{background:#cfd5db;color:#6b7480;box-shadow:none;opacity:1;}
 
+    /* ---- Perbaikan UX ---- */
+    .photo-box .need{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.35;}
+    .photo-box.filled .need{display:none;}
+    .chk-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 8px;font-size:12px;color:var(--muted);}
+    .chk-tools span{flex:1 1 220px;}
+    .btn-sm{min-height:34px;padding:6px 12px;font-size:12px;}
+    .invalid{border-color:var(--bad)!important;box-shadow:0 0 0 3px rgba(198,40,40,.18)!important;}
+    .footer-actions .progress{position:absolute;left:0;right:0;top:-4px;height:4px;background:rgba(245,166,35,.3);}
+    .footer-actions .progress i{display:block;height:100%;width:0;background:var(--amber);transition:width .25s;}
+    .footer-actions .progress.done i{background:var(--ok);}
+    .reject-card.success-card{border-top-color:var(--ok);}
+
     @media (max-width:520px){
       .topbar{padding:10px 14px 14px;}
       .topbar .title{font-size:18px;} .topbar .nav-btn{padding:8px 11px;font-size:12px;}
@@ -228,12 +241,17 @@
     <div class="card">
       <h2><span class="badge">2</span> Foto unit, 4 sisi wajib <span class="req" style="margin-left:auto;font-size:11px;">* Wajib diisi</span></h2>
       <div class="photo-grid" id="photoGrid"></div>
-      <div class="tips">💡 Tips: pilih <b>Ambil dari Kamera</b> supaya foto otomatis dibubuhi cap waktu &amp; titik koordinat GPS (seperti GPS Map Camera). Pilih <b>Galeri</b> kalau foto sudah ada sebelumnya (tanpa cap lokasi live). Setelah 1 foto selesai, ketuk kotak sisi berikutnya untuk mengambil foto selanjutnya sampai ke-4 foto terisi.</div>
+      <div class="tips">💡 Tips: pilih <b>Ambil dari Kamera</b> supaya foto otomatis dibubuhi cap waktu &amp; titik koordinat GPS (seperti GPS Map Camera). Pilih <b>Galeri</b> kalau foto sudah ada sebelumnya (tanpa cap lokasi live). Setelah 1 foto selesai, form otomatis lanjut ke sisi berikutnya sampai ke-4 foto terisi.</div>
     </div>
 
     <!-- 3. CHECKLIST -->
     <div class="card">
       <h2><span class="badge">3</span> Checklist kondisi unit</h2>
+      <div class="chk-tools">
+        <span>Centang bila kondisi <b>baik (OK)</b>. Item yang tidak dicentang tercatat <b>Rusak</b>.</span>
+        <button type="button" class="btn-secondary btn-sm" onclick="checkAll(true)">Centang semua</button>
+        <button type="button" class="btn-secondary btn-sm" onclick="checkAll(false)">Kosongkan</button>
+      </div>
       <div class="checklist-grid" id="checklistGrid"></div>
       <label style="margin-top:12px;">Catatan tambahan (opsional)</label>
       <textarea id="catatanTambahan" maxlength="500" placeholder="Tuliskan catatan / kondisi khusus unit (jika ada)..."></textarea>
@@ -289,6 +307,7 @@
     </div>
 
     <div class="card footer-actions">
+      <div class="progress" id="progress"><i id="progressFill"></i></div>
       <button class="btn-secondary" onclick="simpanDraft()">Simpan draft</button>
       <button class="btn-primary" id="submitBtn" onclick="submitForm_()">Kirim form</button>
       <p class="submit-hint" id="submitHint">Memeriksa kelengkapan foto...</p>
@@ -315,6 +334,16 @@
       <div id="rejectList"></div>
       <div id="rejectSaran" class="vsaran" style="display:none;"></div>
       <button class="btn-primary" style="width:100%;margin-top:14px;" onclick="closeRejectAndRetake()">📷 Perbaiki &amp; Ambil Ulang</button>
+    </div>
+  </div>
+
+  <!-- Popup: form terkirim -->
+  <div id="successModal" class="modal-overlay reject" style="align-items:center;padding:16px;">
+    <div class="reject-card success-card">
+      <div class="reject-icon">✅</div>
+      <div class="reject-title" style="color:var(--ok);">Form terkirim</div>
+      <div class="reject-sub" id="successMsg"></div>
+      <button class="btn-primary" style="width:100%;margin-top:8px;" onclick="location.reload()">Isi unit lain</button>
     </div>
   </div>
 
@@ -414,6 +443,12 @@
         if (p && (!VERIFY.enabled || (v && v.state === 'pass'))) ok++;
         else { kurang.push(k); if (v && v.state === 'checking') checking++; }
       });
+      var filled = 0;
+      REQUIRED_FIELDS.forEach(function(f){ var el = document.getElementById(f[0]); if (el && String(el.value || '').trim()) filled++; });
+      var pct = Math.round((filled + ok) / (REQUIRED_FIELDS.length + 4) * 100);
+      var pf = document.getElementById('progressFill'), pg = document.getElementById('progress');
+      if (pf) pf.style.width = pct + '%';
+      if (pg) pg.classList.toggle('done', pct === 100);
       var siap = ok === 4;
       btn.disabled = !siap;
       hint.className = 'submit-hint' + (siap ? ' ok' : (checking ? '' : ' bad'));
@@ -426,7 +461,33 @@
       rejectPhoto = function(a,b,c){ rp(a,b,c); updateSubmitState(); };
       renderPhotoGrid = function(x){ var r = rg(x); updateSubmitState(); return r; };
       window.addEventListener('load', updateSubmitState);
+      ['input','change'].forEach(function(ev){
+        document.addEventListener(ev, function(e){
+          if (e.target && e.target.classList) e.target.classList.remove('invalid');
+          updateSubmitState();
+        });
+      });
     })();
+
+    var REQUIRED_FIELDS = [['unitId','Unit'],['model','Model'],['jenisUnit','Jenis Unit'],['site','Site'],['area','Area'],['namaPic','Nama / SN PIC']];
+    function validateRequired(){
+      var missing = [], first = null;
+      REQUIRED_FIELDS.forEach(function(f){
+        var el = document.getElementById(f[0]);
+        if (!el) return;
+        var bad = !String(el.value || '').trim();
+        el.classList.toggle('invalid', bad);
+        if (bad){ missing.push(f[1]); if (!first) first = el; }
+      });
+      if (!missing.length) return true;
+      toast('Lengkapi dulu: ' + missing.join(', '), 'error');
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      try { first.focus({ preventScroll: true }); } catch(e) {}
+      return false;
+    }
+    function checkAll(v){
+      document.querySelectorAll('#checklistGrid input[type=checkbox]').forEach(function(cb){ cb.checked = v; });
+    }
 
     function esc(s){
       return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
@@ -693,11 +754,18 @@
       });
 
       if (prefillUnit) document.getElementById('unitId').value = prefillUnit;
+      updateSubmitState();
     };
 
     // ---------- PHOTO GRID: box + 2 input tersembunyi (kamera & galeri) ----------
     function renderPhotoGrid(sisiFoto){
       currentSisiList = sisiFoto.slice();
+      var SISI_HINT = {
+        Depan: 'Seluruh unit tampak, nomor lambung, lampu menyala, wheel chock, tangga, APAR',
+        Belakang: 'Seluruh unit tampak, nomor lambung, lampu belakang menyala',
+        Kiri: 'Seluruh unit tampak, nomor lambung, wheel chock, tangga',
+        Kanan: 'Seluruh unit tampak, nomor lambung, wheel chock, tangga'
+      };
       var photoGrid = document.getElementById('photoGrid');
       photoGrid.innerHTML = '';
       sisiFoto.forEach(function(sisi){
@@ -708,6 +776,7 @@
           '<div class="cam">📷</div>' +
           '<div class="lbl">Foto ' + sisi + ' *</div>' +
           '<div class="hint">Ketuk untuk ambil / pilih foto</div>' +
+          '<div class="need">' + (SISI_HINT[sisi] || '') + '</div>' +
           '<div class="photo-meta" id="meta-' + sisi + '">⌚ Belum diambil<br>📍 Lokasi: -</div>' +
           '<div class="vbox" id="ver-' + sisi + '"></div>' +
           '<input type="file" accept="image/*" capture="environment" style="display:none" id="input-camera-' + sisi + '">' +
@@ -735,10 +804,20 @@
       else document.getElementById('input-gallery-' + sisi).click();
     }
 
-    // Setelah 1 foto selesai diproses, popup TIDAK dibuka otomatis lagi.
-    // Verifikasi berjalan di latar belakang; PIC mengetuk kotak sisi berikutnya secara manual.
+    // Setelah 1 foto selesai diproses, otomatis buka popup untuk sisi berikutnya
+    // yang belum ada fotonya (urut sesuai currentSisiList). Kalau semua sisi sudah
+    // terisi, tidak ada popup lagi yang muncul (berhenti otomatis).
     function advanceToNextPhoto(){
-      // sengaja kosong
+      for (var i = 0; i < currentSisiList.length; i++){
+        var sisi = currentSisiList[i];
+        if (!photos[sisi]){
+          setTimeout(function(nextSisi){
+            return function(){ openPhotoSourceChooser(nextSisi); };
+          }(sisi), 600);
+          return;
+        }
+      }
+      // semua sisi sudah terisi -> tidak melakukan apa-apa (tidak ada popup lagi)
     }
 
     function renderDropdowns(siteAreaMap, jenisUnit){
@@ -952,9 +1031,7 @@
       var area = document.getElementById('area').value;
       var namaPic = document.getElementById('namaPic').value.trim();
 
-      if (!unitId || !model || !jenisUnit || !site || !area || !namaPic){
-        toast('Mohon lengkapi semua field wajib (*).', 'error'); return;
-      }
+      if (!validateRequired()) return;
       if (Object.keys(photos).length < 4){
         toast('Foto 4 sisi unit wajib diambil semua.', 'error'); return;
       }
@@ -1017,8 +1094,8 @@
         .then(function(res){
           btn.disabled = false; btn.textContent = 'Kirim form';
           if (res.success){
-            toast(res.message, 'success');
-            setTimeout(function(){ location.reload(); }, 2500);
+            document.getElementById('successMsg').textContent = res.message || 'Data berhasil dikirim.';
+            document.getElementById('successModal').classList.add('show');
           } else {
             toast(res.message || 'Submit gagal, cek data & coba lagi.', 'error');
           }
