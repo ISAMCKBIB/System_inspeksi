@@ -2,7 +2,7 @@
 // Strategi: cache-first (stale-while-revalidate) untuk app shell statis,
 // network-only untuk request ke Apps Script (data harus selalu fresh)
 
-const CACHE_NAME = 'isam-cache-v4'; // ⬅️ naikkan angka ini setiap kali deploy ulang app shell
+const CACHE_NAME = 'isam-cache-v5'; // ⬅️ naikkan angka ini setiap kali deploy ulang app shell
 
 const APP_SHELL = [
   'index.html',
