@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ISAM — Dashboard Monitoring</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1B4FD8">
+<meta name="theme-color" content="#14181f">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --primary:#1B4FD8;--primary-dark:#1338B0;--primary-light:#EEF3FF;
-  --secondary:#0EA5E9;--bg:#F0F4FF;--surface:#FFFFFF;--surface2:#F7F9FF;
-  --border:#D4DCEF;--text:#0F1A3C;--muted:#5A6A8A;--muted2:#8FA0BE;
+  --primary:#14181f;--primary-dark:#0a0d12;--primary-light:#fdf3e0;
+  --secondary:#f5a623;--bg:#f6f4ef;--surface:#FFFFFF;--surface2:#f6f4ef;
+  --border:#e6e2d8;--text:#14181f;--muted:#46566b;--muted2:#8b97a8;
   --green:#16A34A;--green-bg:#F0FDF4;--green-bd:#BBF7D0;
   --red:#DC2626;--red-bg:#FEF2F2;--red-bd:#FECACA;
   --yellow:#D97706;--yellow-bg:#FFFBEB;--yellow-bd:#FDE68A;
@@ -1236,6 +1236,13 @@ body.tv-mode .btn-install { display: none !important; }
 .tv-control .tv-status { font-size: 13px; font-weight: 700; }
 .tv-control .tv-countdown { font-size: 11px; opacity: .6; }
 
+
+.stat-card .sc-label{font-family:'Oswald',sans-serif;letter-spacing:.5px;text-transform:uppercase;font-size:11px}
+.stat-card .sc-value{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+.date-pill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.asset-item:hover{border-color:var(--secondary);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.sidebar{background:linear-gradient(180deg,#0a0d12 0%,#14181f 100%) !important}
+
 </style>
 </head>
 <body>
@@ -1285,10 +1292,9 @@ body.tv-mode .btn-install { display: none !important; }
     <button class="btn-install" id="btnInstallApp" onclick="handleInstallClick()">
       <span>📲</span><span>Install App</span>
     </button>
-    <div class="date-pill" id="topDatePill">
+    <div class="date-pill" id="topDatePill" title="Periode data" style="cursor:default">
       <span class="di">📅</span>
-      <span id="dateRange">01 – 30 Juni 2026</span>
-      <span>▾</span>
+      <span id="dateRange">—</span>
     </div>
     <div class="topbar-avatar">
       <div class="av-circle" id="topAvatar">V</div>
@@ -1313,7 +1319,7 @@ body.tv-mode .btn-install { display: none !important; }
 
   <!-- STAT CARDS -->
   <div class="stats-grid">
-    <div class="stat-card c-blue"><span class="sc-icon">📋</span><div class="sc-label">Total Inspeksi</div><div class="sc-value" id="scTotal">–</div><div class="sc-sub">Bulan Juni 2026</div><div class="sc-trend trend-up" id="scTotalTrend"></div></div>
+    <div class="stat-card c-blue"><span class="sc-icon">📋</span><div class="sc-label">Total Inspeksi</div><div class="sc-value" id="scTotal">–</div><div class="sc-sub" id="scTotalSub">Semua inspeksi tercatat</div><div class="sc-trend trend-up" id="scTotalTrend"></div></div>
     <div class="stat-card c-green"><span class="sc-icon">✅</span><div class="sc-label">Lulus Inspeksi</div><div class="sc-value" id="scLulus">–</div><div class="sc-sub" id="scPassRate">Pass Rate</div><div class="sc-trend trend-up" id="scLulusTrend"></div></div>
     <div class="stat-card c-yellow"><span class="sc-icon">⏰</span><div class="sc-label">Waiting Inspeksi</div><div class="sc-value" id="scWaiting">–</div><div class="sc-sub">Perlu segera diinspeksi</div><div class="sc-trend trend-down" id="scWaitingTrend"></div></div>
     <div class="stat-card c-red"><span class="sc-icon">🚨</span><div class="sc-label">Temuan Open</div><div class="sc-value" id="scOpen">–</div><div class="sc-sub">Perlu tindak lanjut</div><div class="sc-trend" id="scOpenTrend"></div></div>
@@ -1576,6 +1582,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXYIMZh1r63PBe
 
 // ── STATE ──
 let allTemuan = [];
+let allInspeksi = [];
 let assetsRaw = [];
 let masterKatCache = [];
 let assetAreaFilter = 'ALL';
@@ -1595,7 +1602,7 @@ window.onload = async () => {
 
 async function loadAll() {
   showLoad('Memuat data monitoring...');
-  await Promise.all([loadTemuan(), loadAssets()]);
+  await Promise.all([loadTemuan(), loadAssets(), loadInspeksi()]);
   hideLoad();
   renderAll();
   renderAssetSection();
@@ -1614,6 +1621,16 @@ async function loadTemuan() {
     const json = await res.json();
     allTemuan = json.status === 'ok' ? (json.data || []) : getDemoTemuan();
   } catch(e) { allTemuan = getDemoTemuan(); }
+}
+
+async function loadInspeksi() {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getInspeksi&limit=500');
+    const json = await res.json();
+    allInspeksi = json.status === 'ok' ? (json.data || []) : [];
+  } catch(e) {
+    allInspeksi = [];
+  }
 }
 
 // ── LOAD ASSETS ──
@@ -1653,30 +1670,38 @@ function renderAll() {
   const open    = allTemuan.filter(t => t.status_temuan === 'OPEN').length;
   const closed  = allTemuan.filter(t => t.status_temuan === 'CLOSED').length;
   const overdue = allTemuan.filter(t => t.status_temuan === 'OPEN' && t.sla_status === 'OVERDUE').length;
-  const total   = allTemuan.length;
-  const passRate= total > 0 ? Math.round((closed / total) * 100) : 0;
-  const pics    = new Set(allTemuan.map(t => t.pic_nik || t.nama_pic).filter(Boolean));
+  const totalTemuan = allTemuan.length;
+  const totalInspeksi = (allInspeksi && allInspeksi.length)
+    ? allInspeksi.length
+    : new Set(allTemuan.map(t => t.inspeksi_id).filter(Boolean)).size;
+  const layakInsp = (allInspeksi || []).filter(d => {
+    const s = (d.status_hasil || '').toUpperCase();
+    return s === 'LAYAK' || Number(d.total_tidak || 0) === 0;
+  }).length;
+  const passRate = totalInspeksi > 0
+    ? Math.round((layakInsp / totalInspeksi) * 100)
+    : (totalTemuan > 0 ? Math.round((closed / totalTemuan) * 100) : 0);
+  const pics = new Set(allTemuan.map(t => t.pic_nik || t.nama_pic).filter(Boolean));
 
-  setText('scTotal', total);
-  setText('scLulus', closed);
+  setText('scTotal', totalInspeksi);
+  setText('scLulus', layakInsp || closed);
   setText('scPassRate', passRate + '% Pass Rate');
   setText('scWaiting', open);
   setText('scOpen', open);
   setText('scOverdue', overdue);
-  setText('scPIC', pics.size || 18);
-  setText('scTotalTrend', '▲ 12% dari bulan lalu');
-  setText('scLulusTrend', '▲ 5% dari bulan lalu');
-  setText('scWaitingTrend', '▼ 3% dari bulan lalu');
+  setText('scPIC', pics.size || 0);
+  const sub = document.getElementById('scTotalSub');
+  if (sub) sub.textContent = totalInspeksi + ' header · ' + totalTemuan + ' temuan';
+  setText('scTotalTrend', '');
+  setText('scLulusTrend', '');
+  setText('scWaitingTrend', '');
   document.getElementById('scWaitingTrend').className = 'sc-trend trend-down';
-  setText('scOpenTrend', '▼ 1 dari bulan lalu');
-  document.getElementById('scOpenTrend').className = 'sc-trend trend-down';
-  setText('scOverdueTrend', '▲ 2 dari bulan lalu');
-  document.getElementById('scOverdueTrend').className = 'sc-trend trend-down';
-  setText('scPICTrend', '▲ 2 dari bulan lalu');
-  document.getElementById('scPICTrend').className = 'sc-trend trend-up';
+  setText('scOpenTrend', '');
+  setText('scOverdueTrend', '');
+  setText('scPICTrend', '');
 
   renderPICTable();
-  renderProgress(closed, open, total);
+  renderProgress(closed, open, totalTemuan);
   renderOverdueTable();
 }
 
@@ -1840,7 +1865,7 @@ function renderAssetList(assets) {
         <div class="pic-nik-sm">${a.pic_nik || ''}</div>
       </div>` : '';
 
-    return `<div class="asset-item" style="${borderLeft}">
+    return `<div class="asset-item" style="${borderLeft};cursor:pointer" onclick="openAssetHistory('${(a.no_id||a.no_toolbox||a.asset_id||'').replace(/'/g,"")}')" title="Lihat riwayat inspeksi">
       <div class="asset-item-head">
         <div class="asset-item-icon ${isLayak ? 'layak' : 'tidak'}">${a.no_toolbox ? '🧰' : '🔧'}</div>
         <div class="asset-item-main">
@@ -2050,6 +2075,62 @@ function parseExpDate(val) {
   const [y,m,d] = s.split('-');
   return new Date(parseInt(y), parseInt(m)-1, parseInt(d));
 }
+
+
+function openAssetHistory(key) {
+  if (!key) return;
+  const asset = (assetsRaw || []).find(a =>
+    String(a.no_id || '') === key ||
+    String(a.no_toolbox || '') === key ||
+    String(a.asset_id || '') === key
+  );
+  const hist = (allInspeksi || []).filter(d =>
+    String(d.no_id || '') === key ||
+    String(d.no_toolbox || '') === key ||
+    (asset && String(d.asset_id || '') === String(asset.asset_id || ''))
+  ).sort((a,b) => new Date(b.tanggal_inspeksi||0) - new Date(a.tanggal_inspeksi||0));
+
+  document.getElementById('ahTitle').textContent =
+    (asset && asset.nama_alat ? asset.nama_alat : 'Asset') + (key ? ' · ' + key : '');
+  document.getElementById('ahSub').textContent =
+    (asset && asset.nama_subarea ? asset.nama_subarea + ' · ' : '') +
+    (asset && asset.nama_kategori ? asset.nama_kategori : '') +
+    ' · ' + hist.length + ' inspeksi';
+
+  if (!hist.length) {
+    document.getElementById('ahBody').innerHTML =
+      '<div style="text-align:center;padding:28px 12px;color:var(--muted)"><div style="font-size:28px;margin-bottom:8px">📋</div>Belum ada riwayat inspeksi untuk asset ini.</div>';
+  } else {
+    document.getElementById('ahBody').innerHTML = hist.map(d => {
+      const isLayak = (d.status_hasil||'').toUpperCase() === 'LAYAK' || Number(d.total_tidak||0) === 0;
+      const tgl = (d.tanggal_inspeksi||'').toString().slice(0,10);
+      const temuanN = Number(d.total_tidak||0);
+      return `<div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;border-left:3px solid ${isLayak?'var(--green)':'var(--red)'}">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+          <div>
+            <div style="font-size:13px;font-weight:700">${tgl || '-'}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">👤 ${d.nama_inspektor||'-'}</div>
+          </div>
+          <span style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;${isLayak?'background:var(--green-bg);color:var(--green)':'background:var(--red-bg);color:var(--red)'}">${isLayak?'✅ LAYAK':'❌ TIDAK LAYAK'}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:12px;color:var(--muted)">
+          <span style="color:var(--green)">✅ ${d.total_ya||0} OK</span>
+          <span style="color:${temuanN>0?'var(--red)':'var(--muted)'}">❌ ${temuanN} Temuan</span>
+        </div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:6px;font-family:monospace">${d.inspeksi_id||''}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('assetHistBg').style.display = 'block';
+  document.getElementById('assetHistModal').style.display = 'block';
+}
+function closeAssetHistory() {
+  const bg = document.getElementById('assetHistBg');
+  const md = document.getElementById('assetHistModal');
+  if (bg) bg.style.display = 'none';
+  if (md) md.style.display = 'none';
+}
+
 
 function setText(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
 
@@ -3093,5 +3174,19 @@ function initTvMode() {
   <a href="#" id="mtNavMonitoring" class="active" onclick="switchAppPage('monitoring');return false;"><span class="mt-icon">📊</span>Monitoring</a>
   <a href="#" id="mtNavCommissioning" onclick="switchAppPage('commissioning');return false;"><span class="mt-icon">📦</span>Commissioning</a>
 </nav>
+
+<!-- ASSET HISTORY MODAL -->
+<div id="assetHistBg" onclick="closeAssetHistory()" style="display:none;position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:400;backdrop-filter:blur(3px)"></div>
+<div id="assetHistModal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,94vw);max-height:88vh;overflow:auto;background:var(--surface);border-radius:16px;z-index:401;box-shadow:0 16px 48px rgba(0,0,0,.28)">
+  <div style="position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:1">
+    <div>
+      <div style="font-size:15px;font-weight:700" id="ahTitle">Riwayat Inspeksi</div>
+      <div style="font-size:11px;color:var(--muted);font-family:monospace" id="ahSub">—</div>
+    </div>
+    <button type="button" onclick="closeAssetHistory()" style="border:none;background:var(--surface2);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px">✕</button>
+  </div>
+  <div id="ahBody" style="padding:16px"></div>
+</div>
+
 </body>
 </html>
