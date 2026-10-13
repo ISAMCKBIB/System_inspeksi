@@ -2574,22 +2574,70 @@
             // ── ASET DITEMUKAN — auto-fill langsung ──
             const a = j.data.asset;
             fillAssetFields(a);
+            const openN = Number(a.open_temuan_count || 0);
+            const statusColor =
+              a.status_aset_terakhir === "LAYAK" ||
+              a.status_aset_terakhir === "LAIK"
+                ? "var(--green)"
+                : "var(--red)";
+
+            let openBlock = "";
+            if (openN > 0) {
+              const items = (a.open_temuan_preview || [])
+                .map(function (t) {
+                  const q = t.pertanyaan || "Temuan";
+                  const r = t.remarks_inspector
+                    ? '<div style="font-size:11px;color:var(--muted);margin-top:2px">📝 ' +
+                      t.remarks_inspector +
+                      "</div>"
+                    : "";
+                  return (
+                    '<div style="padding:6px 0;border-top:1px dashed var(--border)">' +
+                    '<div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.35">• ' +
+                    q +
+                    "</div>" +
+                    r +
+                    "</div>"
+                  );
+                })
+                .join("");
+              openBlock =
+                '<div style="margin-top:8px;padding-top:6px">' +
+                '<div style="font-size:12px;font-weight:700;color:var(--red)">⚠️ ' +
+                openN +
+                " temuan belum close</div>" +
+                items +
+                (openN > 3
+                  ? '<div style="font-size:11px;color:var(--muted);margin-top:4px">+' +
+                    (openN - 3) +
+                    " lainnya</div>"
+                  : "") +
+                "</div>";
+            }
+
             h.innerHTML =
-              "✅ <strong>Aset ditemukan!</strong> Semua data terisi otomatis" +
+              '<div style="font-weight:700">✅ Aset ditemukan!</div>' +
+              '<div style="font-size:12px;margin-top:2px">Semua data terisi otomatis</div>' +
               (a.tgl_inspeksi_terakhir
-                ? "<br>🕒 Terakhir inspeksi: <strong>" +
+                ? '<div style="font-size:12px;margin-top:6px">🕒 Terakhir: <strong>' +
                   a.tgl_inspeksi_terakhir +
-                  "</strong>"
-                : "") +
-              (a.status_aset_terakhir
-                ? ' · <span style="color:' +
-                  (a.status_aset_terakhir === "LAIK"
-                    ? "var(--green)"
-                    : "var(--red)") +
-                  '">' +
-                  a.status_aset_terakhir +
-                  "</span>"
-                : "");
+                  "</strong>" +
+                  (a.status_aset_terakhir
+                    ? ' · <span style="color:' +
+                      statusColor +
+                      ';font-weight:700">' +
+                      a.status_aset_terakhir +
+                      "</span>"
+                    : "") +
+                  "</div>"
+                : a.status_aset_terakhir
+                  ? '<div style="font-size:12px;margin-top:6px"><span style="color:' +
+                    statusColor +
+                    ';font-weight:700">' +
+                    a.status_aset_terakhir +
+                    "</span></div>"
+                  : "") +
+              openBlock;
             h.className = "hint found show";
             icon.textContent = "✅";
             unlockAssetFields();
