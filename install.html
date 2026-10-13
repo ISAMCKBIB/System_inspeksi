@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Install ISAM</title>
+<meta name="description" content="Install ISAM ke HP Android. Tap Install, lalu buka dari layar utama.">
+<meta name="theme-color" content="#1B4FD8">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Install ISAM di HP Android">
+<meta property="og:description" content="Tap Install, lalu ISAM langsung ada di layar utama HP.">
+<meta property="og:image" content="https://isamckbib.github.io/System_inspeksi/og-image.png">
+<meta property="og:url" content="https://isamckbib.github.io/System_inspeksi/install.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#0F1A3C;-webkit-text-size-adjust:100%}
+body{
+  font-family:'Inter',system-ui,sans-serif;color:#fff;min-height:100vh;min-height:100dvh;
+  background:radial-gradient(circle at 50% 0%,#2C63F0 0%,#0F1A3C 70%) no-repeat,#0F1A3C;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom));
+}
+main{width:100%;max-width:360px}
+.logo{width:116px;height:116px;border-radius:28px;box-shadow:0 14px 40px rgba(0,0,0,.4);margin-bottom:22px}
+h1{font-size:34px;font-weight:800;letter-spacing:.5px}
+.sub{font-size:12px;font-weight:700;letter-spacing:1.4px;color:#F5A623;margin:6px 0 34px;text-transform:uppercase}
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:none;border-radius:16px;
+  padding:18px;font:inherit;font-size:18px;font-weight:800;color:#1B1B1B;cursor:pointer;
+  background:linear-gradient(135deg,#F5A623,#F0851B);box-shadow:0 12px 28px rgba(245,166,35,.4);
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.98)}
+.note{margin-top:16px;font-size:13px;color:rgba(255,255,255,.65);line-height:1.5}
+.view{display:none}
+body[data-state="ready"] #viewInstall,
+body[data-state="done"] #viewDone{display:block}
+.tick{width:84px;height:84px;margin:0 auto 18px;border-radius:50%;background:#1FAF55;display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 10px 28px rgba(31,175,85,.4)}
+#viewDone h2{font-size:24px;font-weight:800;margin-bottom:8px}
+#viewDone p{font-size:14px;color:rgba(255,255,255,.75);line-height:1.6}
+.link{display:inline-block;margin-top:22px;font-size:13px;color:rgba(255,255,255,.7);text-decoration:underline}
+#how{position:fixed;inset:0;z-index:10;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6)}
+#how.show{display:flex}
+#how .box{width:100%;max-width:460px;background:#fff;color:#1B1B1B;text-align:left;border-radius:22px 22px 0 0;padding:22px 22px calc(22px + env(safe-area-inset-bottom,0px))}
+#how h3{font-size:17px;margin-bottom:10px}
+#how ol{padding-left:20px;font-size:15px;line-height:1.75}
+#how .tip{margin-top:12px;font-size:12.5px;color:#555;line-height:1.5}
+#how button{margin-top:16px;width:100%;border:none;border-radius:12px;padding:13px;font:inherit;font-size:15px;font-weight:700;color:#fff;background:#1B4FD8;cursor:pointer}
+</style>
+</head>
+<body data-state="ready">
+
+<main>
+  <div class="view" id="viewInstall">
+    <img class="logo" src="icon-512.png" alt="ISAM">
+    <h1>ISAM</h1>
+    <div class="sub">Inspection System<br>Asset Management</div>
+    <button class="btn" id="btnInstall" type="button">📲 Install ISAM</button>
+    <p class="note">Tap sekali, ikon ISAM langsung muncul di layar utama HP.</p>
+  </div>
+
+  <div class="view" id="viewDone">
+    <div class="tick">✓</div>
+    <h2>ISAM sudah terpasang</h2>
+    <p>Buka <b>ISAM</b> dari ikon di layar utama HP kamu.</p>
+    <a class="link" href="index.html">Atau buka sekarang di browser</a>
+  </div>
+</main>
+
+<div id="how" role="dialog" aria-label="Cara install">
+  <div class="box">
+    <h3>Cara install ISAM</h3>
+    <ol>
+      <li>Tap menu <b>&#8942;</b> (titik tiga) di pojok kanan atas Chrome</li>
+      <li>Pilih <b>Install app</b> atau <b>Tambahkan ke layar utama</b></li>
+      <li>Tap <b>Install</b></li>
+    </ol>
+    <p class="tip">Kalau menunya tertulis <b>Buka ISAM</b>, berarti sudah terpasang. Buka saja dari ikon di layar utama.</p>
+    <button type="button" id="btnHowClose">Mengerti</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Sudah dibuka sebagai app terinstall -> langsung ke aplikasi
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (standalone) { location.replace('index.html'); return; }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(e){ console.warn('SW register failed:', e); });
+    });
+  }
+
+  var deferred = null;
+  var how = document.getElementById('how');
+  function setState(s){ document.body.setAttribute('data-state', s); }
+
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferred = e;
+  });
+
+  window.addEventListener('appinstalled', function(){ deferred = null; setState('done'); });
+
+  document.getElementById('btnInstall').addEventListener('click', function(){
+    if (deferred) {
+      var d = deferred; deferred = null;
+      d.prompt();
+      d.userChoice.then(function(c){ if (c && c.outcome === 'accepted') setState('done'); });
+    } else {
+      how.classList.add('show');   // Chrome belum/tidak memberi prompt -> tampilkan cara manual
+    }
+  });
+  document.getElementById('btnHowClose').addEventListener('click', function(){ how.classList.remove('show'); });
+})();
+</script>
+</body>
+</html>
