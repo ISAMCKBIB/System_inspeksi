@@ -1,3 +1,14 @@
+Lewati ke konten utama
+⌘J
+
+
+
+
+monitoring.html
+
+
+
+Berkas
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -1247,9 +1258,10 @@ body.tv-mode .btn-install { display: none !important; }
 .sidebar{background:linear-gradient(180deg,#0a0d12 0%,#14181f 100%) !important}
 
 
-/* Prevent commissioning nested chrome from leaking when not active */
-#page-commissioning:not(.active){ display:none !important; }
-#page-commissioning .sidebar{ display:none !important; }
+/* Commissioning: hide nested internal sidebar (outer app sidebar remains) */
+#page-commissioning .app > .sidebar{ display:none !important; }
+#page-commissioning .app { display:block !important; }
+#page-commissioning .content { width:100% !important; max-width:100% !important; }
 @media (min-width:769px){
   .mobile-tabbar{ display:none !important; }
   body{ padding-bottom:0 !important; }
@@ -2314,7 +2326,7 @@ function switchAppPage(page) {
 
   if (page === 'commissioning') {
     if (monEl) monEl.style.display = 'none';
-    if (commEl) commEl.style.display = 'block';
+    if (commEl) { commEl.style.display = 'block'; commEl.classList.add('active'); }
     if (navMon) navMon.classList.remove('active');
     if (navComm) navComm.classList.add('active');
     if (mtNavMon) mtNavMon.classList.remove('active');
@@ -2323,7 +2335,7 @@ function switchAppPage(page) {
     if (sub) sub.textContent = 'Live overview status komisioning unit (Read Only).';
     if (datePill) datePill.style.display = 'none';
   } else {
-    if (commEl) commEl.style.display = 'none';
+    if (commEl) { commEl.style.display = 'none'; commEl.classList.remove('active'); }
     if (monEl) monEl.style.display = 'block';
     if (navComm) navComm.classList.remove('active');
     if (navMon) navMon.classList.add('active');
