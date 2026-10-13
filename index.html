@@ -6,6 +6,13 @@
 <title>ISAM — Inspection System Asset Management</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1B4FD8">
+<meta name="description" content="ISAM - Inspection System Asset Management. Install di HP Android, buka langsung dari layar utama.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ISAM — Inspection System Asset Management">
+<meta property="og:description" content="Sistem Inspeksi K3 &amp; Asset Management. Buka link, tap Install, lalu pakai langsung dari layar utama HP.">
+<meta property="og:image" content="https://isamckbib.github.io/System_inspeksi/og-image.png">
+<meta property="og:url" content="https://isamckbib.github.io/System_inspeksi/">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -668,6 +675,83 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW register failed:', e));
   });
 }
+</script>
+
+<!-- ===== PWA: Banner Install ISAM (Android) ===== -->
+<style>
+#isamInstall{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:99999;display:none;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:#0F1A3C;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.35);font-family:'Inter',system-ui,sans-serif;max-width:460px;margin:0 auto}
+#isamInstall.show{display:flex}
+#isamInstall img{width:44px;height:44px;border-radius:10px;flex-shrink:0}
+#isamInstall .txt{flex:1;min-width:0;line-height:1.3}
+#isamInstall .txt b{display:block;font-size:14px}
+#isamInstall .txt span{display:block;font-size:11.5px;color:rgba(255,255,255,.7)}
+#isamInstall .go{flex-shrink:0;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:800;color:#1B1B1B;background:linear-gradient(135deg,#F5A623,#F0851B);cursor:pointer}
+#isamInstall .x{flex-shrink:0;border:none;background:transparent;color:rgba(255,255,255,.6);font-size:20px;line-height:1;padding:4px;cursor:pointer}
+#isamHow{position:fixed;inset:0;z-index:100000;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);font-family:'Inter',system-ui,sans-serif}
+#isamHow.show{display:flex}
+#isamHow .box{width:100%;max-width:460px;background:#fff;color:#1B1B1B;border-radius:20px 20px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom,0px))}
+#isamHow h3{font-size:16px;margin-bottom:12px}
+#isamHow ol{padding-left:20px;font-size:14px;line-height:1.7}
+#isamHow button{margin-top:16px;width:100%;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;color:#fff;background:#1B4FD8;cursor:pointer}
+</style>
+
+<div id="isamInstall" role="dialog" aria-label="Install ISAM">
+  <img src="icon-192.png" alt="ISAM">
+  <div class="txt"><b>Install ISAM di HP</b><span>Buka langsung dari layar utama</span></div>
+  <button class="go" id="isamInstallBtn" type="button">Install</button>
+  <button class="x" id="isamInstallClose" type="button" aria-label="Tutup">&times;</button>
+</div>
+
+<div id="isamHow">
+  <div class="box">
+    <h3>Cara install ISAM</h3>
+    <ol>
+      <li>Tap menu <b>&#8942;</b> (titik tiga) di pojok kanan atas Chrome</li>
+      <li>Pilih <b>Install app</b> atau <b>Tambahkan ke layar utama</b></li>
+      <li>Tap <b>Install</b> &mdash; ikon ISAM muncul di layar utama</li>
+    </ol>
+    <button type="button" id="isamHowClose">Mengerti</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var isAndroid = /Android/i.test(navigator.userAgent);
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (!isAndroid || standalone) return;           // hanya Android & hanya di browser (bukan app terinstall)
+
+  var KEY = 'isam_install_dismissed', SKIP_MS = 3 * 24 * 60 * 60 * 1000;
+  try { var t = parseInt(localStorage.getItem(KEY) || '0', 10); if (t && Date.now() - t < SKIP_MS) return; } catch(e){}
+
+  var banner = document.getElementById('isamInstall');
+  var how = document.getElementById('isamHow');
+  var deferred = null;
+
+  function show(){ banner.classList.add('show'); }
+  function hide(){ banner.classList.remove('show'); }
+  function dismiss(){ hide(); try { localStorage.setItem(KEY, String(Date.now())); } catch(e){} }
+
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferred = e;
+    show();
+  });
+
+  // Kalau Chrome belum memunculkan prompt (mis. belum cukup "engagement"), tetap tawarkan cara manual
+  setTimeout(function(){ if (!deferred) show(); }, 2500);
+
+  document.getElementById('isamInstallBtn').addEventListener('click', function(){
+    if (deferred) {
+      deferred.prompt();
+      deferred.userChoice.then(function(){ deferred = null; hide(); });
+    } else {
+      how.classList.add('show');
+    }
+  });
+  document.getElementById('isamInstallClose').addEventListener('click', dismiss);
+  document.getElementById('isamHowClose').addEventListener('click', function(){ how.classList.remove('show'); });
+  window.addEventListener('appinstalled', function(){ hide(); deferred = null; });
+})();
 </script>
 </body>
 </html>
