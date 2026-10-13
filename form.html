@@ -178,6 +178,17 @@
     .footer-actions .progress.done i{background:var(--ok);}
     .reject-card.success-card{border-top-color:var(--ok);}
 
+    /* ---- Perbaikan tata letak (iPhone / layar sempit) ---- */
+    .grid > *{min-width:0;}
+    .grid.two-col{grid-template-columns:1fr 1fr;align-items:start;}
+    .grid.two-col > .card{margin-bottom:0;}
+    input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;display:block;width:100%;min-width:0;max-width:100%;text-align:left;line-height:1.2;}
+    input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:left;min-height:1.2em;margin:0;}
+    input[type=text],select,textarea{min-width:0;max-width:100%;}
+    @media (max-width:640px){
+      .grid.two-col{grid-template-columns:1fr;gap:12px;}
+    }
+
     @media (max-width:520px){
       .topbar{padding:10px 14px 14px;}
       .topbar .title{font-size:18px;} .topbar .nav-btn{padding:8px 11px;font-size:12px;}
@@ -286,7 +297,7 @@
     </div>
 
     <!-- 5 & 6 -->
-    <div class="grid" style="grid-template-columns:1fr 1fr;">
+    <div class="grid two-col">
       <div class="card">
         <h2><span class="badge">5</span> Data pengambilan</h2>
         <label>Nama / SN PIC <span class="req">*</span></label>
