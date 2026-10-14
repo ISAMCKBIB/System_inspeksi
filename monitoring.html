@@ -1255,6 +1255,325 @@ body.tv-mode .btn-install { display: none !important; }
   .mobile-tabbar{ display:none !important; }
   body{ padding-bottom:0 !important; }
 }
+
+/* ===== COMMISSIONING READABILITY OVERHAUL ===== */
+#page-commissioning {
+  --c-text: #0f172a;
+  --c-muted: #64748b;
+  --c-border: #e2e8f0;
+  --c-surface: #ffffff;
+  --c-soft: #f8fafc;
+}
+#page-commissioning .content {
+  padding: 18px 20px 48px !important;
+  background: #f1f5f9;
+  min-height: 60vh;
+}
+#page-commissioning .panel {
+  background: var(--c-surface) !important;
+  border: 1px solid var(--c-border) !important;
+  border-radius: 16px !important;
+  padding: 18px 20px !important;
+  margin-bottom: 14px !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.04);
+}
+#page-commissioning .panel-title {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: .3px;
+  color: #0f172a !important;
+  margin-bottom: 14px !important;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+#page-commissioning .stat-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+}
+#page-commissioning .stat-card {
+  background: #fff !important;
+  border: 1px solid var(--c-border) !important;
+  border-radius: 14px !important;
+  padding: 16px 14px !important;
+  position: relative;
+  overflow: hidden;
+}
+#page-commissioning .stat-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: #94a3b8;
+}
+#page-commissioning .stat-card.green::before { background: #16a34a; }
+#page-commissioning .stat-card.orange::before { background: #f59e0b; }
+#page-commissioning .stat-card.red::before { background: #dc2626; }
+#page-commissioning .stat-card.blue::before { background: #2563eb; }
+#page-commissioning .stat-card .lbl {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #64748b !important;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  line-height: 1.3;
+}
+#page-commissioning .stat-card .val {
+  font-size: 28px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  margin-top: 6px !important;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+#page-commissioning .stat-card .sub {
+  font-size: 12px !important;
+  color: #64748b !important;
+  margin-top: 6px !important;
+  line-height: 1.35;
+}
+#page-commissioning .expired-hero {
+  border-radius: 16px !important;
+  padding: 18px 20px !important;
+  margin-bottom: 14px !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  box-shadow: 0 8px 24px rgba(220,38,38,.22);
+}
+#page-commissioning .expired-hero.zero {
+  background: linear-gradient(135deg, #16a34a, #15803d) !important;
+  box-shadow: 0 8px 24px rgba(22,163,74,.18);
+  animation: none !important;
+}
+#page-commissioning .expired-hero .eh-num {
+  font-size: 32px !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+}
+#page-commissioning .expired-hero .eh-label {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  opacity: .95 !important;
+  margin-top: 4px !important;
+}
+#page-commissioning .expired-hero .eh-sub {
+  font-size: 13px !important;
+  opacity: .9 !important;
+  margin-top: 4px !important;
+}
+#page-commissioning .expired-hero .eh-cta {
+  background: rgba(255,255,255,.2) !important;
+  border: 1px solid rgba(255,255,255,.35) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  padding: 10px 16px !important;
+  white-space: nowrap;
+}
+#page-commissioning .alert-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  padding: 12px 0 !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+#page-commissioning .alert-item:last-child { border-bottom: none !important; }
+#page-commissioning .alert-ic {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+#page-commissioning .alert-item b {
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: #0f172a !important;
+  line-height: 1.45 !important;
+}
+#page-commissioning .jenis-card {
+  background: #fff !important;
+  border: 1px solid var(--c-border) !important;
+  border-radius: 12px !important;
+  padding: 14px 12px !important;
+  text-align: left !important;
+}
+#page-commissioning .jenis-card .jc-num {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+}
+#page-commissioning .jenis-card .jc-lb {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  margin: 2px 0 8px !important;
+  line-height: 1.3;
+}
+#page-commissioning .jenis-card .jc-pct {
+  font-size: 11.5px !important;
+  color: #64748b !important;
+  margin-top: 6px !important;
+}
+#page-commissioning .progress-track {
+  height: 6px !important;
+  background: #e2e8f0 !important;
+  border-radius: 99px !important;
+  overflow: hidden;
+}
+#page-commissioning .progress-fill {
+  height: 100% !important;
+  background: linear-gradient(90deg, #2563eb, #38bdf8) !important;
+  border-radius: 99px;
+}
+#dashJenisBreakdown {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+  gap: 12px !important;
+}
+#page-commissioning .need-prep-panel {
+  background: #fffbeb !important;
+  border: 1px solid #fde68a !important;
+  border-radius: 14px !important;
+  padding: 14px 16px !important;
+  margin-bottom: 14px !important;
+}
+#page-commissioning .np-title {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #92400e !important;
+  line-height: 1.4 !important;
+}
+#page-commissioning .np-sub {
+  font-size: 12px !important;
+  color: #a16207 !important;
+  margin: 4px 0 10px !important;
+}
+#page-commissioning .need-prep-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 8px !important;
+  border-bottom: 1px solid #fef3c7 !important;
+  font-size: 13px !important;
+  color: #0f172a !important;
+}
+#page-commissioning .np-badge {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .3px;
+  padding: 4px 8px !important;
+  border-radius: 999px !important;
+}
+#page-commissioning table {
+  font-size: 13px !important;
+}
+#page-commissioning table th {
+  font-size: 11px !important;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  color: #64748b !important;
+  background: #f8fafc !important;
+  padding: 10px 12px !important;
+}
+#page-commissioning table td {
+  padding: 11px 12px !important;
+  color: #0f172a !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  vertical-align: middle;
+}
+#page-commissioning .toolbar input[type=text] {
+  font-size: 14px !important;
+  padding: 11px 14px !important;
+  border-radius: 10px !important;
+}
+#page-commissioning .btn {
+  font-size: 13px !important;
+  padding: 10px 14px !important;
+  border-radius: 10px !important;
+}
+#page-commissioning .two-col {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 900px) {
+  #page-commissioning .two-col { grid-template-columns: 1fr !important; }
+  #page-commissioning .content { padding: 12px 10px 80px !important; }
+  #page-commissioning .stat-card .val { font-size: 24px !important; }
+  #page-commissioning .expired-hero .eh-num { font-size: 26px !important; }
+}
+
+
+/* ===== PRIORITY-FIRST COMMISSIONING ===== */
+#page-commissioning .pf-tabs {
+  display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;
+}
+#page-commissioning .pf-tab {
+  border: 1px solid #e2e8f0; background: #fff; color: #64748b;
+  font-size: 13px; font-weight: 700; padding: 10px 16px; border-radius: 999px;
+  cursor: pointer; font-family: inherit;
+}
+#page-commissioning .pf-tab.active {
+  background: #0f172a; color: #fff; border-color: #0f172a;
+}
+#page-commissioning .pf-hero-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px;
+}
+@media (max-width: 800px) {
+  #page-commissioning .pf-hero-grid { grid-template-columns: 1fr; }
+}
+#page-commissioning .pf-hero-card {
+  border-radius: 16px; padding: 18px 16px; color: #fff;
+  display: flex; gap: 14px; align-items: flex-start;
+  box-shadow: 0 8px 22px rgba(15,23,42,.12);
+}
+#page-commissioning .pf-hero-card.red { background: linear-gradient(135deg,#dc2626,#b91c1c); }
+#page-commissioning .pf-hero-card.orange { background: linear-gradient(135deg,#f59e0b,#d97706); }
+#page-commissioning .pf-hero-card.amber { background: linear-gradient(135deg,#ea580c,#c2410c); }
+#page-commissioning .pf-hero-icon { font-size: 28px; line-height: 1; }
+#page-commissioning .pf-hero-label {
+  font-size: 12px; font-weight: 700; letter-spacing: .4px;
+  text-transform: uppercase; opacity: .92;
+}
+#page-commissioning .pf-hero-num {
+  font-size: 36px; font-weight: 800; line-height: 1.1; margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+#page-commissioning .pf-hero-sub { font-size: 13px; opacity: .9; margin-top: 4px; line-height: 1.35; }
+#page-commissioning .pf-mini-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px;
+}
+@media (max-width: 700px) {
+  #page-commissioning .pf-mini-strip { grid-template-columns: repeat(2, 1fr); }
+}
+#page-commissioning .pf-mini {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px;
+}
+#page-commissioning .pf-mini .k { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+#page-commissioning .pf-mini .v { font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 2px; }
+#page-commissioning .pf-urgent-panel { margin-bottom: 12px; }
+#page-commissioning .pf-urgent-item {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 12px 10px; border-bottom: 1px solid #f1f5f9;
+}
+#page-commissioning .pf-urgent-item:last-child { border-bottom: none; }
+#page-commissioning .pf-badge {
+  font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 999px; white-space: nowrap;
+}
+#page-commissioning .pf-badge.exp { background: #fef2f2; color: #dc2626; }
+#page-commissioning .pf-badge.near { background: #fffbeb; color: #d97706; }
+#page-commissioning .pf-unit { font-weight: 800; color: #0f172a; font-size: 14px; min-width: 72px; }
+#page-commissioning .pf-meta { font-size: 12.5px; color: #64748b; flex: 1; min-width: 140px; }
+#page-commissioning .pf-sisa { font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+#page-commissioning .pf-sisa.neg { color: #dc2626; }
+#page-commissioning .pf-sisa.warn { color: #d97706; }
+#page-commissioning .pf-empty {
+  text-align: center; padding: 28px 12px; color: #16a34a; font-weight: 600; font-size: 14px;
+}
+
 </style>
 </head>
 <body>
@@ -1535,46 +1854,94 @@ body.tv-mode .btn-install { display: none !important; }
       </div>
       <!-- ============ DASHBOARD (VIEWER - READ ONLY) ============ -->
       <div class="page active" id="page-dashboard">
-        <div id="dashExpiredHero"></div>
-        <div id="needPrepHero"></div>
-        <div id="needCommissioningHero"></div>
-        <div class="panel" style="margin-bottom:18px;">
-          <div class="panel-title">⚡ PERLU TINDAKAN HARI INI</div>
-          <div id="alertCenter"></div>
+        <!-- Priority-first tabs -->
+        <div class="pf-tabs">
+          <button type="button" class="pf-tab active" id="pfTabPriority" onclick="switchCommView('priority')">🎯 Prioritas</button>
+          <button type="button" class="pf-tab" id="pfTabAnalisis" onclick="switchCommView('analisis')">📊 Analisis</button>
         </div>
-        <div class="stat-grid" id="dashStats"></div>
-        <div class="two-col">
-          <div class="panel">
-            <div class="panel-title">🚚 BREAKDOWN PER JENIS UNIT</div>
-            <div id="dashJenisBreakdown"></div>
-          </div>
-          <div class="panel">
-            <div class="panel-title">📈 PROYEKSI EXPIRED (6 BULAN KE DEPAN)</div>
-            <div id="dashExpiredForecast"></div>
-          </div>
-        </div>
-        <div class="panel" id="dashboardTableSection">
-          <div class="toolbar">
-            <input type="text" id="dashSearch" placeholder="Cari Unit, Model, atau Registration No..." oninput="liveDashSearch()">
-            <button class="btn btn-outline" style="margin-left:auto" onclick="exportTableCSV('dashTable','commissioning_monitoring')">⬇ Export Excel</button>
-          </div>
-          <div class="two-col">
-            <div>
-              <div class="panel-title">🗂️ DAFTAR KOMISIONING</div>
-              <div class="site-tab-bar" id="dashSiteTabs"></div>
-              <div class="table-scroll-wrap">
-                <table id="dashTable">
-                  <thead id="dashTableHead"></thead>
-                  <tbody id="dashTableBody"></tbody>
-                </table>
+
+        <!-- VIEW: PRIORITAS -->
+        <div id="commViewPriority">
+          <div class="pf-hero-grid" id="pfHeroGrid">
+            <div class="pf-hero-card red" id="pfCardExpired">
+              <div class="pf-hero-icon">🚨</div>
+              <div class="pf-hero-body">
+                <div class="pf-hero-label">Expired</div>
+                <div class="pf-hero-num" id="pfExpiredNum">–</div>
+                <div class="pf-hero-sub" id="pfExpiredSub">Unit sudah lewat masa berlaku</div>
               </div>
-              <div id="dashCardList"></div>
-              <div class="pagination" id="dashPagination"></div>
             </div>
-            <div>
-              <div class="panel">
-                <div class="panel-title">🕓 AKTIVITAS TERBARU</div>
-                <div id="recentActivity"></div>
+            <div class="pf-hero-card orange" id="pfCardNear">
+              <div class="pf-hero-icon">⚠️</div>
+              <div class="pf-hero-body">
+                <div class="pf-hero-label">Near Expired</div>
+                <div class="pf-hero-num" id="pfNearNum">–</div>
+                <div class="pf-hero-sub" id="pfNearSub">Sisa ≤ 30 hari</div>
+              </div>
+            </div>
+            <div class="pf-hero-card amber" id="pfCardPrep">
+              <div class="pf-hero-icon">🔔</div>
+              <div class="pf-hero-body">
+                <div class="pf-hero-label">Perlu Preparation</div>
+                <div class="pf-hero-num" id="pfPrepNum">–</div>
+                <div class="pf-hero-sub" id="pfPrepSub">Belum masuk antrian prep</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pf-mini-strip" id="pfMiniStrip"></div>
+
+          <div class="panel pf-urgent-panel">
+            <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+              <span>🔥 Unit Mendesak</span>
+              <span style="font-size:12px;font-weight:600;color:#64748b" id="pfUrgentCount">—</span>
+            </div>
+            <div id="pfUrgentList"></div>
+          </div>
+
+          <!-- keep hidden containers for legacy render code -->
+          <div id="dashExpiredHero" style="display:none"></div>
+          <div id="needPrepHero" style="display:none"></div>
+          <div id="needCommissioningHero" style="display:none"></div>
+          <div id="alertCenter" style="display:none"></div>
+        </div>
+
+        <!-- VIEW: ANALISIS -->
+        <div id="commViewAnalisis" style="display:none">
+          <div class="stat-grid" id="dashStats"></div>
+          <div class="two-col">
+            <div class="panel">
+              <div class="panel-title">🚚 Breakdown per Jenis Unit</div>
+              <div id="dashJenisBreakdown"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">📈 Proyeksi Expired (6 Bulan ke Depan)</div>
+              <div id="dashExpiredForecast"></div>
+            </div>
+          </div>
+          <div class="panel" id="dashboardTableSection">
+            <div class="toolbar">
+              <input type="text" id="dashSearch" placeholder="Cari Unit, Model, atau Registration No..." oninput="liveDashSearch()">
+              <button class="btn btn-outline" style="margin-left:auto" onclick="exportTableCSV('dashTable','commissioning_monitoring')">⬇ Export Excel</button>
+            </div>
+            <div class="two-col">
+              <div>
+                <div class="panel-title">🗂️ Daftar Komisioning</div>
+                <div class="site-tab-bar" id="dashSiteTabs"></div>
+                <div class="table-scroll-wrap">
+                  <table id="dashTable">
+                    <thead id="dashTableHead"></thead>
+                    <tbody id="dashTableBody"></tbody>
+                  </table>
+                </div>
+                <div id="dashCardList"></div>
+                <div class="pagination" id="dashPagination"></div>
+              </div>
+              <div>
+                <div class="panel">
+                  <div class="panel-title">🕓 Aktivitas Terbaru</div>
+                  <div id="recentActivity"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -2742,6 +3109,23 @@ function setDashSiteTab(s){
 }
 const liveDashSearch = debounce(()=>{ dashPage=1; renderDashboard(); });
 
+function switchCommView(view){
+  const p = document.getElementById('commViewPriority');
+  const a = document.getElementById('commViewAnalisis');
+  const tp = document.getElementById('pfTabPriority');
+  const ta = document.getElementById('pfTabAnalisis');
+  if(view === 'analisis'){
+    if(p) p.style.display = 'none';
+    if(a) a.style.display = 'block';
+    if(tp) tp.classList.remove('active');
+    if(ta) ta.classList.add('active');
+  } else {
+    if(a) a.style.display = 'none';
+    if(p) p.style.display = 'block';
+    if(ta) ta.classList.remove('active');
+    if(tp) tp.classList.add('active');
+  }
+}
 function renderDashboard(){
   const currentCommissioning = getCurrentCommissioning();
   const rowsAll = currentCommissioning.map(r=>{
@@ -2886,11 +3270,11 @@ function renderDashboard(){
   }
 
   document.getElementById('dashStats').innerHTML = [
-    statCard("TOTAL UNIT", total, "Unit", "100% dari total unit", "blue","📋"),
-    statCard("ACTIVE", active, "Unit", `${pct(active,total)}% dari total unit`, "green","✅"),
-    statCard("NEAR EXPIRED (≤30 hari)", nearExp, "Unit", `${pct(nearExp,total)}% dari total unit`, "orange","⚠️"),
-    statCard("WAITING STICKER", waitingSticker, "Unit", `${pct(waitingSticker,total)}% dari total unit`, "blue","⏳"),
-    statCard("COMMISSIONING HEALTH INDEX", health+"%", "", `${active} Active / ${total} Unit`, "green","💚")
+    statCard("Total Unit", total, "unit", "Semua unit terdaftar", "blue","📋"),
+    statCard("Aktif", active, "unit", pct(active,total) + "% dari total", "green","✅"),
+    statCard("Near Expired", nearExp, "unit", "Sisa ≤30 hari · " + pct(nearExp,total) + "%", "orange","⚠️"),
+    statCard("Menunggu Stiker", waitingSticker, "unit", pct(waitingSticker,total) + "% dari total", "blue","⏳"),
+    statCard("Indeks Kesehatan", health+"%", "", active + " aktif / " + total + " unit", "green","💚")
   ].join('');
 
   document.getElementById('dashSiteTabs').innerHTML = ['BIB','TIA','ALL'].map(s=>`
@@ -2959,18 +3343,60 @@ function renderDashboard(){
   const needPrepCount = needPrep.length;
 
   const actionItems = [];
-  if(needPrepCount>0) actionItems.push({icon:'🔔',bg:'var(--red-bg)',color:'var(--red)',text:`${needPrepCount} unit Near Expired/Expired BELUM masuk antrian Preparation`});
-  if(expired>0) actionItems.push({icon:'❌',bg:'var(--red-bg)',color:'var(--red)',text:`${expired} unit Expired — segera proses commissioning ulang`});
-  if(nearExp>0) actionItems.push({icon:'⚠️',bg:'var(--orange-bg)',color:'var(--orange)',text:`${nearExp} unit Near Expired (≤30 hari) — mulai ajukan sekarang`});
-  if(stuckUnits.length>0) actionItems.push({icon:'🐢',bg:'var(--orange-bg)',color:'var(--orange)',text:`${stuckUnits.length} unit macet >7 hari di Preparation — cek kendalanya`});
-  if(waitingSticker>0) actionItems.push({icon:'📦',bg:'#eaf0ff',color:'var(--blue-600)',text:`${waitingSticker} unit menunggu stiker fisik dikirim`});
-  if(actionItems.length===0) actionItems.push({icon:'✅',bg:'var(--green-bg)',color:'var(--green)',text:'Semua unit dalam kondisi baik, tidak ada tindakan mendesak'});
+  if(needPrepCount>0) actionItems.push({icon:'🔔',bg:'#fef2f2',color:'#dc2626',text: needPrepCount + ' unit expired/near-expired belum masuk antrian Preparation'});
+  if(expired>0) actionItems.push({icon:'❌',bg:'#fef2f2',color:'#dc2626',text: expired + ' unit sudah expired — proses commissioning ulang segera'});
+  if(nearExp>0) actionItems.push({icon:'⚠️',bg:'#fffbeb',color:'#d97706',text: nearExp + ' unit near expired (≤30 hari) — mulai ajukan sekarang'});
+  if(stuckUnits.length>0) actionItems.push({icon:'🐢',bg:'#fffbeb',color:'#d97706',text: stuckUnits.length + ' unit macet >7 hari di Preparation — cek kendala'});
+  if(waitingSticker>0) actionItems.push({icon:'📦',bg:'#eff6ff',color:'#2563eb',text: waitingSticker + ' unit menunggu stiker fisik dikirim'});
+  if(actionItems.length===0) actionItems.push({icon:'✅',bg:'#f0fdf4',color:'#16a34a',text:'Semua unit dalam kondisi baik — tidak ada tindakan mendesak'});
 
   document.getElementById('alertCenter').innerHTML = actionItems.map(a=>`
     <div class="alert-item">
       <div class="alert-ic" style="background:${a.bg};color:${a.color}">${a.icon}</div>
-      <div><b>${a.text}</b></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13.5px;font-weight:700;color:#0f172a;line-height:1.4">${a.text}</div>
+      </div>
     </div>`).join('');
+
+  /* Priority-first cards + urgent list */
+  const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  setTxt('pfExpiredNum', expired);
+  setTxt('pfNearNum', nearExp);
+  setTxt('pfPrepNum', needPrepCount);
+  setTxt('pfExpiredSub', expired ? 'Segera proses commissioning ulang' : 'Tidak ada unit expired');
+  setTxt('pfNearSub', nearExp ? 'Sisa ≤ 30 hari — mulai ajukan' : 'Tidak ada near expired');
+  setTxt('pfPrepSub', needPrepCount ? 'Belum masuk antrian preparation' : 'Semua sudah masuk antrian');
+
+  const mini = document.getElementById('pfMiniStrip');
+  if (mini) {
+    mini.innerHTML = `
+      <div class="pf-mini"><div class="k">Total Unit</div><div class="v">${total}</div></div>
+      <div class="pf-mini"><div class="k">Aktif</div><div class="v">${active}</div></div>
+      <div class="pf-mini"><div class="k">Indeks Kesehatan</div><div class="v">${health}%</div></div>
+      <div class="pf-mini"><div class="k">Menunggu Stiker</div><div class="v">${waitingSticker}</div></div>`;
+  }
+
+  const urgent = (needPrep || []).slice(0, 40);
+  const urgentEl = document.getElementById('pfUrgentList');
+  const urgentCnt = document.getElementById('pfUrgentCount');
+  if (urgentCnt) urgentCnt.textContent = urgent.length ? (urgent.length + ' unit') : '0 unit';
+  if (urgentEl) {
+    if (!urgent.length) {
+      urgentEl.innerHTML = '<div class="pf-empty">✅ Tidak ada unit mendesak saat ini</div>';
+    } else {
+      urgentEl.innerHTML = urgent.map(n => {
+        const sisaN = Number(n.sisa);
+        const sisaCls = isNaN(sisaN) ? '' : (sisaN < 0 ? 'neg' : (sisaN <= 30 ? 'warn' : ''));
+        const sisaTxt = isNaN(sisaN) ? '—' : (sisaN + ' hari');
+        return `<div class="pf-urgent-item">
+          <span class="pf-badge ${n.isExpired ? 'exp' : 'near'}">${n.isExpired ? 'EXPIRED' : 'NEAR'}</span>
+          <span class="pf-unit">${n.unitId || '—'}</span>
+          <span class="pf-meta">${n.site || '—'} · ${n.area || '—'}</span>
+          <span class="pf-sisa ${sisaCls}">Sisa ${sisaTxt}</span>
+        </div>`;
+      }).join('');
+    }
+  }
 
   document.getElementById('recentActivity').innerHTML = (DB.activityLog||[]).slice(0,5).map(r=>{
     const ts = pick(r,['Timestamp']);
@@ -3243,3 +3669,4 @@ function initTvMode() {
 
 </body>
 </html>
+Masalah Fitur Temuan Admin Tidak Bisa Dibuka Setelah Close - Grok
