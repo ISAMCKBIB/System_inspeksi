@@ -393,7 +393,17 @@
     var checklistItems = [];
     var currentSisiList = [];  // urutan sisi foto, dipakai untuk auto-lanjut ke foto berikutnya
     // Prefill unit dari query string, mis. form.html?unit=CO4536 (dari link email alert)
-    var prefillUnit = new URLSearchParams(window.location.search).get('unit') || '';
+    var qs = new URLSearchParams(window.location.search);
+    var PREFILL = {
+      unit:  (qs.get('unit')  || '').trim(),
+      model: (qs.get('model') || '').trim(),
+      jenis: (qs.get('jenis') || '').trim(),
+      site:  (qs.get('site')  || '').trim().toUpperCase(),
+      area:  (qs.get('area')  || '').trim().toUpperCase()
+    };
+    // Nama lengkap area (kode -> nama). Diperbarui dari server lewat getFormMeta.
+    var AREA_NAMES = { GRB: 'Girimulya Bawah', KGB: 'Kusan Girimulya Bawah' };
+    var CURRENT_SITE_AREA_MAP = {};
     var activeSisi = null;
 
     // =========================================================
@@ -743,7 +753,8 @@
             toast('Server API error: ' + (meta && meta.message ? meta.message : 'tidak diketahui'), 'error');
             return;
           }
-          renderDropdowns(meta.siteAreaMap, meta.jenisUnit);
+          renderDropdowns(meta.siteAreaMap, meta.jenisUnit, meta.areaNames);
+          applyPrefill();
           renderChecklist(meta.checklist && meta.checklist.length ? meta.checklist : DEFAULT_CHECKLIST);
           if (meta.sisiFoto && meta.sisiFoto.length) renderPhotoGrid(meta.sisiFoto);
         }).catch(function(err){
@@ -764,8 +775,7 @@
         if (e.target.files[0]) document.getElementById('historyName').textContent = e.target.files[0].name;
       });
 
-      if (prefillUnit) document.getElementById('unitId').value = prefillUnit;
-      updateSubmitState();
+      applyPrefill();
     };
 
     // ---------- PHOTO GRID: box + 2 input tersembunyi (kamera & galeri) ----------
@@ -831,29 +841,65 @@
       // semua sisi sudah terisi -> tidak melakukan apa-apa (tidak ada popup lagi)
     }
 
-    function renderDropdowns(siteAreaMap, jenisUnit){
+    function fillAreaOptions(siteValue, keepValue){
+      var areaSel = document.getElementById('area');
+      areaSel.innerHTML = '<option value="">Pilih Area</option>';
+      (CURRENT_SITE_AREA_MAP[siteValue] || []).forEach(function(code){
+        var o = document.createElement('option');
+        o.value = code;  // nilai yang disimpan = KODE area (GRB/KGB), sama dengan sheet PIC & Commissioning
+        o.textContent = AREA_NAMES[code] ? code + ' - ' + AREA_NAMES[code] : code;
+        areaSel.appendChild(o);
+      });
+      if (keepValue) areaSel.value = keepValue;
+    }
+
+    function renderDropdowns(siteAreaMap, jenisUnit, areaNames){
+      CURRENT_SITE_AREA_MAP = siteAreaMap || {};
+      if (areaNames) Object.keys(areaNames).forEach(function(k){ AREA_NAMES[k] = areaNames[k]; });
+
       var siteSel = document.getElementById('site');
-      var currentSite = siteSel.value;
+      var areaSel = document.getElementById('area');
+      var currentSite = siteSel.value, currentArea = areaSel.value;
       siteSel.innerHTML = '<option value="">Pilih Site</option>';
-      Object.keys(siteAreaMap).forEach(function(s){
+      Object.keys(CURRENT_SITE_AREA_MAP).forEach(function(s){
         var o = document.createElement('option'); o.value = s; o.textContent = s; siteSel.appendChild(o);
       });
       siteSel.value = currentSite;
-      siteSel.onchange = function(){
-        var areaSel = document.getElementById('area');
-        areaSel.innerHTML = '<option value="">Pilih Area</option>';
-        (siteAreaMap[siteSel.value] || []).forEach(function(a){
-          var o = document.createElement('option'); o.value = a; o.textContent = a; areaSel.appendChild(o);
-        });
-      };
+      siteSel.onchange = function(){ fillAreaOptions(siteSel.value, ''); };
+      fillAreaOptions(siteSel.value, currentArea);
 
       var jenisSel = document.getElementById('jenisUnit');
       var currentJenis = jenisSel.value;
       jenisSel.innerHTML = '<option value="">Pilih Jenis Unit</option>';
-      jenisUnit.forEach(function(j){
+      (jenisUnit || []).forEach(function(j){
         var o = document.createElement('option'); o.value = j; o.textContent = j; jenisSel.appendChild(o);
       });
       jenisSel.value = currentJenis;
+    }
+
+    // Isi otomatis dari link email (?unit=&model=&jenis=&site=&area=).
+    // Aman dipanggil berulang: hanya mengisi field yang masih kosong.
+    function applyPrefill(){
+      var unitEl = document.getElementById('unitId'), modelEl = document.getElementById('model');
+      var jenisSel = document.getElementById('jenisUnit'), siteSel = document.getElementById('site'), areaSel = document.getElementById('area');
+      var hasOption = function(sel, v){ return Array.prototype.some.call(sel.options, function(o){ return o.value === v; }); };
+
+      if (PREFILL.unit  && !unitEl.value)  unitEl.value  = PREFILL.unit;
+      if (PREFILL.model && !modelEl.value) modelEl.value = PREFILL.model;
+      if (PREFILL.jenis && !jenisSel.value && hasOption(jenisSel, PREFILL.jenis)) jenisSel.value = PREFILL.jenis;
+
+      // Site: pakai dari link; kalau kosong, cari site pertama yang punya area tsb
+      if (!siteSel.value){
+        var site = PREFILL.site;
+        if ((!site || !CURRENT_SITE_AREA_MAP[site]) && PREFILL.area){
+          site = Object.keys(CURRENT_SITE_AREA_MAP).filter(function(s){
+            return (CURRENT_SITE_AREA_MAP[s] || []).indexOf(PREFILL.area) > -1;
+          })[0] || '';
+        }
+        if (site && hasOption(siteSel, site)){ siteSel.value = site; fillAreaOptions(site, ''); }
+      }
+      if (PREFILL.area && !areaSel.value && hasOption(areaSel, PREFILL.area)) areaSel.value = PREFILL.area;
+      updateSubmitState();
     }
 
     function renderChecklist(items){
