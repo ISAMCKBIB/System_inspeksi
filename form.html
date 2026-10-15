@@ -699,7 +699,7 @@
 
     // ---------- FALLBACK DEFAULTS (dipakai kalau server belum bisa dihubungi) ----------
     var DEFAULT_SISI_FOTO = ['Depan', 'Belakang', 'Kiri', 'Kanan'];
-    var DEFAULT_SITE_AREA_MAP = { 'BIB': ['GRB', 'KGB', 'FUEL'], 'TIA': ['GRB', 'STK'] };
+    var DEFAULT_SITE_AREA_MAP = { 'BIB': ['GRB', 'KGB'], 'TIA': ['GRB', 'KGB'] };
     var DEFAULT_JENIS_UNIT = ['Dump Truck', 'Excavator', 'Water Truck', 'Dozer', 'Pump', 'Trailer', 'Grader', 'Lain-lain'];
     var DEFAULT_CHECKLIST = [
       {no:1,item:'Beacon / Lampu Rotari'}, {no:2,item:'Reverse Alarm'},
@@ -841,16 +841,28 @@
       // semua sisi sudah terisi -> tidak melakukan apa-apa (tidak ada popup lagi)
     }
 
+    // Terima kode (KGB) ATAU nama (Kusan Girimulya Bawah) -> selalu kembalikan KODE
+    function toAreaCode(x){
+      var v = String(x || '').trim().toUpperCase();
+      if (!v) return '';
+      if (AREA_NAMES[v]) return v;
+      var hit = Object.keys(AREA_NAMES).filter(function(k){ return String(AREA_NAMES[k]).toUpperCase() === v; })[0];
+      return hit || v;
+    }
+
     function fillAreaOptions(siteValue, keepValue){
       var areaSel = document.getElementById('area');
       areaSel.innerHTML = '<option value="">Pilih Area</option>';
-      (CURRENT_SITE_AREA_MAP[siteValue] || []).forEach(function(code){
+      var seen = {};
+      (CURRENT_SITE_AREA_MAP[siteValue] || []).forEach(function(raw){
+        var code = toAreaCode(raw);
+        if (seen[code]) return; seen[code] = true;
         var o = document.createElement('option');
         o.value = code;  // nilai yang disimpan = KODE area (GRB/KGB), sama dengan sheet PIC & Commissioning
         o.textContent = AREA_NAMES[code] ? code + ' - ' + AREA_NAMES[code] : code;
         areaSel.appendChild(o);
       });
-      if (keepValue) areaSel.value = keepValue;
+      if (keepValue) areaSel.value = toAreaCode(keepValue);
     }
 
     function renderDropdowns(siteAreaMap, jenisUnit, areaNames){
@@ -893,12 +905,13 @@
         var site = PREFILL.site;
         if ((!site || !CURRENT_SITE_AREA_MAP[site]) && PREFILL.area){
           site = Object.keys(CURRENT_SITE_AREA_MAP).filter(function(s){
-            return (CURRENT_SITE_AREA_MAP[s] || []).indexOf(PREFILL.area) > -1;
+            return (CURRENT_SITE_AREA_MAP[s] || []).map(toAreaCode).indexOf(toAreaCode(PREFILL.area)) > -1;
           })[0] || '';
         }
         if (site && hasOption(siteSel, site)){ siteSel.value = site; fillAreaOptions(site, ''); }
       }
-      if (PREFILL.area && !areaSel.value && hasOption(areaSel, PREFILL.area)) areaSel.value = PREFILL.area;
+      var areaCode = toAreaCode(PREFILL.area);
+      if (areaCode && !areaSel.value && hasOption(areaSel, areaCode)) areaSel.value = areaCode;
       updateSubmitState();
     }
 
