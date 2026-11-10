@@ -2227,9 +2227,13 @@
       async function setupTbSec() {
         const subId = document.getElementById("subSel").value;
         const secs = TB_SECTIONS[subId];
-        selSec = null;
-        tbTipeId = "";
-        tbTipeName = "";
+
+        // Jangan reset tipe jika sedang auto-fill
+        if (!isAutoFilling) {
+          selSec = null;
+          tbTipeId = "";
+          tbTipeName = "";
+        }
 
         // Reset toolbox UI
         document.getElementById("secWrap").style.display = "none";
@@ -2305,6 +2309,7 @@
       // ── TOOLBOX LOOKUP ───────────────────────────────────
       let tbDebounceTimer = null;
       let tbIsRegistered = false;
+      let isAutoFilling = false; // flag untuk mencegah reset saat auto-fill
 
       function onTbNoAsset(v) {
         v = v.toUpperCase().trim();
@@ -2344,34 +2349,43 @@
           document.getElementById("tbLookupStatus").innerHTML = "";
 
           if (
-          j.data?.found &&
-          j.data.asset &&
-          (j.data.asset.is_toolbox === true ||
-            j.data.asset.kategori_id === "KT017" ||
-            !!(j.data.asset.no_toolbox && String(j.data.asset.no_toolbox).trim()))
-        ) {
+            j.data?.found &&
+            j.data.asset &&
+            (j.data.asset.is_toolbox === true ||
+              j.data.asset.kategori_id === "KT017" ||
+              !!(j.data.asset.no_toolbox && String(j.data.asset.no_toolbox).trim()))
+          ) {
             // ── KETEMU ──
             const a = j.data.asset;
-            tbIsRegistered = true;
-            tbTipeId = a.tipe_toolbox_id || "";
-            window._tbAssetId = a.asset_id || "";
-            // Nama tipe dari tipe_id
+
             const tipeNames = {
               TBT001: "Set A — No Brand",
               TBT002: "Set B — Elora",
               TBT003: "Set C — Blue Point",
               TBT004: "Set D — Strafco",
             };
+
+            tbIsRegistered = true;
+            tbTipeId = a.tipe_toolbox_id || "";
             tbTipeName = tipeNames[tbTipeId] || tbTipeId;
+            window._tbAssetId = a.asset_id || "";
 
             // Auto-fill area/subarea/kategori
             if (a.area_id || a.subarea_id || a.kategori_id) {
               await autoFillDropdowns(a);
             }
 
+            // Safety net: pastikan state tetap benar setelah auto-fill
+            tbIsRegistered = true;
+            if (!tbTipeId) {
+              tbTipeId = a.tipe_toolbox_id || "";
+              tbTipeName = tipeNames[tbTipeId] || tbTipeId;
+            }
+
             // Tampilkan info auto-fill
-            document.getElementById("tbAutoNo").textContent = a.no_toolbox;
-            document.getElementById("tbAutoTipe").textContent = tbTipeName;
+            document.getElementById("tbAutoNo").textContent =
+              a.no_toolbox || noToolbox;
+            document.getElementById("tbAutoTipe").textContent = tbTipeName || "—";
             document.getElementById("tbAutoFill").style.display = "block";
             document.getElementById("tbManualForm").style.display = "none";
           } else {
@@ -2383,6 +2397,7 @@
             document.getElementById("tbManualForm").style.display = "block";
           }
         } catch (e) {
+          console.error("fetchTbAsset error:", e);
           document.getElementById("tbLookupStatus").innerHTML = `
             <div style="background:var(--red-bg);border:1.5px solid var(--red-bd);
               border-radius:8px;padding:10px 12px;margin-bottom:10px;
@@ -2760,42 +2775,48 @@
         section.style.display = "block";
       } // ← closing renderSpekDetail
       async function autoFillDropdowns(a) {
-        // Step 1: Set Area
-        if (a.area_id) {
-          const aEl = document.getElementById("areaSel");
-          if (aEl) {
-            // Tunggu master data loaded
-            await waitForOptions(aEl, a.area_id, 3000);
-            aEl.value = a.area_id;
-            aEl.dispatchEvent(new Event("change"));
-            flash(aEl);
-          }
-        }
+        isAutoFilling = true; // aktifkan flag
 
-        // Step 2: Set SubArea (setelah area change populate subarea)
-        if (a.subarea_id) {
-          await sleep(600);
-          const sEl = document.getElementById("subSel");
-          if (sEl) {
-            await waitForOptions(sEl, a.subarea_id, 3000);
-            sEl.value = a.subarea_id;
-            sEl.disabled = false;
-            sEl.dispatchEvent(new Event("change"));
-            flash(sEl);
+        try {
+          // Step 1: Set Area
+          if (a.area_id) {
+            const aEl = document.getElementById("areaSel");
+            if (aEl) {
+              // Tunggu master data loaded
+              await waitForOptions(aEl, a.area_id, 3000);
+              aEl.value = a.area_id;
+              aEl.dispatchEvent(new Event("change"));
+              flash(aEl);
+            }
           }
-        }
 
-        // Step 3: Set Kategori (setelah subarea change populate kategori)
-        if (a.kategori_id) {
-          await sleep(800);
-          const kEl = document.getElementById("katSel");
-          if (kEl) {
-            await waitForOptions(kEl, a.kategori_id, 3000);
-            kEl.value = a.kategori_id;
-            kEl.disabled = false;
-            kEl.dispatchEvent(new Event("change"));
-            flash(kEl);
+          // Step 2: Set SubArea (setelah area change populate subarea)
+          if (a.subarea_id) {
+            await sleep(600);
+            const sEl = document.getElementById("subSel");
+            if (sEl) {
+              await waitForOptions(sEl, a.subarea_id, 3000);
+              sEl.value = a.subarea_id;
+              sEl.disabled = false;
+              sEl.dispatchEvent(new Event("change"));
+              flash(sEl);
+            }
           }
+
+          // Step 3: Set Kategori (setelah subarea change populate kategori)
+          if (a.kategori_id) {
+            await sleep(800);
+            const kEl = document.getElementById("katSel");
+            if (kEl) {
+              await waitForOptions(kEl, a.kategori_id, 3000);
+              kEl.value = a.kategori_id;
+              kEl.disabled = false;
+              kEl.dispatchEvent(new Event("change"));
+              flash(kEl);
+            }
+          }
+        } finally {
+          isAutoFilling = false; // selalu matikan flag
         }
       }
 
@@ -2832,6 +2853,21 @@
       }
 
       function resetTb() {
+        // Jika sedang auto-fill, jangan hapus state registered & tipe
+        if (isAutoFilling) {
+          document.getElementById("tbFields").style.display = "none";
+          document.getElementById("nonTb").style.display = "block";
+          document.getElementById("secWrap").style.display = "none";
+          document.getElementById("tbSelWrap").style.display = "none";
+          document.getElementById("picBox").className = "pic-box";
+          document.getElementById("secChips").innerHTML = "";
+          document.getElementById("tbAutoFill").style.display = "none";
+          document.getElementById("tbManualForm").style.display = "none";
+          document.getElementById("tbLookupStatus").innerHTML = "";
+          return;
+        }
+
+        // Normal reset
         document.getElementById("tbFields").style.display = "none";
         document.getElementById("nonTb").style.display = "block";
         document.getElementById("secWrap").style.display = "none";
