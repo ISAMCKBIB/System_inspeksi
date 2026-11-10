@@ -2343,7 +2343,13 @@
 
           document.getElementById("tbLookupStatus").innerHTML = "";
 
-          if (j.data?.found && j.data.asset?.is_toolbox) {
+          if (
+          j.data?.found &&
+          j.data.asset &&
+          (j.data.asset.is_toolbox === true ||
+            j.data.asset.kategori_id === "KT017" ||
+            !!(j.data.asset.no_toolbox && String(j.data.asset.no_toolbox).trim()))
+        ) {
             // ── KETEMU ──
             const a = j.data.asset;
             tbIsRegistered = true;
@@ -3016,62 +3022,119 @@
 
       async function fetchAssetFromURL(noId) {
         if (!noId) return;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const forceToolbox = urlParams.get("type") === "toolbox";
+
         try {
-          // Lock field noId
-          const el = document.getElementById("noId");
-          if (el) {
-            el.value = noId;
-            el.readOnly = true;
-            el.style.background = "#EEF3FF";
-            el.style.color = "#1B4FD8";
-            el.style.fontWeight = "700";
+          // ── 1. Coba lookup dengan no_id dulu ──
+          let j = null;
+          let a = null;
+
+          const tryLookup = async (paramName, value) => {
+            const r = await fetch(
+              APPS_SCRIPT_URL +
+                "?" +
+                new URLSearchParams({
+                  action: "getMasterData",
+                  type: "asset_check",
+                  [paramName]: value,
+                }),
+            );
+            return r.json();
+          };
+
+          // Coba no_id
+          j = await tryLookup("no_id", noId);
+          if (j?.data?.found && j.data.asset) {
+            a = j.data.asset;
           }
 
-          // Fetch asset dari Apps Script
-          const r = await fetch(
-            APPS_SCRIPT_URL +
-              "?" +
-              new URLSearchParams({
-                action: "getMasterData",
-                type: "asset_check",
-                no_id: noId,
-              }),
-          );
-          const j = await r.json();
+          // Kalau belum ketemu, coba no_toolbox (penting untuk Toolbox)
+          if (!a) {
+            j = await tryLookup("no_toolbox", noId);
+            if (j?.data?.found && j.data.asset) {
+              a = j.data.asset;
+            }
+          }
 
-          if (j.data?.found && j.data.asset) {
-            const a = j.data.asset;
-            window._assetId = a.asset_id || "";
+          // Masih belum? coba asset_id (fallback)
+          if (!a) {
+            j = await tryLookup("asset_id", noId);
+            if (j?.data?.found && j.data.asset) {
+              a = j.data.asset;
+            }
+          }
+
+          // ── 2. Tidak ketemu sama sekali ──
+          if (!a) {
+            hideScanBanner("new", noId + " — isi data manual");
+            const ne = document.getElementById("namaAlat");
+            if (ne) {
+              ne.focus();
+              ne.placeholder = "Isi nama alat untuk asset baru";
+            }
+            return;
+          }
+
+          // ── 3. Deteksi apakah ini Toolbox ──
+          const isToolbox =
+            forceToolbox ||
+            a.is_toolbox === true ||
+            a.kategori_id === "KT017" ||
+            !!(a.no_toolbox && String(a.no_toolbox).trim());
+
+          window._assetId = a.asset_id || "";
+
+          if (isToolbox) {
+            // ════════════ TOOLBOX PATH ════════════
+            const tbKey = a.no_toolbox || noId;
+
+            // Auto-fill Area → SubArea → Kategori (KT017)
+            await autoFillDropdowns(a);
+
+            // Tunggu UI toolbox muncul setelah onKat(KT017)
+            await sleep(900);
+
+            // Pastikan mode toolbox aktif
+            const nonTb = document.getElementById("nonTb");
+            const tbFields = document.getElementById("tbFields");
+            if (nonTb) nonTb.style.display = "none";
+            if (tbFields) tbFields.style.display = "block";
+            isTb = true;
+
+            // Isi input No Toolbox + trigger lookup
+            const tbInput = document.getElementById("tbNoAsset");
+            if (tbInput) {
+              tbInput.value = tbKey;
+              tbInput.readOnly = true;
+              tbInput.style.background = "#EEF3FF";
+              tbInput.style.color = "#1B4FD8";
+              tbInput.style.fontWeight = "700";
+            }
+
+            // Panggil lookup toolbox (langsung, tanpa debounce)
+            await fetchTbAsset(tbKey);
+
+            hideScanBanner("found", a.nama_alat || "Toolbox " + tbKey, a);
+            if (typeof toast === "function") {
+              toast("✅ Toolbox terdeteksi — data terisi otomatis", "success");
+            }
+          } else {
+            // ════════════ ASSET BIASA PATH ════════════
+            const el = document.getElementById("noId");
+            if (el) {
+              el.value = a.no_id || noId;
+              el.readOnly = true;
+              el.style.background = "#EEF3FF";
+              el.style.color = "#1B4FD8";
+              el.style.fontWeight = "700";
+            }
+
             fillAssetFields(a);
 
-            // Auto-select subarea
-            if (a.subarea_id) {
-              const se = document.getElementById("subSel");
-              if (se) {
-                const opt = [...se.options].find(
-                  (o) => o.value === a.subarea_id,
-                );
-                if (opt) {
-                  se.value = a.subarea_id;
-                  se.dispatchEvent(new Event("change"));
-                }
-              }
-            }
-            // Auto-select kategori setelah delay
-            if (a.kategori_id) {
-              setTimeout(() => {
-                const ke = document.getElementById("kategori");
-                if (ke) {
-                  const opt = [...ke.options].find(
-                    (o) => o.value === a.kategori_id,
-                  );
-                  if (opt) {
-                    ke.value = a.kategori_id;
-                    ke.dispatchEvent(new Event("change"));
-                  }
-                }
-              }, 1200);
-            }
+            // Auto-select dropdown (lebih reliable pakai helper yang sudah ada)
+            await autoFillDropdowns(a);
 
             hideScanBanner("found", a.nama_alat, a);
 
@@ -3093,15 +3156,16 @@
                 <div>No Asset: ${a.no_asset || "-"}</div>
                 <div>${a.tgl_inspeksi_terakhir ? "Terakhir: " + a.tgl_inspeksi_terakhir : "Belum pernah"}</div>
               </div>
-              ${a.status_aset_terakhir ? `<div style="margin-top:8px;font-weight:600;color:${a.status_aset_terakhir === "LAYAK" ? "#16A34A" : "#DC2626"}">${a.status_aset_terakhir === "LAYAK" ? "✅ LAYAK" : "❌ TIDAK LAYAK"}</div>` : ""}
+              ${
+                a.status_aset_terakhir
+                  ? `<div style="margin-top:8px;font-weight:600;color:${
+                      a.status_aset_terakhir === "LAYAK" ? "#16A34A" : "#DC2626"
+                    }">${
+                      a.status_aset_terakhir === "LAYAK" ? "✅ LAYAK" : "❌ TIDAK LAYAK"
+                    }</div>`
+                  : ""
+              }
             </div>`;
-          } else {
-            hideScanBanner("new", noId + " — isi data manual");
-            const ne = document.getElementById("namaAlat");
-            if (ne) {
-              ne.focus();
-              ne.placeholder = "Isi nama alat untuk asset baru";
-            }
           }
         } catch (e) {
           hideScanBanner("error", "Gagal ambil data — isi manual");
