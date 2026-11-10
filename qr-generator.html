@@ -379,7 +379,7 @@ function renderGrid() {
       <div class="card-check">${selectedIds.has(a.asset_id)?'✓':''}</div>
       <div class="card-qr" id="qr-wrap-${a.asset_id}"></div>
       <div class="card-info">
-        <div class="card-noid">${a.no_id||a.asset_id||'-'}</div>
+        <div class="card-noid">${a.no_toolbox || a.no_id || a.asset_id || '-'}</div>
         <div class="card-nama">${a.nama_alat||'-'}</div>
         <div class="card-merk">${a.merk||'-'}</div>
         <div class="card-area">📍 ${a.nama_subarea||a.subarea_id||'-'} · ${getKategoriName(a.kategori_id)}</div>
@@ -395,7 +395,21 @@ function renderGrid() {
     const assetKey = a.asset_id;
     const wrap = document.getElementById('qr-wrap-' + assetKey);
     if (!wrap) return;
-    const url = FORM_URL + '?asset=' + encodeURIComponent(a.no_id || assetKey);
+
+    // ── PRIORITAS KEY UNTUK QR ──
+    // Toolbox: pakai no_toolbox (karena no_id biasanya kosong)
+    // Asset biasa: pakai no_id
+    // Fallback: asset_id
+    const isToolbox = !!(a.no_toolbox || a.kategori_id === 'KT017' || a.is_toolbox);
+    const qrKey = isToolbox
+      ? (a.no_toolbox || a.no_id || assetKey)
+      : (a.no_id || assetKey);
+
+    let url = FORM_URL + '?asset=' + encodeURIComponent(qrKey);
+    if (isToolbox) {
+      url += '&type=toolbox';
+    }
+
     try {
       new QRCode(wrap, {
         text: url,
